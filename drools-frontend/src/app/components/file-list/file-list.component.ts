@@ -9,6 +9,9 @@ import { ApiService } from '../../services/api.service';
   template: `
     <div class="file-list-container">
       <h3>Excel Decision Tables</h3>
+      <div class="branch-indicator">
+        <span class="branch-label">Files from: <strong>main branch</strong></span>
+      </div>
       <div class="file-list">
         <div 
           *ngFor="let file of files" 
@@ -45,8 +48,21 @@ import { ApiService } from '../../services/api.service';
     }
     
     h3 {
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       color: #333;
+    }
+    
+    .branch-indicator {
+      margin-bottom: 20px;
+      padding: 8px 12px;
+      background-color: #e3f2fd;
+      border: 1px solid #2196f3;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .branch-label {
+      color: #1976d2;
     }
     
     .file-list {

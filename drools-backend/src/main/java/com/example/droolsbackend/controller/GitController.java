@@ -29,7 +29,8 @@ public class GitController {
             return ResponseEntity.ok("Pull completed successfully");
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+            String errorMsg = "Git pull failed: " + e.getMessage();
+            return ResponseEntity.status(500).body(errorMsg);
         }
     }
 
@@ -49,7 +50,8 @@ public class GitController {
             return ResponseEntity.ok("Push completed successfully");
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+            String errorMsg = "Git push failed: " + e.getMessage();
+            return ResponseEntity.status(500).body(errorMsg);
         }
     }
 
@@ -70,7 +72,8 @@ public class GitController {
             return ResponseEntity.ok("Pull request created successfully");
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+            String errorMsg = "Pull request creation failed: " + e.getMessage();
+            return ResponseEntity.status(500).body(errorMsg);
         }
     }
 }

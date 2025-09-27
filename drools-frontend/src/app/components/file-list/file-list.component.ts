@@ -45,6 +45,8 @@ import { ApiService } from '../../services/api.service';
       border-right: 1px solid #ddd;
       height: 100vh;
       background-color: #f8f9fa;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
     
     h3 {

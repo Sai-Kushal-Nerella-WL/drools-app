@@ -15,6 +15,7 @@ import { ApiService } from '../../services/api.service';
         <div class="actions">
           <button (click)="addRow()" class="btn btn-success">Add Row</button>
           <button (click)="save()" class="btn btn-primary" [disabled]="!hasChanges">Save</button>
+          <button (click)="discardChanges()" class="btn btn-secondary" [disabled]="!hasChanges">Discard Changes</button>
           <button (click)="confirmPushToGit()" class="btn btn-warning" [disabled]="isPushing">
             <span *ngIf="isPushing" class="spinner"></span>
             {{ isPushing ? 'Pushing...' : 'Push to Git' }}
@@ -91,7 +92,8 @@ import { ApiService } from '../../services/api.service';
     .rules-grid-container {
       padding: 20px;
       height: 100vh;
-      overflow: auto;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
     
     .grid-header {
@@ -134,6 +136,11 @@ import { ApiService } from '../../services/api.service';
     .btn-warning {
       background-color: #ffc107;
       color: #212529;
+    }
+    
+    .btn-secondary {
+      background-color: #6c757d;
+      color: white;
     }
     
     .btn-danger {
@@ -310,6 +317,7 @@ export class RulesGridComponent implements OnChanges {
   @Input() fileName: string | null = null;
   
   tableView: DecisionTableView | null = null;
+  originalTableView: DecisionTableView | null = null;
   hasChanges = false;
   isPushing = false;
   showConfirmDialog = false;
@@ -330,6 +338,7 @@ export class RulesGridComponent implements OnChanges {
     this.apiService.openSheet(this.fileName).subscribe({
       next: (view) => {
         this.tableView = view;
+        this.originalTableView = JSON.parse(JSON.stringify(view));
         this.hasChanges = false;
       },
       error: (error) => {
@@ -377,6 +386,11 @@ export class RulesGridComponent implements OnChanges {
 
   confirmPushToGit() {
     if (!this.fileName) return;
+    
+    if (this.hasChanges) {
+      this.showNotification('Please save your changes before pushing to Git', 'error');
+      return;
+    }
     
     const timestamp = Date.now();
     this.pendingBranch = `devin/${timestamp}-rules-update`;
@@ -445,6 +459,14 @@ export class RulesGridComponent implements OnChanges {
 
   clearNotification() {
     this.notification = null;
+  }
+
+  discardChanges() {
+    if (!this.originalTableView) return;
+    
+    this.tableView = JSON.parse(JSON.stringify(this.originalTableView));
+    this.hasChanges = false;
+    this.showNotification('Changes discarded successfully', 'success');
   }
 
   getPlaceholder(valueIndex: number): string {

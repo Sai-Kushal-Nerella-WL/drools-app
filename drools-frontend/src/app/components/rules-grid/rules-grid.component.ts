@@ -316,6 +316,7 @@ import { ApiService } from '../../services/api.service';
 })
 export class RulesGridComponent implements OnChanges {
   @Input() fileName: string | null = null;
+  @Input() externalNotification: { message: string; type: 'success' | 'error' } | null = null;
   
   tableView: DecisionTableView | null = null;
   originalTableView: DecisionTableView | null = null;
@@ -330,6 +331,9 @@ export class RulesGridComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['fileName'] && this.fileName) {
       this.loadTable();
+    }
+    if (changes['externalNotification'] && this.externalNotification) {
+      this.showNotification(this.externalNotification.message, this.externalNotification.type);
     }
   }
 
@@ -378,9 +382,11 @@ export class RulesGridComponent implements OnChanges {
       next: (response) => {
         console.log('Save successful:', response);
         this.hasChanges = false;
+        this.showNotification('Changes saved successfully', 'success');
       },
       error: (error) => {
         console.error('Error saving:', error);
+        this.showNotification('Failed to save changes: ' + (error.error?.message || error.message), 'error');
       }
     });
   }

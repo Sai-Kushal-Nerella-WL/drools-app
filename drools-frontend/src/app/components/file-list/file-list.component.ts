@@ -32,11 +32,6 @@ import { ApiService } from '../../services/api.service';
         </button>
       </div>
       
-      <!-- Notification -->
-      <div *ngIf="notification" class="notification" [class]="notification.type">
-        {{ notification.message }}
-        <button (click)="clearNotification()" class="close-btn">&times;</button>
-      </div>
     </div>
   `,
   styles: [`
@@ -149,45 +144,15 @@ import { ApiService } from '../../services/api.service';
       to { transform: rotate(360deg); }
     }
     
-    .notification {
-      margin-top: 15px;
-      padding: 10px;
-      border-radius: 4px;
-      position: relative;
-      font-size: 14px;
-    }
-    
-    .notification.success {
-      background-color: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-    
-    .notification.error {
-      background-color: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-    
-    .close-btn {
-      position: absolute;
-      top: 5px;
-      right: 10px;
-      background: none;
-      border: none;
-      font-size: 16px;
-      cursor: pointer;
-      color: inherit;
-    }
   `]
 })
 export class FileListComponent implements OnInit {
   files: string[] = [];
   selectedFile: string | null = null;
   isPulling = false;
-  notification: { message: string; type: 'success' | 'error' } | null = null;
   
   @Output() fileSelected = new EventEmitter<string>();
+  @Output() notificationRequested = new EventEmitter<{ message: string; type: 'success' | 'error' }>();
 
   constructor(private apiService: ApiService) {}
 
@@ -217,7 +182,6 @@ export class FileListComponent implements OnInit {
 
   pullFromGit() {
     this.isPulling = true;
-    this.clearNotification();
     
     const repoUrl = 'https://github.com/Sai-Kushal-Nerella-WL/drools-rules-lite.git';
     this.apiService.pullFromRepo({ repoUrl, branch: 'main' }).subscribe({
@@ -236,13 +200,9 @@ export class FileListComponent implements OnInit {
   }
 
   showNotification(message: string, type: 'success' | 'error') {
-    this.notification = { message, type };
-    setTimeout(() => {
-      this.clearNotification();
-    }, 5000);
+    this.notificationRequested.emit({ message, type });
   }
 
   clearNotification() {
-    this.notification = null;
   }
 }

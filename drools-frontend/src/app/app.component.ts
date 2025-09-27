@@ -9,10 +9,16 @@ import { RulesGridComponent } from './components/rules-grid/rules-grid.component
   template: `
     <div class="app-container">
       <div class="left-panel">
-        <app-file-list (fileSelected)="onFileSelected($event)"></app-file-list>
+        <app-file-list 
+          (fileSelected)="onFileSelected($event)"
+          (notificationRequested)="onNotificationRequested($event)">
+        </app-file-list>
       </div>
       <div class="right-panel">
-        <app-rules-grid [fileName]="selectedFileName"></app-rules-grid>
+        <app-rules-grid 
+          [fileName]="selectedFileName"
+          [externalNotification]="externalNotification">
+        </app-rules-grid>
       </div>
     </div>
   `,
@@ -39,8 +45,16 @@ import { RulesGridComponent } from './components/rules-grid/rules-grid.component
 })
 export class AppComponent {
   selectedFileName: string | null = null;
+  externalNotification: { message: string; type: 'success' | 'error' } | null = null;
 
   onFileSelected(fileName: string) {
     this.selectedFileName = fileName;
+  }
+
+  onNotificationRequested(notification: { message: string; type: 'success' | 'error' }) {
+    this.externalNotification = notification;
+    setTimeout(() => {
+      this.externalNotification = null;
+    }, 100);
   }
 }

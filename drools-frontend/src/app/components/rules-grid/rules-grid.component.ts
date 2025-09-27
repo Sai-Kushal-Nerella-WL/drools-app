@@ -15,7 +15,10 @@ import { ApiService } from '../../services/api.service';
         <div class="actions">
           <button (click)="addRow()" class="btn btn-success">Add Row</button>
           <button (click)="save()" class="btn btn-primary" [disabled]="!hasChanges">Save</button>
-          <button (click)="pushToGit()" class="btn btn-warning">Push to Git</button>
+          <button (click)="confirmPushToGit()" class="btn btn-warning" [disabled]="isPushing">
+            <span *ngIf="isPushing" class="spinner"></span>
+            {{ isPushing ? 'Pushing...' : 'Push to Git' }}
+          </button>
         </div>
       </div>
       
@@ -62,6 +65,26 @@ import { ApiService } from '../../services/api.service';
     
     <div *ngIf="!tableView" class="no-file-selected">
       Select an Excel file from the left panel to view and edit rules.
+    </div>
+    
+    <!-- Confirmation Dialog -->
+    <div *ngIf="showConfirmDialog" class="modal-overlay" (click)="cancelPush()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <h4>Confirm Push to Git</h4>
+        <p>Are you sure you want to push changes to Git?</p>
+        <p><strong>File:</strong> {{ fileName }}</p>
+        <p><strong>Branch:</strong> {{ pendingBranch }}</p>
+        <div class="modal-actions">
+          <button (click)="cancelPush()" class="btn btn-secondary">Cancel</button>
+          <button (click)="confirmPush()" class="btn btn-warning">Yes, Push</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Notification -->
+    <div *ngIf="notification" class="notification" [class]="notification.type">
+      {{ notification.message }}
+      <button (click)="clearNotification()" class="close-btn">&times;</button>
     </div>
   `,
   styles: [`
@@ -191,6 +214,96 @@ import { ApiService } from '../../services/api.service';
       color: #666;
       font-style: italic;
     }
+    
+    .spinner {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 5px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 90%;
+    }
+    
+    .modal-content h4 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #333;
+    }
+    
+    .modal-content p {
+      margin-bottom: 10px;
+      color: #666;
+    }
+    
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+    
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      z-index: 1001;
+      max-width: 400px;
+      font-size: 14px;
+    }
+    
+    .notification.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .notification.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .close-btn {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      color: inherit;
+    }
   `]
 })
 export class RulesGridComponent implements OnChanges {
@@ -198,6 +311,10 @@ export class RulesGridComponent implements OnChanges {
   
   tableView: DecisionTableView | null = null;
   hasChanges = false;
+  isPushing = false;
+  showConfirmDialog = false;
+  pendingBranch = '';
+  notification: { message: string; type: 'success' | 'error' } | null = null;
 
   constructor(private apiService: ApiService) {}
 
@@ -258,27 +375,48 @@ export class RulesGridComponent implements OnChanges {
     });
   }
 
-  pushToGit() {
+  confirmPushToGit() {
     if (!this.fileName) return;
     
     const timestamp = Date.now();
-    const newBranch = `devin/${timestamp}-rules-update`;
+    this.pendingBranch = `devin/${timestamp}-rules-update`;
+    this.showConfirmDialog = true;
+  }
+
+  cancelPush() {
+    this.showConfirmDialog = false;
+    this.pendingBranch = '';
+  }
+
+  confirmPush() {
+    this.showConfirmDialog = false;
+    this.pushToGit();
+  }
+
+  pushToGit() {
+    if (!this.fileName) return;
+    
+    this.isPushing = true;
+    this.clearNotification();
+    
     const commitMessage = `Update rules in ${this.fileName}`;
     const repoUrl = 'https://github.com/Sai-Kushal-Nerella-WL/drools-rules-lite.git';
     
     this.apiService.pushToRepo({
       fileName: this.fileName,
       repoUrl,
-      newBranch,
+      newBranch: this.pendingBranch,
       commitMessage
     }).subscribe({
       next: (response) => {
         console.log('Push successful:', response);
+        this.isPushing = false;
+        this.showNotification(`Successfully pushed to Git! Branch: ${this.pendingBranch}`, 'success');
         
         this.apiService.createPullRequest({
           repoUrl,
           baseBranch: 'main',
-          newBranch,
+          newBranch: this.pendingBranch,
           title: `Update Drools rules in ${this.fileName}`,
           body: `Automated update to decision table rules via Drools Rules Manager`
         }).subscribe({
@@ -292,8 +430,21 @@ export class RulesGridComponent implements OnChanges {
       },
       error: (error) => {
         console.error('Error pushing to Git:', error);
+        this.isPushing = false;
+        this.showNotification('Failed to push to Git: ' + (error.error?.message || error.message), 'error');
       }
     });
+  }
+
+  showNotification(message: string, type: 'success' | 'error') {
+    this.notification = { message, type };
+    setTimeout(() => {
+      this.clearNotification();
+    }, 8000);
+  }
+
+  clearNotification() {
+    this.notification = null;
   }
 
   getPlaceholder(valueIndex: number): string {

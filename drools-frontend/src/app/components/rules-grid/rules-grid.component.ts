@@ -26,6 +26,10 @@ import { ApiService } from '../../services/api.service';
               <th *ngFor="let label of tableView.columnLabels">{{ label }}</th>
               <th>Actions</th>
             </tr>
+            <tr class="template-row">
+              <th *ngFor="let template of tableView.templateLabels" class="template-header">{{ template }}</th>
+              <th class="template-header"></th>
+            </tr>
           </thead>
           <tbody>
             <tr *ngFor="let row of tableView.rows; let i = index">
@@ -151,6 +155,19 @@ import { ApiService } from '../../services/api.service';
       font-weight: 600;
       position: sticky;
       top: 0;
+    }
+    
+    .template-row {
+      background-color: #e9ecef;
+    }
+    
+    .template-header {
+      font-size: 11px;
+      font-weight: 400;
+      font-style: italic;
+      color: #6c757d;
+      padding: 6px 12px;
+      background-color: #e9ecef !important;
     }
     
     .form-control {

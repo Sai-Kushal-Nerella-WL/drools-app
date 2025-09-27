@@ -71,6 +71,20 @@ public class ExcelService {
                 }
             }
             
+            List<String> templateLabels = new ArrayList<>();
+            Row templateRow = sheet.getRow(headerRowIndex + 1);
+            if (templateRow != null) {
+                for (int i = 0; i < columnLabels.size(); i++) {
+                    Cell cell = templateRow.getCell(i);
+                    String value = getCellValueAsString(cell);
+                    templateLabels.add(value != null ? value : "");
+                }
+            } else {
+                for (int i = 0; i < columnLabels.size(); i++) {
+                    templateLabels.add("");
+                }
+            }
+            
             int dataStartRow = headerRowIndex + 2;
             
             List<RuleRow> rows = new ArrayList<>();
@@ -92,7 +106,7 @@ public class ExcelService {
                 }
             }
             
-            return new DecisionTableView(columnLabels, rows);
+            return new DecisionTableView(columnLabels, templateLabels, rows);
         }
     }
 

@@ -16,7 +16,7 @@ import { ApiService } from '../../services/api.service';
           <button (click)="addRow()" class="btn btn-success">Add Row</button>
           <button (click)="save()" class="btn btn-primary" [disabled]="!hasChanges">Save</button>
           <button (click)="discardChanges()" class="btn btn-secondary" [disabled]="!hasChanges">Discard Changes</button>
-          <button (click)="confirmPushToGit()" class="btn btn-warning" [disabled]="isPushing">
+          <button (click)="confirmPushToGit()" class="btn btn-warning" [disabled]="isPushing || hasChanges">
             <span *ngIf="isPushing" class="spinner"></span>
             {{ isPushing ? 'Pushing...' : 'Push to Git' }}
           </button>
@@ -92,8 +92,9 @@ import { ApiService } from '../../services/api.service';
     .rules-grid-container {
       padding: 20px;
       height: 100vh;
-      overflow-y: auto;
-      overflow-x: hidden;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
     
     .grid-header {
@@ -163,7 +164,9 @@ import { ApiService } from '../../services/api.service';
     }
     
     .grid-wrapper {
-      overflow-x: auto;
+      overflow: auto;
+      flex: 1;
+      min-height: 0;
     }
     
     .rules-table {
@@ -278,15 +281,13 @@ import { ApiService } from '../../services/api.service';
     }
     
     .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
+      margin-top: 15px;
       padding: 15px 20px;
       border-radius: 4px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      z-index: 1001;
       max-width: 400px;
       font-size: 14px;
+      position: relative;
     }
     
     .notification.success {

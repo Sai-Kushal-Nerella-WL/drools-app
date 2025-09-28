@@ -37,7 +37,7 @@ interface NotificationItem {
           <thead>
             <tr>
               <th *ngFor="let label of tableView.columnLabels">{{ label }}</th>
-              <th>Actions</th>
+              <th>Events</th>
             </tr>
             <tr class="template-row">
               <th *ngFor="let template of tableView.templateLabels" class="template-header">{{ template }}</th>
@@ -61,7 +61,7 @@ interface NotificationItem {
                   [placeholder]="getPlaceholder(j-1)">
               </td>
               <td>
-                <button (click)="deleteRow(i)" class="btn btn-danger btn-sm">Remove</button>
+                <button (click)="deleteRow(i)" class="btn btn-danger btn-sm">Delete</button>
               </td>
             </tr>
           </tbody>
@@ -325,30 +325,32 @@ interface NotificationItem {
     
     .notification-stack {
       position: fixed !important;
-      bottom: 2vh !important;
-      right: 2vw !important;
+      bottom: 20px !important;
+      right: 20px !important;
       z-index: 99999 !important;
       display: flex !important;
       flex-direction: column !important;
-      gap: 1vh !important;
-      max-height: calc(100vh - 4vh) !important;
+      gap: 10px !important;
+      max-height: calc(100vh - 40px) !important;
       overflow: visible !important;
-      width: min(400px, 25vw) !important;
-      min-width: min(300px, 20vw) !important;
-      min-height: 2vh !important;
+      width: 320px !important;
+      max-width: calc(100vw - 40px) !important;
+      min-width: 250px !important;
+      min-height: 20px !important;
       pointer-events: auto !important;
       box-sizing: border-box !important;
+      transform: translateX(0) translateY(0) !important;
     }
     
     .notification {
-      padding: 1.5vh 2vw 1vh 2vw !important;
-      border-radius: 8px !important;
+      padding: 12px 16px 8px 16px !important;
+      border-radius: 6px !important;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-      max-width: min(400px, 25vw) !important;
-      min-width: min(300px, 20vw) !important;
       width: 100% !important;
-      min-height: 6vh !important;
-      font-size: clamp(12px, 1.5vw, 15px) !important;
+      max-width: 320px !important;
+      min-width: 250px !important;
+      min-height: 50px !important;
+      font-size: 13px !important;
       font-weight: 500 !important;
       border-left: 4px solid !important;
       animation: slideIn 0.3s ease-out !important;
@@ -358,6 +360,8 @@ interface NotificationItem {
       display: block !important;
       word-wrap: break-word !important;
       overflow-wrap: break-word !important;
+      box-sizing: border-box !important;
+      margin: 0 !important;
     }
     
     @keyframes slideIn {

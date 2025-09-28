@@ -285,16 +285,30 @@ import { ApiService } from '../../services/api.service';
     }
     
     .notification {
-      margin-top: 15px;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
       padding: 15px 20px;
-      border-radius: 4px;
+      border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      max-width: 500px;
+      max-width: 400px;
+      min-width: 300px;
       font-size: 15px;
       font-weight: 500;
-      position: relative;
-      z-index: 100;
+      z-index: 1000;
       border-left: 4px solid;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
     }
     
     .notification.success {

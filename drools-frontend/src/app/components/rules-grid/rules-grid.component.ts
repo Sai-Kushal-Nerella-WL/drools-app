@@ -252,6 +252,7 @@ interface NotificationItem {
       max-width: 100% !important;
       height: 400px !important;
       display: block !important;
+      scroll-behavior: smooth;
     }
     
     ::ng-deep .grid-wrapper {
@@ -331,19 +332,21 @@ interface NotificationItem {
     
     .rules-table th:last-child,
     .rules-table td:last-child {
-      width: 80px !important;
-      max-width: 80px !important;
-      min-width: 80px !important;
+      width: 100px !important;
+      max-width: 100px !important;
+      min-width: 100px !important;
       text-align: center !important;
       position: sticky !important;
       right: 0 !important;
       background-color: white !important;
       z-index: 10 !important;
     }
-    
+
     .rules-table th:last-child {
-      padding: 8px 4px !important;
+      padding: 8px 12px !important;
       background-color: #f8f9fa !important;
+      font-weight: 600;
+      text-align: center;
     }
     
     .rules-table th {
@@ -561,20 +564,28 @@ interface NotificationItem {
       background: #dc3545;
       color: white;
       border: none;
-      border-radius: 3px;
-      width: 20px;
-      height: 20px;
-      font-size: 12px;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-size: 14px;
       line-height: 1;
       cursor: pointer;
       margin-left: 8px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .btn-delete-column:hover {
       background-color: #c82333;
+      transform: scale(1.1);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .btn-delete-column:active {
+      transform: scale(0.95);
     }
 
     .add-column-modal {

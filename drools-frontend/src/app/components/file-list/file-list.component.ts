@@ -67,7 +67,6 @@ import { ApiService } from '../../services/api.service';
       overflow-y: auto;
       flex: 1;
       min-height: 0;
-      margin-bottom: 10px;
     }
     
     .file-item {
@@ -100,9 +99,10 @@ import { ApiService } from '../../services/api.service';
       display: flex;
       flex-direction: column;
       gap: 10px;
-      padding: 10px 0;
+      padding: 10px;
       border-top: 1px solid #ddd;
-      margin-top: 0;
+      margin-top: 10px;
+      background-color: #f8f9fa;
     }
     
     .btn {

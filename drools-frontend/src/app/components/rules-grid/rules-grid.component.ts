@@ -264,15 +264,35 @@ interface NotificationItem {
     }
 
     /* More aggressive CSS to override any conflicting styles */
+    ::ng-deep .rules-grid-container {
+      overflow: visible !important;
+      overflow-x: visible !important;
+      overflow-y: visible !important;
+    }
+
     ::ng-deep .rules-grid-container .grid-wrapper {
       overflow-x: auto !important;
       overflow-y: auto !important;
+      overflow: auto !important;
+      width: 100% !important;
+      max-width: 100% !important;
     }
 
     ::ng-deep .rules-grid-container .grid-wrapper .rules-table {
       table-layout: fixed !important;
       width: max-content !important;
       min-width: 100% !important;
+    }
+
+    /* Target parent containers that might be setting overflow: hidden */
+    ::ng-deep .right-panel {
+      overflow: visible !important;
+      overflow-x: visible !important;
+    }
+
+    ::ng-deep app-rules-grid {
+      overflow: visible !important;
+      overflow-x: visible !important;
     }
     
     ::ng-deep .rules-table {

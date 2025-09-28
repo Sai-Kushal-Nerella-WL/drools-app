@@ -325,30 +325,30 @@ interface NotificationItem {
     
     .notification-stack {
       position: fixed !important;
-      bottom: 20px !important;
-      right: 20px !important;
+      bottom: 2vh !important;
+      right: 2vw !important;
       z-index: 99999 !important;
       display: flex !important;
       flex-direction: column !important;
-      gap: 10px !important;
-      max-height: calc(100vh - 40px) !important;
+      gap: 1vh !important;
+      max-height: calc(100vh - 4vh) !important;
       overflow: visible !important;
-      width: 400px !important;
-      min-width: 300px !important;
-      min-height: 20px !important;
+      width: min(400px, 25vw) !important;
+      min-width: min(300px, 20vw) !important;
+      min-height: 2vh !important;
       pointer-events: auto !important;
       box-sizing: border-box !important;
     }
     
     .notification {
-      padding: 15px 20px 10px 20px !important;
+      padding: 1.5vh 2vw 1vh 2vw !important;
       border-radius: 8px !important;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-      max-width: 400px !important;
-      min-width: 300px !important;
-      width: 400px !important;
-      min-height: 60px !important;
-      font-size: 15px !important;
+      max-width: min(400px, 25vw) !important;
+      min-width: min(300px, 20vw) !important;
+      width: 100% !important;
+      min-height: 6vh !important;
+      font-size: clamp(12px, 1.5vw, 15px) !important;
       font-weight: 500 !important;
       border-left: 4px solid !important;
       animation: slideIn 0.3s ease-out !important;
@@ -356,6 +356,8 @@ interface NotificationItem {
       background: white !important;
       flex-shrink: 0 !important;
       display: block !important;
+      word-wrap: break-word !important;
+      overflow-wrap: break-word !important;
     }
     
     @keyframes slideIn {

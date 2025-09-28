@@ -37,10 +37,43 @@ body {
   width: auto !important;
 }
 
-/* Force notification stack to maintain dimensions */
+/* Force notification stack to maintain responsive dimensions */
 .notification-stack {
-  min-width: 300px !important;
-  min-height: 20px !important;
+  min-width: min(300px, 20vw) !important;
+  min-height: 2vh !important;
+}
+
+/* Responsive notification positioning for different screen sizes */
+@media (max-width: 768px) {
+  .notification-stack {
+    bottom: 1vh !important;
+    right: 1vw !important;
+    width: min(350px, 90vw) !important;
+    min-width: min(250px, 80vw) !important;
+  }
+  
+  .notification {
+    max-width: min(350px, 90vw) !important;
+    min-width: min(250px, 80vw) !important;
+    padding: 1vh 2vw !important;
+    font-size: clamp(11px, 2vw, 14px) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .notification-stack {
+    bottom: 1vh !important;
+    right: 2vw !important;
+    width: 96vw !important;
+    min-width: 90vw !important;
+  }
+  
+  .notification {
+    max-width: 96vw !important;
+    min-width: 90vw !important;
+    padding: 1vh 3vw !important;
+    font-size: clamp(10px, 3vw, 13px) !important;
+  }
 }
 
 /* Ensure tables and their containers respect overflow controls */

@@ -1,15 +1,15 @@
 /* You can add global styles to this file, and also import other style files */
 
-/* Global overflow control to prevent horizontal scrolling */
+/* Global overflow control - allow scrolling */
 html {
-  overflow: hidden !important;
+  overflow: auto;
   width: 100vw;
   height: 100vh;
   box-sizing: border-box;
 }
 
 body {
-  overflow: hidden !important;
+  overflow: auto;
   margin: 0;
   padding: 0;
   width: 100vw;

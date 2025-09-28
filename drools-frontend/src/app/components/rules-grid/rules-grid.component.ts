@@ -315,26 +315,30 @@ interface NotificationItem {
       position: fixed;
       bottom: 20px;
       right: 20px;
-      z-index: 1000;
+      z-index: 10000;
       display: flex;
       flex-direction: column;
       gap: 10px;
       max-height: calc(100vh - 40px);
-      overflow: hidden;
+      overflow: visible;
+      max-width: none !important;
+      width: auto !important;
     }
     
     .notification {
       padding: 15px 20px 10px 20px;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      max-width: 400px;
+      max-width: 400px !important;
       min-width: 300px;
+      width: 400px;
       font-size: 15px;
       font-weight: 500;
       border-left: 4px solid;
       animation: slideIn 0.3s ease-out;
       position: relative;
       background: white;
+      flex-shrink: 0;
     }
     
     @keyframes slideIn {

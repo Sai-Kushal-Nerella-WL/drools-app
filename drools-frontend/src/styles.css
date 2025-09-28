@@ -28,6 +28,12 @@ body {
   max-width: 100%;
 }
 
+/* Exclude notification elements from global max-width constraint */
+.notification-stack,
+.notification {
+  max-width: none !important;
+}
+
 /* Ensure tables and their containers respect overflow controls */
 table, .rules-table, .grid-wrapper, .rules-grid-container {
   max-width: 100% !important;

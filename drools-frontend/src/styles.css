@@ -1,1 +1,29 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* Global overflow control to prevent horizontal scrolling */
+html {
+  overflow-x: hidden !important;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden !important;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100vh;
+  box-sizing: border-box;
+  position: relative;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Prevent any element from causing horizontal overflow */
+* {
+  max-width: 100%;
+}

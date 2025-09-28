@@ -35,10 +35,22 @@ import { RepositoryConfig } from './models/repository-config.model';
     </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      width: 100%;
+      height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
     .app-container {
       display: flex;
       height: 100vh;
+      width: 100%;
+      max-width: 100vw;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow-x: hidden;
+      box-sizing: border-box;
     }
     
     .left-panel {
@@ -47,11 +59,13 @@ import { RepositoryConfig } from './models/repository-config.model';
       max-width: 400px;
       resize: horizontal;
       overflow: auto;
+      flex-shrink: 0;
     }
     
     .right-panel {
       flex: 1;
       overflow: hidden;
+      min-width: 0;
     }
   `]
 })

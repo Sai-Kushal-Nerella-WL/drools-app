@@ -61,7 +61,7 @@ interface NotificationItem {
                   [placeholder]="getPlaceholder(j-1)">
               </td>
               <td>
-                <button (click)="deleteRow(i)" class="btn btn-danger btn-sm">Delete</button>
+                <button (click)="deleteRow(i)" class="btn btn-danger btn-sm">Remove</button>
               </td>
             </tr>
           </tbody>
@@ -208,6 +208,18 @@ interface NotificationItem {
       max-width: 0;
     }
     
+    .rules-table th:last-child,
+    .rules-table td:last-child {
+      width: 80px !important;
+      max-width: 80px !important;
+      min-width: 80px !important;
+      text-align: center !important;
+    }
+    
+    .rules-table th:last-child {
+      padding: 8px 4px !important;
+    }
+    
     .rules-table th {
       background-color: #f8f9fa;
       font-weight: 600;
@@ -312,33 +324,38 @@ interface NotificationItem {
     }
     
     .notification-stack {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 10000;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-height: calc(100vh - 40px);
-      overflow: visible;
-      max-width: none !important;
-      width: auto !important;
+      position: fixed !important;
+      bottom: 20px !important;
+      right: 20px !important;
+      z-index: 99999 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+      max-height: calc(100vh - 40px) !important;
+      overflow: visible !important;
+      width: 400px !important;
+      min-width: 300px !important;
+      min-height: 20px !important;
+      pointer-events: auto !important;
+      box-sizing: border-box !important;
     }
     
     .notification {
-      padding: 15px 20px 10px 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      padding: 15px 20px 10px 20px !important;
+      border-radius: 8px !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
       max-width: 400px !important;
-      min-width: 300px;
-      width: 400px;
-      font-size: 15px;
-      font-weight: 500;
-      border-left: 4px solid;
-      animation: slideIn 0.3s ease-out;
-      position: relative;
-      background: white;
-      flex-shrink: 0;
+      min-width: 300px !important;
+      width: 400px !important;
+      min-height: 60px !important;
+      font-size: 15px !important;
+      font-weight: 500 !important;
+      border-left: 4px solid !important;
+      animation: slideIn 0.3s ease-out !important;
+      position: relative !important;
+      background: white !important;
+      flex-shrink: 0 !important;
+      display: block !important;
     }
     
     @keyframes slideIn {

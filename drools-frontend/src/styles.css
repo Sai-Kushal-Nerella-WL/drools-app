@@ -30,8 +30,17 @@ body {
 
 /* Exclude notification elements from global max-width constraint */
 .notification-stack,
-.notification {
+.notification,
+.notification-stack *,
+.notification * {
   max-width: none !important;
+  width: auto !important;
+}
+
+/* Force notification stack to maintain dimensions */
+.notification-stack {
+  min-width: 300px !important;
+  min-height: 20px !important;
 }
 
 /* Ensure tables and their containers respect overflow controls */

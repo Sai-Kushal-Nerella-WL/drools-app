@@ -880,7 +880,7 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
     
     this.isPushing = true;
     
-    const commitMessage = `Update rules in ${this.fileName}`;
+    const commitMessage = this.generateCommitMessage(config.repoUrl, this.fileName);
     
     this.apiService.pushToRepo({
       fileName: this.fileName,
@@ -1085,5 +1085,30 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
           this.showNotification(errorMessage, 'error');
         }
       });
+  }
+
+  private generateCommitMessage(repoUrl: string, fileName: string): string {
+    const repoName = this.extractRepoName(repoUrl);
+    
+    const excelName = fileName.replace(/\.[^/.]+$/, '');
+    
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const year = String(now.getFullYear()).slice(-2);
+    const hour = String(now.getHours()).padStart(2, '0');
+    const minute = String(now.getMinutes()).padStart(2, '0');
+    const datetime = `${month}${day}${year}${hour}${minute}`;
+    
+    const repoPrefix = repoName.substring(0, Math.min(3, repoName.length)).toUpperCase();
+    const excelPrefix = excelName.substring(0, Math.min(3, excelName.length)).toUpperCase();
+    
+    return `${repoPrefix}_${excelPrefix}_${datetime}`;
+  }
+
+  private extractRepoName(repoUrl: string): string {
+    const urlParts = repoUrl.split('/');
+    const repoName = urlParts[urlParts.length - 1].replace('.git', '');
+    return repoName;
   }
 }

@@ -9,7 +9,7 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
   imports: [CommonModule],
   template: `
     <div class="file-list-container">
-      <h3>Excel Decision Tables</h3>
+      <h3>{{ getDisplayTitle() }}</h3>
       <div class="branch-indicator">
         <span class="branch-label">Files from: <strong>{{ getCurrentBranch() }} branch</strong></span>
       </div>
@@ -244,5 +244,10 @@ export class FileListComponent implements OnInit {
     this.repositoryConfigService.clearConfig();
     this.repositoryChangeRequested.emit();
     this.showNotification('Repository configuration cleared. Please configure a new repository.', 'success');
+  }
+
+  getDisplayTitle(): string {
+    const config = this.repositoryConfigService.getCurrentConfig();
+    return config?.displayName || 'Excel Decision Tables';
   }
 }

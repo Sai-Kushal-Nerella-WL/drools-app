@@ -4,6 +4,7 @@ import com.example.droolsbackend.model.DecisionTableView;
 import com.example.droolsbackend.model.RuleRow;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -17,10 +18,16 @@ import java.util.List;
 @Service
 public class ExcelService {
 
-    private static final String RULES_DIR = "/home/ubuntu/repos/drools-rules-lite/rules/";
+    @Autowired
+    private RepositoryConfigService repositoryConfigService;
 
     public List<String> listExcelFiles() {
-        File rulesDir = new File(RULES_DIR);
+        String repositoryPath = repositoryConfigService.getRepositoryPath();
+        if (repositoryPath == null) {
+            return new ArrayList<>();
+        }
+        
+        File rulesDir = new File(repositoryPath + "/rules/");
         List<String> excelFiles = new ArrayList<>();
         
         if (rulesDir.exists() && rulesDir.isDirectory()) {
@@ -36,7 +43,12 @@ public class ExcelService {
     }
 
     public DecisionTableView readDecisionTable(String fileName) throws IOException {
-        File excelFile = new File(RULES_DIR + fileName);
+        String repositoryPath = repositoryConfigService.getRepositoryPath();
+        if (repositoryPath == null) {
+            throw new RuntimeException("Repository not configured");
+        }
+        
+        File excelFile = new File(repositoryPath + "/rules/" + fileName);
         
         try (FileInputStream fis = new FileInputStream(excelFile);
              Workbook workbook = new XSSFWorkbook(fis)) {
@@ -111,7 +123,12 @@ public class ExcelService {
     }
 
     public void saveDecisionTable(String fileName, DecisionTableView view) throws IOException {
-        File excelFile = new File(RULES_DIR + fileName);
+        String repositoryPath = repositoryConfigService.getRepositoryPath();
+        if (repositoryPath == null) {
+            throw new RuntimeException("Repository not configured");
+        }
+        
+        File excelFile = new File(repositoryPath + "/rules/" + fileName);
         
         try (FileInputStream fis = new FileInputStream(excelFile);
              Workbook workbook = new XSSFWorkbook(fis)) {

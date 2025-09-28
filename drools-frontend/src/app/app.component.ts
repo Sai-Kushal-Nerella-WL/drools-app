@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { FileListComponent } from './components/file-list/file-list.component';
@@ -22,7 +22,8 @@ import { RepositoryConfig } from './models/repository-config.model';
         <app-file-list 
           (fileSelected)="onFileSelected($event)"
           (notificationRequested)="onNotificationRequested($event)"
-          (repositoryChangeRequested)="onRepositoryChangeRequested()">
+          (repositoryChangeRequested)="onRepositoryChangeRequested()"
+          [repositoryConfigurationChanged]="repositoryConfigurationChanged">
         </app-file-list>
       </div>
       <div class="right-panel">
@@ -58,6 +59,7 @@ export class AppComponent implements OnInit {
   selectedFileName: string | null = null;
   externalNotification: { message: string; type: 'success' | 'error' } | null = null;
   isConfigured = false;
+  repositoryConfigurationChanged = new EventEmitter<void>();
   
   constructor(private repositoryConfigService: RepositoryConfigService) {}
 
@@ -82,6 +84,7 @@ export class AppComponent implements OnInit {
 
   onConfigurationComplete(config: RepositoryConfig) {
     this.isConfigured = true;
+    this.repositoryConfigurationChanged.emit();
   }
 
   onRepositoryChangeRequested() {

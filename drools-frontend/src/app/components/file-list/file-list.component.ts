@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../services/api.service';
 import { RepositoryConfigService } from '../../services/repository-config.service';
@@ -161,6 +161,7 @@ export class FileListComponent implements OnInit {
   selectedFile: string | null = null;
   isPulling = false;
   
+  @Input() repositoryConfigurationChanged!: EventEmitter<void>;
   @Output() fileSelected = new EventEmitter<string>();
   @Output() notificationRequested = new EventEmitter<{ message: string; type: 'success' | 'error' }>();
   @Output() repositoryChangeRequested = new EventEmitter<void>();
@@ -172,6 +173,13 @@ export class FileListComponent implements OnInit {
 
   ngOnInit() {
     this.loadFiles();
+    
+    if (this.repositoryConfigurationChanged) {
+      this.repositoryConfigurationChanged.subscribe(() => {
+        this.loadFiles();
+        this.showNotification('File list refreshed for new repository', 'success');
+      });
+    }
   }
 
   loadFiles() {

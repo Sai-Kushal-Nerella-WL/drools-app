@@ -1,10 +1,13 @@
 package com.example.droolsbackend.service;
 
 import com.example.droolsbackend.model.DecisionTableView;
+import com.example.droolsbackend.model.RepositoryConfig;
 import com.example.droolsbackend.model.RuleRow;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -486,5 +489,28 @@ public class ExcelService {
         } else {
             cell.setCellValue(value.toString());
         }
+    }
+
+    public Resource downloadExcelFile(String fileName) {
+        String repositoryPath = repositoryConfigService.getRepositoryPath();
+        if (repositoryPath == null) {
+            return null;
+        }
+        
+        try {
+            RepositoryConfig config = repositoryConfigService.getConfig();
+            if (config != null && config.getBranch() != null) {
+                ensureCorrectBranch(repositoryPath, config.getBranch());
+            }
+        } catch (Exception e) {
+            System.err.println("Warning: Could not ensure correct branch: " + e.getMessage());
+        }
+        
+        File file = new File(repositoryPath + "/rules/" + fileName);
+        if (!file.exists() || !file.isFile()) {
+            return null;
+        }
+        
+        return new FileSystemResource(file);
     }
 }

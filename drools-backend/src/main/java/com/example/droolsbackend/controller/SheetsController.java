@@ -4,6 +4,9 @@ import com.example.droolsbackend.model.DecisionTableView;
 import com.example.droolsbackend.service.ExcelService;
 import com.example.droolsbackend.service.DroolsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +32,8 @@ public class SheetsController {
             List<String> files = excelService.listExcelFiles();
             return ResponseEntity.ok(files);
         } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Error in listSheets: " + e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -160,6 +165,25 @@ public class SheetsController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to execute rules: " + e.getMessage());
             return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/download/{fileName}")
+    public ResponseEntity<Resource> downloadSheet(@PathVariable String fileName) {
+        try {
+            Resource resource = excelService.downloadExcelFile(fileName);
+            
+            if (resource == null || !resource.exists()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .body(resource);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
         }
     }
 

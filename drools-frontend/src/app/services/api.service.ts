@@ -58,4 +58,14 @@ export class ApiService {
   executeRules(fileName: string, inputData: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/sheets/execute-rules`, { fileName, inputData });
   }
+
+  configureRepository(config: any): Observable<{message: string}> {
+    return this.http.post<{message: string}>(`${this.baseUrl}/repository/configure`, config);
+  }
+
+  downloadSheet(fileName: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/sheets/download/${fileName}`, { 
+      responseType: 'blob' 
+    });
+  }
 }

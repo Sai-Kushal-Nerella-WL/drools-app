@@ -12,6 +12,15 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       <h3>{{ getDisplayTitle() }}</h3>
       <div class="branch-indicator">
         <span class="branch-label">Files from: <strong>{{ getCurrentBranch() }} branch</strong></span>
+        <button 
+          *ngIf="getCurrentBranch() !== 'main'" 
+          (click)="switchToMainBranch()" 
+          class="btn btn-switch"
+          [disabled]="isSwitchingBranch"
+          title="Switch to main branch to enable editing">
+          <span *ngIf="isSwitchingBranch" class="spinner"></span>
+          {{ isSwitchingBranch ? 'Switching...' : 'Switch to Main' }}
+        </button>
       </div>
       <div class="file-list">
         <div 
@@ -25,10 +34,17 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
           No Excel files found
         </div>
         <div class="actions">
-          <button (click)="refreshFiles()" class="btn btn-secondary">Refresh</button>
+          <button (click)="refreshFiles()" class="btn btn-secondary" [disabled]="isRefreshing">
+            <span *ngIf="isRefreshing" class="spinner"></span>
+            {{ isRefreshing ? 'Refreshing...' : 'Refresh' }}
+          </button>
           <button (click)="pullFromGit()" class="btn btn-primary" [disabled]="isPulling">
             <span *ngIf="isPulling" class="spinner"></span>
             {{ isPulling ? 'Pulling...' : 'Pull from Git' }}
+          </button>
+          <button (click)="downloadFile()" class="btn btn-success" [disabled]="!selectedFile || isDownloading">
+            <span *ngIf="isDownloading" class="spinner"></span>
+            {{ isDownloading ? 'Downloading...' : 'Download File' }}
           </button>
           <button (click)="changeRepository()" class="btn btn-warning">Change Repository</button>
         </div>
@@ -130,6 +146,19 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       color: #212529;
     }
     
+    .btn-success {
+      background-color: #28a745;
+      color: white;
+    }
+    
+    .btn-switch {
+      background-color: #17a2b8;
+      color: white;
+      font-size: 12px;
+      padding: 4px 8px;
+      margin-left: 10px;
+    }
+    
     .btn:hover {
       opacity: 0.9;
     }
@@ -160,6 +189,9 @@ export class FileListComponent implements OnInit {
   files: string[] = [];
   selectedFile: string | null = null;
   isPulling = false;
+  isRefreshing = false;
+  isDownloading = false;
+  isSwitchingBranch = false;
   
   @Input() repositoryConfigurationChanged!: EventEmitter<void>;
   @Output() fileSelected = new EventEmitter<string>();
@@ -205,8 +237,20 @@ export class FileListComponent implements OnInit {
   }
 
   refreshFiles() {
+    this.isRefreshing = true;
     this.showNotification('Refreshing file list...', 'success');
-    this.loadFiles();
+    this.apiService.listSheets().subscribe({
+      next: (files) => {
+        this.files = files;
+        this.isRefreshing = false;
+        this.showNotification('File list refreshed successfully', 'success');
+      },
+      error: (error) => {
+        console.error('Error refreshing files:', error);
+        this.isRefreshing = false;
+        this.showNotification('Failed to refresh file list', 'error');
+      }
+    });
   }
 
   pullFromGit() {
@@ -255,5 +299,61 @@ export class FileListComponent implements OnInit {
   getDisplayTitle(): string {
     const config = this.repositoryConfigService.getCurrentConfig();
     return config?.displayName || 'Excel Decision Tables';
+  }
+
+  switchToMainBranch() {
+    this.isSwitchingBranch = true;
+    const config = this.repositoryConfigService.getCurrentConfig();
+    
+    if (!config) {
+      this.showNotification('Repository not configured', 'error');
+      this.isSwitchingBranch = false;
+      return;
+    }
+
+    const mainConfig = { ...config, branch: 'main' };
+    this.repositoryConfigService.saveConfig(mainConfig);
+    
+    this.apiService.configureRepository(mainConfig).subscribe({
+      next: (response: any) => {
+        this.isSwitchingBranch = false;
+        this.showNotification('Switched to main branch successfully', 'success');
+        this.loadFiles();
+      },
+      error: (error: any) => {
+        console.error('Error switching to main branch:', error);
+        this.isSwitchingBranch = false;
+        this.showNotification('Failed to switch to main branch: ' + (error.error?.message || error.message), 'error');
+      }
+    });
+  }
+
+  downloadFile() {
+    if (!this.selectedFile) {
+      this.showNotification('Please select a file to download', 'error');
+      return;
+    }
+
+    this.isDownloading = true;
+    this.apiService.downloadSheet(this.selectedFile).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = this.selectedFile!;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        this.isDownloading = false;
+        this.showNotification(`Downloaded ${this.selectedFile} successfully`, 'success');
+      },
+      error: (error: any) => {
+        console.error('Error downloading file:', error);
+        this.isDownloading = false;
+        this.showNotification('Failed to download file: ' + (error.error?.message || error.message), 'error');
+      }
+    });
   }
 }

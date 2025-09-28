@@ -21,15 +21,34 @@ interface NotificationItem {
     <div class="rules-grid-container" *ngIf="tableView">
       <div class="grid-header">
         <h3>{{ fileName }}</h3>
+        <div class="search-controls">
+          <input 
+            type="text" 
+            [(ngModel)]="searchTerm" 
+            placeholder="Search rules..." 
+            class="form-control search-input"
+            [disabled]="isLoading">
+          <button (click)="clearSearch()" class="btn btn-sm btn-secondary" [disabled]="!searchTerm || isLoading">Clear</button>
+        </div>
         <div class="actions">
-          <button (click)="addRow()" class="btn btn-success" [disabled]="isReadOnly">Add Row</button>
-          <button (click)="showAddColumnModal()" class="btn btn-info" [disabled]="isReadOnly">Add Column</button>
-          <button (click)="save()" class="btn btn-primary" [disabled]="!hasChanges || isReadOnly">Save</button>
-          <button (click)="discardChanges()" class="btn btn-secondary" [disabled]="(!hasChanges && !hasSavedChanges) || isReadOnly">Discard Changes</button>
-          <button (click)="confirmPushToGit()" class="btn btn-warning" [disabled]="isPushing || hasChanges || !hasSavedChanges || isReadOnly">
+          <button (click)="addRow()" class="btn btn-success" [disabled]="isReadOnly || isLoading">Add Row</button>
+          <button (click)="showAddColumnModal()" class="btn btn-info" [disabled]="isReadOnly || isLoading">Add Column</button>
+          <button (click)="save()" class="btn btn-primary" [disabled]="!hasChanges || isReadOnly || isSaving">
+            <span *ngIf="isSaving" class="spinner"></span>
+            {{ isSaving ? 'Saving...' : 'Save' }}
+          </button>
+          <button (click)="discardChanges()" class="btn btn-secondary" [disabled]="(!hasChanges && !hasSavedChanges) || isReadOnly || isLoading">Discard Changes</button>
+          <button (click)="confirmPushToGit()" class="btn btn-warning" [disabled]="isPushing || hasChanges || !hasSavedChanges || isReadOnly || isLoading">
             <span *ngIf="isPushing" class="spinner"></span>
             {{ isPushing ? 'Pushing...' : 'Push to Git' }}
           </button>
+        </div>
+      </div>
+      
+      <div class="loading-overlay" *ngIf="isLoading">
+        <div class="loading-content">
+          <div class="spinner large-spinner"></div>
+          <p>Loading rules...</p>
         </div>
       </div>
       
@@ -37,9 +56,14 @@ interface NotificationItem {
         <table class="rules-table" style="width: 4000px !important; min-width: 4000px !important; table-layout: fixed !important;">
           <thead>
             <tr>
-              <th *ngFor="let label of tableView.columnLabels; let i = index">
-                {{ label }}
-                <button *ngIf="i > 0 && !isReadOnly" (click)="confirmDeleteColumn(i)" class="btn-delete-column" title="Delete column">×</button>
+              <th *ngFor="let label of tableView.columnLabels; let i = index" (click)="sortByColumn(i)" class="sortable-header">
+                <div class="header-content">
+                  <span>{{ label }}</span>
+                  <span class="sort-indicator" *ngIf="sortColumn === i.toString()">
+                    {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                  </span>
+                </div>
+                <button *ngIf="i > 0 && !isReadOnly" (click)="confirmDeleteColumn(i); $event.stopPropagation()" class="btn-delete-column" title="Delete column">×</button>
               </th>
               <th>Events</th>
             </tr>
@@ -49,7 +73,7 @@ interface NotificationItem {
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let row of tableView.rows; let i = index">
+            <tr *ngFor="let row of getFilteredRows(); let i = index" [attr.data-original-index]="getOriginalRowIndex(row)">
               <td *ngFor="let label of tableView.columnLabels; let j = index">
                 <input 
                   *ngIf="j === 0"
@@ -57,25 +81,26 @@ interface NotificationItem {
                   (ngModelChange)="markChanged()"
                   class="form-control"
                   placeholder="Rule name"
-                  [readonly]="isReadOnly">
+                  [readonly]="isReadOnly || isLoading">
                 <input 
                   *ngIf="j > 0"
                   [(ngModel)]="row.values[j-1]"
                   (ngModelChange)="markChanged()"
                   class="form-control"
                   [placeholder]="getPlaceholder(j-1)"
-                  [readonly]="isReadOnly">
+                  [readonly]="isReadOnly || isLoading">
               </td>
               <td>
-                <button (click)="deleteRow(i)" class="btn btn-danger btn-sm" [disabled]="isReadOnly">Delete</button>
+                <button (click)="deleteRow(getOriginalRowIndex(row))" class="btn btn-danger btn-sm" [disabled]="isReadOnly || isLoading">Delete</button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
       
-      <div *ngIf="tableView.rows.length === 0" class="no-data">
-        No rules found. Click "Add Row" to create your first rule.
+      <div *ngIf="getFilteredRows().length === 0 && !isLoading" class="no-data">
+        <span *ngIf="searchTerm.trim()">No rules match your search. <button (click)="clearSearch()" class="btn btn-sm btn-secondary">Clear search</button></span>
+        <span *ngIf="!searchTerm.trim()">No rules found. Click "Add Row" to create your first rule.</span>
       </div>
     </div>
     
@@ -203,6 +228,19 @@ interface NotificationItem {
       margin-bottom: 20px;
       padding-bottom: 10px;
       border-bottom: 1px solid #ddd;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    
+    .search-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .search-input {
+      width: 200px;
+      min-width: 150px;
     }
     
     .grid-header h3 {
@@ -713,6 +751,54 @@ interface NotificationItem {
       opacity: 0.5;
       cursor: not-allowed;
     }
+    
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .loading-content {
+      text-align: center;
+      color: #666;
+    }
+    
+    .large-spinner {
+      width: 40px;
+      height: 40px;
+      border-width: 4px;
+      margin-bottom: 10px;
+    }
+    
+    .sortable-header {
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+    }
+    
+    .sortable-header:hover {
+      background-color: #e9ecef;
+    }
+    
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+    
+    .sort-indicator {
+      font-size: 12px;
+      margin-left: 5px;
+      color: #007bff;
+    }
 
   `]
 })
@@ -728,6 +814,11 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
   showConfirmDialog = false;
   pendingBranch = '';
   notifications: NotificationItem[] = [];
+  isLoading = false;
+  isSaving = false;
+  searchTerm = '';
+  sortColumn = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
 
   showAddColumnModalFlag = false;
   newColumnType: 'CONDITION' | 'ACTION' = 'CONDITION';
@@ -840,6 +931,8 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
   loadTable(preserveChanges: boolean = false) {
     if (!this.fileName) return;
     
+    this.isLoading = true;
+    
     this.apiService.openSheet(this.fileName).subscribe({
       next: (view) => {
         this.tableView = view;
@@ -848,12 +941,15 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
           this.hasChanges = false;
           this.hasSavedChanges = false;
         }
+        this.isLoading = false;
         setTimeout(() => {
           this.applyDynamicScrollingStyles();
         }, 100);
       },
       error: (error) => {
         console.error('Error loading table:', error);
+        this.isLoading = false;
+        this.showNotification('Failed to load table: ' + (error.error?.message || error.message), 'error');
       }
     });
   }
@@ -878,22 +974,27 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
   }
 
   markChanged() {
+    console.log('markChanged() called - setting hasChanges to true');
     this.hasChanges = true;
   }
 
   save() {
     if (!this.fileName || !this.tableView) return;
     
+    this.isSaving = true;
+    
     this.apiService.saveSheet(this.fileName, this.tableView).subscribe({
       next: (response) => {
         console.log('Save successful:', response);
         this.hasChanges = false;
         this.hasSavedChanges = true;
+        this.isSaving = false;
         this.originalTableView = JSON.parse(JSON.stringify(this.tableView));
         this.showNotification(response.message || 'Changes saved successfully', 'success');
       },
       error: (error) => {
         console.error('Error saving:', error);
+        this.isSaving = false;
         const errorMessage = error.error?.error || error.error?.message || error.message || 'Unknown error occurred';
         this.showNotification('Failed to save changes: ' + errorMessage, 'error');
       }
@@ -1211,5 +1312,64 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
     const excelPrefix = excelName.substring(0, Math.min(3, excelName.length)).toUpperCase();
     
     return `${repoPrefix}_${excelPrefix}_${datetime}`;
+  }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+  }
+
+  sortByColumn(columnIndex: number): void {
+    if (this.isLoading || this.isReadOnly) return;
+    
+    const columnKey = columnIndex.toString();
+    if (this.sortColumn === columnKey) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = columnKey;
+      this.sortDirection = 'asc';
+    }
+  }
+
+  getFilteredRows(): RuleRow[] {
+    if (!this.tableView) return [];
+    
+    let filteredRows = [...this.tableView.rows];
+    
+    if (this.searchTerm.trim()) {
+      const searchLower = this.searchTerm.toLowerCase();
+      filteredRows = filteredRows.filter(row => {
+        return row.name.toLowerCase().includes(searchLower) ||
+               row.values.some(value => value.toLowerCase().includes(searchLower));
+      });
+    }
+    
+    if (this.sortColumn) {
+      const columnIndex = parseInt(this.sortColumn);
+      filteredRows.sort((a, b) => {
+        let aValue = '';
+        let bValue = '';
+        
+        if (columnIndex === 0) {
+          aValue = a.name;
+          bValue = b.name;
+        } else if (columnIndex - 1 < a.values.length) {
+          aValue = a.values[columnIndex - 1];
+          bValue = b.values[columnIndex - 1];
+        }
+        
+        const comparison = aValue.localeCompare(bValue, undefined, { numeric: true });
+        return this.sortDirection === 'asc' ? comparison : -comparison;
+      });
+    }
+    
+    return filteredRows;
+  }
+
+  getOriginalRowIndex(row: RuleRow): number {
+    if (!this.tableView) return -1;
+    return this.tableView.rows.findIndex(originalRow => 
+      originalRow.name === row.name && 
+      JSON.stringify(originalRow.values) === JSON.stringify(row.values)
+    );
   }
 }

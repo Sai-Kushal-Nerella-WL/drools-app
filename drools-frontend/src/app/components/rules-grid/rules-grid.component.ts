@@ -242,23 +242,23 @@ interface NotificationItem {
     }
     
     .grid-wrapper {
-      overflow-x: scroll !important;
+      overflow-x: auto !important;
       overflow-y: auto !important;
       flex: 1;
       min-height: 0;
       position: relative;
       border: 1px solid #ddd;
-      max-width: 1200px !important;
-      width: 1200px !important;
+      width: 100% !important;
+      max-width: 100% !important;
       height: 400px !important;
       display: block !important;
     }
     
     ::ng-deep .grid-wrapper {
-      overflow-x: scroll !important;
+      overflow-x: auto !important;
       overflow-y: auto !important;
-      max-width: 1200px !important;
-      width: 1200px !important;
+      width: 100% !important;
+      max-width: 100% !important;
       height: 400px !important;
       display: block !important;
     }
@@ -267,10 +267,10 @@ interface NotificationItem {
       border-collapse: collapse;
       background: white;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      table-layout: fixed !important;
+      table-layout: auto !important;
       overflow: visible !important;
-      width: 4000px !important;
-      min-width: 4000px !important;
+      width: auto !important;
+      min-width: 100% !important;
     }
     
     ::ng-deep .rules-table th,
@@ -278,8 +278,7 @@ interface NotificationItem {
       padding: 12px;
       text-align: left;
       border: 1px solid #ddd;
-      width: 250px !important;
-      min-width: 250px !important;
+      min-width: 150px !important;
       max-width: 250px !important;
       white-space: normal !important;
       word-wrap: break-word !important;

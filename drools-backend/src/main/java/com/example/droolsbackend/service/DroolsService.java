@@ -34,23 +34,6 @@ public class DroolsService {
     }
 
     public String generateDroolsColumnName(String columnType, List<String> existingColumns) {
-        if ("CONDITION".equals(columnType)) {
-            int conditionCount = 0;
-            for (String column : existingColumns) {
-                if (column != null && column.startsWith("CONDITION")) {
-                    conditionCount++;
-                }
-            }
-            return conditionCount == 0 ? "CONDITION" : "CONDITION" + (conditionCount + 1);
-        } else if ("ACTION".equals(columnType)) {
-            int actionCount = 0;
-            for (String column : existingColumns) {
-                if (column != null && column.startsWith("ACTION")) {
-                    actionCount++;
-                }
-            }
-            return actionCount == 0 ? "ACTION" : "ACTION" + (actionCount + 1);
-        }
         return columnType;
     }
 

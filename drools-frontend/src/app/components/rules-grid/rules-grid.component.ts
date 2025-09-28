@@ -242,18 +242,19 @@ interface NotificationItem {
     }
     
     .grid-wrapper {
-      overflow: auto;
+      overflow-x: auto;
+      overflow-y: auto;
       flex: 1;
       min-height: 0;
+      position: relative;
     }
     
     .rules-table {
-      width: 100%;
-      max-width: 100%;
+      min-width: 100%;
       border-collapse: collapse;
       background: white;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      table-layout: fixed;
+      table-layout: auto;
       overflow: hidden;
     }
     
@@ -262,10 +263,10 @@ interface NotificationItem {
       padding: 12px;
       text-align: left;
       border: 1px solid #ddd;
+      min-width: 150px;
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
-      max-width: 0;
     }
     
     .rules-table th:last-child,
@@ -274,10 +275,15 @@ interface NotificationItem {
       max-width: 80px !important;
       min-width: 80px !important;
       text-align: center !important;
+      position: sticky !important;
+      right: 0 !important;
+      background-color: white !important;
+      z-index: 10 !important;
     }
     
     .rules-table th:last-child {
       padding: 8px 4px !important;
+      background-color: #f8f9fa !important;
     }
     
     .rules-table th {
@@ -298,6 +304,12 @@ interface NotificationItem {
       color: #6c757d;
       padding: 6px 12px;
       background-color: #e9ecef !important;
+      white-space: normal !important;
+      word-wrap: break-word !important;
+      overflow-wrap: break-word !important;
+      line-height: 1.3 !important;
+      max-height: 60px !important;
+      overflow-y: auto !important;
     }
     
     .form-control {

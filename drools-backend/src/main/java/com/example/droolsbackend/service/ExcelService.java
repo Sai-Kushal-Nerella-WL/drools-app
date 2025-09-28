@@ -221,6 +221,212 @@ public class ExcelService {
         }
     }
 
+    public void addColumn(String fileName, String columnType, String columnName, String templateValue) throws IOException {
+        String repositoryPath = repositoryConfigService.getRepositoryPath();
+        if (repositoryPath == null) {
+            throw new RuntimeException("Repository not configured");
+        }
+        
+        File excelFile = new File(repositoryPath + "/rules/" + fileName);
+        
+        try (FileInputStream fis = new FileInputStream(excelFile);
+             Workbook workbook = new XSSFWorkbook(fis)) {
+            
+            Sheet sheet = workbook.getSheetAt(0);
+            
+            int headerRowIndex = -1;
+            Row headerRow = null;
+            for (int i = 0; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row != null) {
+                    Cell firstCell = row.getCell(0);
+                    if (firstCell != null && "NAME".equals(getCellValueAsString(firstCell))) {
+                        headerRow = row;
+                        headerRowIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            if (headerRow == null) {
+                throw new RuntimeException("Could not find header row with NAME column");
+            }
+            
+            int insertPosition = findInsertPosition(headerRow, columnType);
+            
+            insertColumnAtPosition(sheet, headerRowIndex, insertPosition, columnName, templateValue);
+            
+            try (FileOutputStream fos = new FileOutputStream(excelFile)) {
+                workbook.write(fos);
+            }
+        }
+    }
+
+    public void deleteColumn(String fileName, int columnIndex) throws IOException {
+        String repositoryPath = repositoryConfigService.getRepositoryPath();
+        if (repositoryPath == null) {
+            throw new RuntimeException("Repository not configured");
+        }
+        
+        File excelFile = new File(repositoryPath + "/rules/" + fileName);
+        
+        try (FileInputStream fis = new FileInputStream(excelFile);
+             Workbook workbook = new XSSFWorkbook(fis)) {
+            
+            Sheet sheet = workbook.getSheetAt(0);
+            
+            int headerRowIndex = -1;
+            Row headerRow = null;
+            for (int i = 0; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row != null) {
+                    Cell firstCell = row.getCell(0);
+                    if (firstCell != null && "NAME".equals(getCellValueAsString(firstCell))) {
+                        headerRow = row;
+                        headerRowIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            if (headerRow == null) {
+                throw new RuntimeException("Could not find header row with NAME column");
+            }
+            
+            validateColumnDeletion(headerRow, columnIndex);
+            
+            removeColumnAtPosition(sheet, headerRowIndex, columnIndex);
+            
+            try (FileOutputStream fos = new FileOutputStream(excelFile)) {
+                workbook.write(fos);
+            }
+        }
+    }
+
+    private int findInsertPosition(Row headerRow, String columnType) {
+        int lastConditionIndex = 0;
+        int lastActionIndex = 0;
+        
+        for (int i = 0; i < headerRow.getLastCellNum(); i++) {
+            Cell cell = headerRow.getCell(i);
+            String value = getCellValueAsString(cell);
+            if (value != null) {
+                if (value.contains("CONDITION")) {
+                    lastConditionIndex = i;
+                } else if (value.contains("ACTION")) {
+                    lastActionIndex = i;
+                }
+            }
+        }
+        
+        if ("CONDITION".equals(columnType)) {
+            return lastConditionIndex > 0 ? lastConditionIndex + 1 : 1;
+        } else {
+            return lastActionIndex > 0 ? lastActionIndex + 1 : headerRow.getLastCellNum();
+        }
+    }
+
+    private void insertColumnAtPosition(Sheet sheet, int headerRowIndex, int insertPosition, String columnName, String templateValue) {
+        for (int rowIndex = 0; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+            Row row = sheet.getRow(rowIndex);
+            if (row != null) {
+                int lastCellNum = row.getLastCellNum();
+                
+                for (int cellIndex = lastCellNum; cellIndex > insertPosition; cellIndex--) {
+                    Cell oldCell = row.getCell(cellIndex - 1);
+                    Cell newCell = row.createCell(cellIndex);
+                    if (oldCell != null) {
+                        copyCellValue(oldCell, newCell);
+                        row.removeCell(oldCell);
+                    }
+                }
+                
+                Cell newCell = row.createCell(insertPosition);
+                if (rowIndex == headerRowIndex) {
+                    newCell.setCellValue(columnName);
+                } else if (rowIndex == headerRowIndex + 1) {
+                    newCell.setCellValue(templateValue);
+                } else {
+                    newCell.setBlank();
+                }
+            }
+        }
+    }
+
+    private void removeColumnAtPosition(Sheet sheet, int headerRowIndex, int columnIndex) {
+        for (int rowIndex = 0; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+            Row row = sheet.getRow(rowIndex);
+            if (row != null) {
+                int lastCellNum = row.getLastCellNum();
+                
+                row.removeCell(row.getCell(columnIndex));
+                
+                for (int cellIndex = columnIndex + 1; cellIndex < lastCellNum; cellIndex++) {
+                    Cell oldCell = row.getCell(cellIndex);
+                    if (oldCell != null) {
+                        Cell newCell = row.createCell(cellIndex - 1);
+                        copyCellValue(oldCell, newCell);
+                        row.removeCell(oldCell);
+                    }
+                }
+            }
+        }
+    }
+
+    private void copyCellValue(Cell source, Cell target) {
+        if (source == null) return;
+        
+        switch (source.getCellType()) {
+            case STRING:
+                target.setCellValue(source.getStringCellValue());
+                break;
+            case NUMERIC:
+                target.setCellValue(source.getNumericCellValue());
+                break;
+            case BOOLEAN:
+                target.setCellValue(source.getBooleanCellValue());
+                break;
+            case FORMULA:
+                target.setCellFormula(source.getCellFormula());
+                break;
+            default:
+                target.setBlank();
+                break;
+        }
+    }
+
+    private void validateColumnDeletion(Row headerRow, int columnIndex) {
+        if (columnIndex == 0) {
+            throw new RuntimeException("Cannot delete NAME column");
+        }
+        
+        Cell cellToDelete = headerRow.getCell(columnIndex);
+        String columnLabel = getCellValueAsString(cellToDelete);
+        
+        int conditionCount = 0;
+        int actionCount = 0;
+        
+        for (int i = 0; i < headerRow.getLastCellNum(); i++) {
+            Cell cell = headerRow.getCell(i);
+            String value = getCellValueAsString(cell);
+            if (value != null) {
+                if (value.contains("CONDITION")) {
+                    conditionCount++;
+                } else if (value.contains("ACTION")) {
+                    actionCount++;
+                }
+            }
+        }
+        
+        if (columnLabel != null && columnLabel.contains("CONDITION") && conditionCount <= 1) {
+            throw new RuntimeException("Cannot delete the last CONDITION column. At least one CONDITION column is required.");
+        }
+        
+        if (columnLabel != null && columnLabel.contains("ACTION") && actionCount <= 1) {
+            throw new RuntimeException("Cannot delete the last ACTION column. At least one ACTION column is required.");
+        }
+    }
+
     private void setCellValue(Cell cell, Object value) {
         if (value == null) {
             cell.setBlank();

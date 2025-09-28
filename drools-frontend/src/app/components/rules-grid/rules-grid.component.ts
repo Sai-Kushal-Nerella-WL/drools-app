@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DecisionTableView, RuleRow } from '../../models/decision-table.model';
@@ -278,10 +278,20 @@ interface NotificationItem {
       max-width: 100% !important;
     }
 
+    /* Even more aggressive selectors to override conflicting styles */
+    ::ng-deep app-rules-grid .rules-grid-container .grid-wrapper {
+      overflow-x: auto !important;
+      overflow-y: auto !important;
+    }
+
+    ::ng-deep .right-panel app-rules-grid .rules-grid-container .grid-wrapper {
+      overflow-x: auto !important;
+      overflow-y: auto !important;
+    }
+
     ::ng-deep .rules-grid-container .grid-wrapper .rules-table {
       table-layout: fixed !important;
       width: max-content !important;
-      min-width: 100% !important;
     }
 
     /* Target parent containers that might be setting overflow: hidden */
@@ -656,7 +666,7 @@ interface NotificationItem {
 
   `]
 })
-export class RulesGridComponent implements OnChanges {
+export class RulesGridComponent implements OnChanges, AfterViewInit {
   @Input() fileName: string | null = null;
   @Input() externalNotification: { message: string; type: 'success' | 'error' } | null = null;
   
@@ -691,6 +701,85 @@ export class RulesGridComponent implements OnChanges {
     }
   }
 
+  ngAfterViewInit() {
+    setTimeout(() => {
+      this.applyDynamicScrollingStyles();
+    }, 100);
+  }
+
+  private applyDynamicScrollingStyles() {
+    const attempts = [0, 200, 500, 1000];
+    
+    attempts.forEach(delay => {
+      setTimeout(() => {
+        this.forceDynamicScrollingStyles();
+      }, delay);
+    });
+  }
+
+  private forceDynamicScrollingStyles() {
+    const table = document.querySelector('app-rules-grid table') as HTMLTableElement || 
+                  document.querySelector('table') as HTMLTableElement;
+    
+    let wrapper = document.querySelector('app-rules-grid .grid-wrapper') as HTMLElement ||
+                  document.querySelector('.grid-wrapper') as HTMLElement ||
+                  document.querySelector('app-rules-grid > div') as HTMLElement;
+
+    if (table && !wrapper) {
+      wrapper = document.createElement('div');
+      wrapper.className = 'grid-wrapper';
+      table.parentNode?.insertBefore(wrapper, table);
+      wrapper.appendChild(table);
+    }
+
+    if (table && wrapper) {
+      console.log('Applying dynamic scrolling styles to table and wrapper');
+      
+      wrapper.style.setProperty('overflow-x', 'auto', 'important');
+      wrapper.style.setProperty('overflow-y', 'auto', 'important');
+      wrapper.style.setProperty('width', '100%', 'important');
+      wrapper.style.setProperty('max-width', '100%', 'important');
+      wrapper.style.setProperty('height', '400px', 'important');
+      wrapper.style.setProperty('display', 'block', 'important');
+      wrapper.style.setProperty('position', 'relative', 'important');
+      
+      table.style.setProperty('table-layout', 'fixed', 'important');
+      table.style.setProperty('width', 'max-content', 'important');
+      table.style.setProperty('min-width', '100%', 'important');
+      table.style.setProperty('border-collapse', 'collapse', 'important');
+      
+      const cells = table.querySelectorAll('th, td');
+      cells.forEach((cell, index) => {
+        const htmlCell = cell as HTMLElement;
+        htmlCell.style.setProperty('width', '200px', 'important');
+        htmlCell.style.setProperty('min-width', '200px', 'important');
+        htmlCell.style.setProperty('max-width', '200px', 'important');
+        htmlCell.style.setProperty('white-space', 'normal', 'important');
+        htmlCell.style.setProperty('word-wrap', 'break-word', 'important');
+        htmlCell.style.setProperty('overflow-wrap', 'break-word', 'important');
+        htmlCell.style.setProperty('padding', '12px', 'important');
+        htmlCell.style.setProperty('border', '1px solid #ddd', 'important');
+        htmlCell.style.setProperty('vertical-align', 'top', 'important');
+      });
+      
+      const eventsCells = table.querySelectorAll('th:last-child, td:last-child');
+      eventsCells.forEach(cell => {
+        const htmlCell = cell as HTMLElement;
+        htmlCell.style.setProperty('position', 'sticky', 'important');
+        htmlCell.style.setProperty('right', '0', 'important');
+        htmlCell.style.setProperty('background', 'white', 'important');
+        htmlCell.style.setProperty('z-index', '10', 'important');
+        htmlCell.style.setProperty('box-shadow', '-2px 0 4px rgba(0,0,0,0.1)', 'important');
+      });
+      
+      console.log('Dynamic scrolling styles applied successfully');
+      console.log('Table width:', table.offsetWidth, 'Wrapper width:', wrapper.offsetWidth);
+      console.log('Wrapper overflow-x:', window.getComputedStyle(wrapper).overflowX);
+    } else {
+      console.log('Could not find table or wrapper elements for dynamic scrolling');
+    }
+  }
+
   loadTable() {
     if (!this.fileName) return;
     
@@ -700,6 +789,9 @@ export class RulesGridComponent implements OnChanges {
         this.originalTableView = JSON.parse(JSON.stringify(view));
         this.hasChanges = false;
         this.hasSavedChanges = false;
+        setTimeout(() => {
+          this.applyDynamicScrollingStyles();
+        }, 100);
       },
       error: (error) => {
         console.error('Error loading table:', error);

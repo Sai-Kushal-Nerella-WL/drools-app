@@ -856,9 +856,9 @@ export class RulesGridComponent implements OnChanges {
 
   getTemplatePlaceholder(): string {
     if (this.newColumnType === 'CONDITION') {
-      return 'e.g., customer.getAge() >= $param';
+      return 'e.g., customer.getAge() >= $param, order.getAmount() > $param';
     } else {
-      return 'e.g., customer.setDiscount($param);';
+      return 'e.g., customer.setDiscount($param);, order.setStatus("$param");';
     }
   }
 

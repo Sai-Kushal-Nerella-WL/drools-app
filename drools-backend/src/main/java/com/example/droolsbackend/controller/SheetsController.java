@@ -2,6 +2,7 @@ package com.example.droolsbackend.controller;
 
 import com.example.droolsbackend.model.DecisionTableView;
 import com.example.droolsbackend.service.ExcelService;
+import com.example.droolsbackend.service.DroolsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,9 @@ public class SheetsController {
 
     @Autowired
     private ExcelService excelService;
+    
+    @Autowired
+    private DroolsService droolsService;
 
     @GetMapping
     public ResponseEntity<List<String>> listSheets() {
@@ -124,6 +128,37 @@ public class SheetsController {
             e.printStackTrace();
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to delete column: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+    
+    @PostMapping("/execute-rules")
+    public ResponseEntity<Map<String, Object>> executeRules(@RequestBody Map<String, Object> request) {
+        try {
+            String fileName = (String) request.get("fileName");
+            @SuppressWarnings("unchecked")
+            Map<String, Object> inputData = (Map<String, Object>) request.get("inputData");
+            
+            if (fileName == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "fileName is required");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            DecisionTableView tableView = excelService.readDecisionTable(fileName);
+            
+            if (!droolsService.validateDroolsDecisionTableStructure(tableView)) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Invalid Drools decision table structure");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            Map<String, Object> results = droolsService.executeRules(tableView, inputData);
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to execute rules: " + e.getMessage());
             return ResponseEntity.status(500).body(errorResponse);
         }
     }

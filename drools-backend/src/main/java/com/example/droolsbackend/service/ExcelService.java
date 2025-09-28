@@ -20,6 +20,9 @@ public class ExcelService {
 
     @Autowired
     private RepositoryConfigService repositoryConfigService;
+    
+    @Autowired
+    private DroolsService droolsService;
 
     public List<String> listExcelFiles() {
         String repositoryPath = repositoryConfigService.getRepositoryPath();
@@ -252,9 +255,23 @@ public class ExcelService {
                 throw new RuntimeException("Could not find header row with NAME column");
             }
             
+            List<String> existingColumns = new ArrayList<>();
+            for (int i = 0; i < headerRow.getLastCellNum(); i++) {
+                Cell cell = headerRow.getCell(i);
+                String value = getCellValueAsString(cell);
+                if (value != null && !value.trim().isEmpty()) {
+                    existingColumns.add(value);
+                }
+            }
+            
+            String droolsColumnName = droolsService.generateDroolsColumnName(columnType, existingColumns);
+            String droolsTemplateValue = templateValue != null && !templateValue.trim().isEmpty() 
+                ? templateValue 
+                : droolsService.getDefaultTemplateValue(columnType);
+            
             int insertPosition = findInsertPosition(headerRow, columnType);
             
-            insertColumnAtPosition(sheet, headerRowIndex, insertPosition, columnName, templateValue);
+            insertColumnAtPosition(sheet, headerRowIndex, insertPosition, droolsColumnName, droolsTemplateValue);
             
             try (FileOutputStream fos = new FileOutputStream(excelFile)) {
                 workbook.write(fos);
@@ -311,9 +328,9 @@ public class ExcelService {
             Cell cell = headerRow.getCell(i);
             String value = getCellValueAsString(cell);
             if (value != null) {
-                if (value.contains("CONDITION")) {
+                if (value.startsWith("CONDITION")) {
                     lastConditionIndex = i;
-                } else if (value.contains("ACTION")) {
+                } else if (value.startsWith("ACTION")) {
                     lastActionIndex = i;
                 }
             }
@@ -397,7 +414,7 @@ public class ExcelService {
 
     private void validateColumnDeletion(Row headerRow, int columnIndex) {
         if (columnIndex == 0) {
-            throw new RuntimeException("Cannot delete NAME column");
+            throw new RuntimeException("Cannot delete NAME column - it is mandatory for Drools decision tables");
         }
         
         Cell cellToDelete = headerRow.getCell(columnIndex);
@@ -410,20 +427,20 @@ public class ExcelService {
             Cell cell = headerRow.getCell(i);
             String value = getCellValueAsString(cell);
             if (value != null) {
-                if (value.contains("CONDITION")) {
+                if (value.startsWith("CONDITION")) {
                     conditionCount++;
-                } else if (value.contains("ACTION")) {
+                } else if (value.startsWith("ACTION")) {
                     actionCount++;
                 }
             }
         }
         
-        if (columnLabel != null && columnLabel.contains("CONDITION") && conditionCount <= 1) {
-            throw new RuntimeException("Cannot delete the last CONDITION column. At least one CONDITION column is required.");
+        if (columnLabel != null && columnLabel.startsWith("CONDITION") && conditionCount <= 1) {
+            throw new RuntimeException("Cannot delete the last CONDITION column. Drools decision tables require at least one CONDITION column.");
         }
         
-        if (columnLabel != null && columnLabel.contains("ACTION") && actionCount <= 1) {
-            throw new RuntimeException("Cannot delete the last ACTION column. At least one ACTION column is required.");
+        if (columnLabel != null && columnLabel.startsWith("ACTION") && actionCount <= 1) {
+            throw new RuntimeException("Cannot delete the last ACTION column. Drools decision tables require at least one ACTION column.");
         }
     }
 

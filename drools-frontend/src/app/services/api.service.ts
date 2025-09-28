@@ -54,4 +54,8 @@ export class ApiService {
   deleteColumn(fileName: string, columnIndex: number): Observable<{message: string}> {
     return this.http.post<{message: string}>(`${this.baseUrl}/sheets/delete-column`, { fileName, columnIndex });
   }
+
+  executeRules(fileName: string, inputData: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/sheets/execute-rules`, { fileName, inputData });
+  }
 }

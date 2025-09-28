@@ -66,6 +66,13 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		
+		<!-- Drools Rules Engine -->
+		<dependency>
+			<groupId>org.drools</groupId>
+			<artifactId>drools-rules-spring-boot-starter</artifactId>
+			<version>10.1.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>

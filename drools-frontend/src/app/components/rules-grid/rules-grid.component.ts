@@ -241,40 +241,41 @@ interface NotificationItem {
       opacity: 0.9;
     }
     
-    .grid-wrapper {
+    ::ng-deep .grid-wrapper {
       overflow-x: scroll !important;
-      overflow-y: auto;
+      overflow-y: auto !important;
       flex: 1;
       min-height: 0;
       position: relative;
       border: 1px solid #ddd;
       max-width: 1200px !important;
       width: 1200px !important;
-      height: 400px;
+      height: 400px !important;
+      display: block !important;
     }
     
-    .rules-table {
+    ::ng-deep .rules-table {
       border-collapse: collapse;
       background: white;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      table-layout: fixed;
-      overflow: hidden;
-      width: 3000px;
-      min-width: 3000px;
+      table-layout: fixed !important;
+      overflow: visible !important;
+      width: 4000px !important;
+      min-width: 4000px !important;
     }
     
-    .rules-table th,
-    .rules-table td {
+    ::ng-deep .rules-table th,
+    ::ng-deep .rules-table td {
       padding: 12px;
       text-align: left;
       border: 1px solid #ddd;
       width: 250px !important;
       min-width: 250px !important;
       max-width: 250px !important;
-      white-space: normal;
-      word-wrap: break-word;
-      overflow-wrap: break-word;
-      vertical-align: top;
+      white-space: normal !important;
+      word-wrap: break-word !important;
+      overflow-wrap: break-word !important;
+      vertical-align: top !important;
     }
     
     .rules-table th:last-child,

@@ -205,10 +205,14 @@ import { ApiService } from '../../services/api.service';
     
     .form-control {
       width: 100%;
+      max-width: 200px;
       padding: 6px 10px;
       border: 1px solid #ced4da;
       border-radius: 4px;
       font-size: 14px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
     }
     
     .form-control:focus {
@@ -284,22 +288,27 @@ import { ApiService } from '../../services/api.service';
       margin-top: 15px;
       padding: 15px 20px;
       border-radius: 4px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      max-width: 400px;
-      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      max-width: 500px;
+      font-size: 15px;
+      font-weight: 500;
       position: relative;
+      z-index: 100;
+      border-left: 4px solid;
     }
     
     .notification.success {
       background-color: #d4edda;
       color: #155724;
       border: 1px solid #c3e6cb;
+      border-left-color: #28a745;
     }
     
     .notification.error {
       background-color: #f8d7da;
       color: #721c24;
       border: 1px solid #f5c6cb;
+      border-left-color: #dc3545;
     }
     
     .close-btn {

@@ -140,6 +140,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
       padding: 24px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      overflow-x: hidden;
     }
 
     .setup-card {
@@ -148,10 +149,11 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       border-radius: 24px;
       box-shadow: 0 32px 64px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.05);
       padding: 48px;
-      max-width: 640px;
+      max-width: min(640px, calc(100vw - 48px));
       width: 100%;
       position: relative;
       overflow: hidden;
+      box-sizing: border-box;
     }
 
     .setup-card::before {
@@ -551,6 +553,32 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       animation: spin 1s linear infinite;
     }
 
+    @media (max-width: 480px) {
+      .setup-container {
+        padding: 12px;
+      }
+      
+      .setup-card {
+        padding: 24px 16px;
+        border-radius: 16px;
+        max-width: calc(100vw - 24px);
+      }
+      
+      .setup-header h2 {
+        font-size: 24px;
+      }
+      
+      .form-control {
+        padding: 12px 14px;
+        font-size: 16px;
+      }
+      
+      .btn {
+        padding: 12px 20px;
+        min-width: 140px;
+      }
+    }
+
     @media (max-width: 768px) {
       .setup-container {
         padding: 16px;
@@ -559,6 +587,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       .setup-card {
         padding: 32px 24px;
         border-radius: 20px;
+        max-width: calc(100vw - 32px);
       }
       
       .setup-header h2 {

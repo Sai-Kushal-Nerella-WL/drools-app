@@ -19,8 +19,8 @@ export class ApiService {
     return this.http.post<DecisionTableView>(`${this.baseUrl}/sheets/open`, { fileName });
   }
 
-  saveSheet(fileName: string, view: DecisionTableView): Observable<string> {
-    return this.http.post<string>(`${this.baseUrl}/sheets/save`, { fileName, view });
+  saveSheet(fileName: string, view: DecisionTableView): Observable<{message: string}> {
+    return this.http.post<{message: string}>(`${this.baseUrl}/sheets/save`, { fileName, view });
   }
 
   pullFromRepo(request: GitRequest): Observable<string> {

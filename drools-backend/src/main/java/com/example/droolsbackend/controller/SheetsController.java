@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,7 +46,7 @@ public class SheetsController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<String> saveSheet(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<Map<String, String>> saveSheet(@RequestBody Map<String, Object> request) {
         try {
             String fileName = (String) request.get("fileName");
             @SuppressWarnings("unchecked")
@@ -58,10 +59,14 @@ public class SheetsController {
             DecisionTableView view = convertToDecisionTableView(viewData);
             
             excelService.saveDecisionTable(fileName, view);
-            return ResponseEntity.ok("Saved successfully");
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Saved successfully");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Save failed: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 

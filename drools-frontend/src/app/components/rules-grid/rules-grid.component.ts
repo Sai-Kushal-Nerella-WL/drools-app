@@ -382,11 +382,12 @@ export class RulesGridComponent implements OnChanges {
       next: (response) => {
         console.log('Save successful:', response);
         this.hasChanges = false;
-        this.showNotification('Changes saved successfully', 'success');
+        this.showNotification(response.message || 'Changes saved successfully', 'success');
       },
       error: (error) => {
         console.error('Error saving:', error);
-        this.showNotification('Failed to save changes: ' + (error.error?.message || error.message), 'error');
+        const errorMessage = error.error?.error || error.error?.message || error.message || 'Unknown error occurred';
+        this.showNotification('Failed to save changes: ' + errorMessage, 'error');
       }
     });
   }

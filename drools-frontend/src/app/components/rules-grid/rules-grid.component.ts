@@ -1035,11 +1035,9 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
   }
 
   discardChanges() {
-    if (!this.originalTableView) return;
-    
-    this.tableView = JSON.parse(JSON.stringify(this.originalTableView));
     this.hasChanges = false;
     this.hasSavedChanges = false;
+    this.loadTable();
     this.showNotification('Changes discarded successfully', 'success');
   }
 

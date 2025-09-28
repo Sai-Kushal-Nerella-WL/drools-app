@@ -262,14 +262,26 @@ interface NotificationItem {
       height: 400px !important;
       display: block !important;
     }
+
+    /* More aggressive CSS to override any conflicting styles */
+    ::ng-deep .rules-grid-container .grid-wrapper {
+      overflow-x: auto !important;
+      overflow-y: auto !important;
+    }
+
+    ::ng-deep .rules-grid-container .grid-wrapper .rules-table {
+      table-layout: fixed !important;
+      width: max-content !important;
+      min-width: 100% !important;
+    }
     
     ::ng-deep .rules-table {
       border-collapse: collapse;
       background: white;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      table-layout: auto !important;
+      table-layout: fixed !important;
       overflow: visible !important;
-      width: auto !important;
+      width: max-content !important;
       min-width: 100% !important;
     }
     
@@ -278,8 +290,9 @@ interface NotificationItem {
       padding: 12px;
       text-align: left;
       border: 1px solid #ddd;
-      min-width: 150px !important;
-      max-width: 250px !important;
+      width: 200px !important;
+      min-width: 200px !important;
+      max-width: 200px !important;
       white-space: normal !important;
       word-wrap: break-word !important;
       overflow-wrap: break-word !important;

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 import { FileListComponent } from './components/file-list/file-list.component';
 import { RulesGridComponent } from './components/rules-grid/rules-grid.component';
 import { RepositorySetupComponent } from './components/repository-setup/repository-setup.component';
@@ -9,7 +10,7 @@ import { RepositoryConfig } from './models/repository-config.model';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FileListComponent, RulesGridComponent, RepositorySetupComponent],
+  imports: [CommonModule, HttpClientModule, FileListComponent, RulesGridComponent, RepositorySetupComponent],
   template: `
     <app-repository-setup 
       *ngIf="!isConfigured"

@@ -3,6 +3,7 @@ package com.example.droolsbackend.service;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.merge.MergeStrategy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -11,10 +12,16 @@ import java.io.IOException;
 @Service
 public class GitService {
 
-    private static final String REPO_DIR = "/home/ubuntu/repos/drools-rules-lite/";
+    @Autowired
+    private RepositoryConfigService repositoryConfigService;
 
     public void pullFromRepo(String repoUrl, String branch) throws GitAPIException, IOException, InterruptedException {
-        File repoDir = new File(REPO_DIR);
+        if (!repositoryConfigService.isConfigured()) {
+            throw new IllegalStateException("Repository not configured. Please configure repository first.");
+        }
+        
+        String repoPath = repositoryConfigService.getRepositoryPath();
+        File repoDir = new File(repoPath);
         
         if (repoDir.exists()) {
             ProcessBuilder stashPb = new ProcessBuilder("git", "stash", "push", "-m", "Auto-stash before pull");
@@ -49,7 +56,8 @@ public class GitService {
                 throw new RuntimeException("Git pull failed: " + output.toString().trim());
             }
         } else {
-            ProcessBuilder pb = new ProcessBuilder("git", "clone", repoUrl, ".");
+            repoDir.mkdirs();
+            ProcessBuilder pb = new ProcessBuilder("git", "clone", repoUrl, repoDir.getName());
             pb.directory(repoDir.getParentFile());
             pb.redirectErrorStream(true);
             Process process = pb.start();
@@ -73,7 +81,12 @@ public class GitService {
 
     public void pushToRepo(String fileName, String repoUrl, String newBranch, String commitMessage) 
             throws GitAPIException, IOException, InterruptedException {
-        File repoDir = new File(REPO_DIR);
+        if (!repositoryConfigService.isConfigured()) {
+            throw new IllegalStateException("Repository not configured. Please configure repository first.");
+        }
+        
+        String repoPath = repositoryConfigService.getRepositoryPath();
+        File repoDir = new File(repoPath);
         
         try (Git git = Git.open(repoDir)) {
             git.checkout()
@@ -92,11 +105,22 @@ public class GitService {
         
         ProcessBuilder pb = new ProcessBuilder("git", "push", "origin", newBranch);
         pb.directory(repoDir);
+        pb.redirectErrorStream(true);
         Process process = pb.start();
+        
+        StringBuilder output = new StringBuilder();
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+        }
+        
         int exitCode = process.waitFor();
         
         if (exitCode != 0) {
-            throw new RuntimeException("Git push failed with exit code: " + exitCode);
+            throw new RuntimeException("Git push failed: " + output.toString().trim());
         }
     }
 

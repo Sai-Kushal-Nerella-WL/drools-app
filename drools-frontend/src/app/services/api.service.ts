@@ -34,4 +34,12 @@ export class ApiService {
   createPullRequest(request: GitRequest): Observable<{message: string}> {
     return this.http.post<{message: string}>(`${this.baseUrl}/git/pr`, request);
   }
+
+  getRepositoryConfig(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/repository/config`);
+  }
+
+  getRepositoryStatus(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/repository/status`);
+  }
 }

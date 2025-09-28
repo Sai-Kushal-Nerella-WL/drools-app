@@ -152,6 +152,25 @@ interface NotificationItem {
       </div>
     </div>
 
+    <!-- Branch Switch Confirmation Modal -->
+    <div *ngIf="showBranchSwitchModalFlag" class="modal-overlay" (click)="stayOnCurrentBranch()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h4>Switch to New Branch</h4>
+          <button class="modal-close" (click)="stayOnCurrentBranch()">×</button>
+        </div>
+        <div class="modal-body">
+          <p>Your changes have been pushed to a new branch: <strong>{{ newBranchName }}</strong></p>
+          <p>Would you like to switch to this branch to see your changes?</p>
+          <p class="info-text">Note: The new branch is not merged yet and contains your latest changes.</p>
+        </div>
+        <div class="modal-footer">
+          <button (click)="stayOnCurrentBranch()" class="btn btn-secondary">Stay on Current Branch</button>
+          <button (click)="switchToBranch()" class="btn btn-primary">Switch to New Branch</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Notification Stack -->
     <div class="notification-stack">
       <div *ngFor="let notif of notifications; trackBy: trackNotification" 
@@ -670,6 +689,13 @@ interface NotificationItem {
       margin-top: 10px;
     }
 
+    .info-text {
+      color: #17a2b8;
+      font-size: 14px;
+      margin: 10px 0;
+      font-style: italic;
+    }
+
     .btn-info {
       background-color: #17a2b8;
       color: white;
@@ -697,6 +723,8 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
 
   showDeleteColumnModalFlag = false;
   columnToDeleteIndex = -1;
+  showBranchSwitchModalFlag = false;
+  newBranchName = '';
 
   constructor(
     private apiService: ApiService,
@@ -893,6 +921,8 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
         this.isPushing = false;
         this.hasSavedChanges = false;
         this.showNotification(response.message || `Successfully pushed to Git! Branch: ${this.pendingBranch}`, 'success');
+        
+        this.showBranchSwitchDialog(this.pendingBranch);
         
         this.apiService.createPullRequest({
           repoUrl: config.repoUrl,
@@ -1110,5 +1140,29 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
     const urlParts = repoUrl.split('/');
     const repoName = urlParts[urlParts.length - 1].replace('.git', '');
     return repoName;
+  }
+
+  showBranchSwitchDialog(branchName: string): void {
+    this.newBranchName = branchName;
+    this.showBranchSwitchModalFlag = true;
+  }
+
+  hideBranchSwitchModal(): void {
+    this.showBranchSwitchModalFlag = false;
+    this.newBranchName = '';
+  }
+
+  switchToBranch(): void {
+    if (this.newBranchName) {
+      this.repositoryConfigService.updateBranch(this.newBranchName);
+      this.showNotification(`Switched to branch: ${this.newBranchName}`, 'success');
+      this.hideBranchSwitchModal();
+      
+      window.location.reload();
+    }
+  }
+
+  stayOnCurrentBranch(): void {
+    this.hideBranchSwitchModal();
   }
 }

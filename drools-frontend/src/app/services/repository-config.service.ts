@@ -100,4 +100,12 @@ export class RepositoryConfigService {
   getBackendStatus(): Observable<any> {
     return this.http.get(`${this.baseUrl}/repository/status`);
   }
+
+  updateBranch(newBranch: string): void {
+    const currentConfig = this.getCurrentConfig();
+    if (currentConfig) {
+      const updatedConfig = { ...currentConfig, branch: newBranch };
+      this.saveConfig(updatedConfig);
+    }
+  }
 }

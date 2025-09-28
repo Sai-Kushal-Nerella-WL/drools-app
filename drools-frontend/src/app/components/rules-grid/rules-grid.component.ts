@@ -189,9 +189,12 @@ interface NotificationItem {
     
     .rules-table {
       width: 100%;
+      max-width: 100%;
       border-collapse: collapse;
       background: white;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      table-layout: fixed;
+      overflow: hidden;
     }
     
     .rules-table th,
@@ -199,6 +202,10 @@ interface NotificationItem {
       padding: 12px;
       text-align: left;
       border: 1px solid #ddd;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 0;
     }
     
     .rules-table th {
@@ -223,7 +230,8 @@ interface NotificationItem {
     
     .form-control {
       width: 100%;
-      max-width: 200px;
+      min-width: 120px;
+      max-width: 100%;
       padding: 6px 10px;
       border: 1px solid #ced4da;
       border-radius: 4px;
@@ -231,6 +239,7 @@ interface NotificationItem {
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
+      box-sizing: border-box;
     }
     
     .form-control:focus {

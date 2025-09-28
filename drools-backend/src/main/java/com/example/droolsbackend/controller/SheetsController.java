@@ -70,13 +70,73 @@ public class SheetsController {
         }
     }
 
+    @PostMapping("/add-column")
+    public ResponseEntity<Map<String, String>> addColumn(@RequestBody Map<String, String> request) {
+        try {
+            String fileName = request.get("fileName");
+            String columnType = request.get("columnType");
+            String columnName = request.get("columnName");
+            String templateValue = request.get("templateValue");
+            
+            if (fileName == null || columnType == null || columnName == null) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Missing required parameters");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            if (!columnType.equals("CONDITION") && !columnType.equals("ACTION")) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Column type must be CONDITION or ACTION");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            excelService.addColumn(fileName, columnType, columnName, templateValue != null ? templateValue : "");
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Column added successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to add column: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
+    @PostMapping("/delete-column")
+    public ResponseEntity<Map<String, String>> deleteColumn(@RequestBody Map<String, Object> request) {
+        try {
+            String fileName = (String) request.get("fileName");
+            Integer columnIndex = (Integer) request.get("columnIndex");
+            
+            if (fileName == null || columnIndex == null) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Missing required parameters");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            excelService.deleteColumn(fileName, columnIndex);
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Column deleted successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to delete column: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private DecisionTableView convertToDecisionTableView(Map<String, Object> viewData) {
         List<String> columnLabels = (List<String>) viewData.get("columnLabels");
+        List<String> templateLabels = (List<String>) viewData.get("templateLabels");
         List<Map<String, Object>> rowsData = (List<Map<String, Object>>) viewData.get("rows");
         
         DecisionTableView view = new DecisionTableView();
         view.setColumnLabels(columnLabels);
+        view.setTemplateLabels(templateLabels);
         
         List<com.example.droolsbackend.model.RuleRow> rows = new ArrayList<>();
         for (Map<String, Object> rowData : rowsData) {

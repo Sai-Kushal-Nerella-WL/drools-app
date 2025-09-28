@@ -33,8 +33,8 @@ interface NotificationItem {
         </div>
       </div>
       
-      <div class="grid-wrapper">
-        <table class="rules-table">
+      <div class="grid-wrapper" style="overflow-x: scroll !important; overflow-y: auto !important; max-width: 1200px !important; width: 1200px !important; height: 400px !important; display: block !important;">
+        <table class="rules-table" style="width: 4000px !important; min-width: 4000px !important; table-layout: fixed !important;">
           <thead>
             <tr>
               <th *ngFor="let label of tableView.columnLabels; let i = index">

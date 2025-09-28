@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -16,7 +17,7 @@ public class GitController {
     private GitService gitService;
 
     @PostMapping("/pull")
-    public ResponseEntity<String> pullFromRepo(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, String>> pullFromRepo(@RequestBody Map<String, String> request) {
         try {
             String repoUrl = request.get("repoUrl");
             String branch = request.get("branch");
@@ -26,16 +27,19 @@ public class GitController {
             }
             
             gitService.pullFromRepo(repoUrl, branch);
-            return ResponseEntity.ok("Pull completed successfully");
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Pull completed successfully");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
-            String errorMsg = "Git pull failed: " + e.getMessage();
-            return ResponseEntity.status(500).body(errorMsg);
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Git pull failed: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 
     @PostMapping("/push")
-    public ResponseEntity<String> pushToRepo(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, String>> pushToRepo(@RequestBody Map<String, String> request) {
         try {
             String fileName = request.get("fileName");
             String repoUrl = request.get("repoUrl");
@@ -47,16 +51,19 @@ public class GitController {
             }
             
             gitService.pushToRepo(fileName, repoUrl, newBranch, commitMessage);
-            return ResponseEntity.ok("Push completed successfully");
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Push completed successfully");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
-            String errorMsg = "Git push failed: " + e.getMessage();
-            return ResponseEntity.status(500).body(errorMsg);
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Git push failed: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 
     @PostMapping("/pr")
-    public ResponseEntity<String> createPullRequest(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, String>> createPullRequest(@RequestBody Map<String, String> request) {
         try {
             String repoUrl = request.get("repoUrl");
             String baseBranch = request.get("baseBranch");
@@ -69,11 +76,14 @@ public class GitController {
             }
             
             gitService.createPullRequest(repoUrl, baseBranch, newBranch, title, body);
-            return ResponseEntity.ok("Pull request created successfully");
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Pull request created successfully");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();
-            String errorMsg = "Pull request creation failed: " + e.getMessage();
-            return ResponseEntity.status(500).body(errorMsg);
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Pull request creation failed: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 }

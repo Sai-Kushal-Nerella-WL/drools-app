@@ -192,13 +192,13 @@ export class FileListComponent implements OnInit {
       next: (response) => {
         console.log('Pull successful:', response);
         this.isPulling = false;
-        this.showNotification('Successfully pulled latest changes from Git', 'success');
+        this.showNotification(response.message || 'Successfully pulled latest changes from Git', 'success');
         this.loadFiles();
       },
       error: (error) => {
         console.error('Error pulling from Git:', error);
         this.isPulling = false;
-        this.showNotification('Failed to pull from Git: ' + (error.error?.message || error.message), 'error');
+        this.showNotification('Failed to pull from Git: ' + (error.error?.error || error.error?.message || error.message), 'error');
       }
     });
   }

@@ -504,7 +504,7 @@ export class RulesGridComponent implements OnChanges {
         console.log('Push successful:', response);
         this.isPushing = false;
         this.hasSavedChanges = false;
-        this.showNotification(`Successfully pushed to Git! Branch: ${this.pendingBranch}`, 'success');
+        this.showNotification(response.message || `Successfully pushed to Git! Branch: ${this.pendingBranch}`, 'success');
         
         this.apiService.createPullRequest({
           repoUrl,
@@ -515,16 +515,18 @@ export class RulesGridComponent implements OnChanges {
         }).subscribe({
           next: (prResponse) => {
             console.log('PR created:', prResponse);
+            this.showNotification(prResponse.message || 'Pull request created successfully!', 'success');
           },
           error: (error) => {
             console.error('Error creating PR:', error);
+            this.showNotification('Push successful but failed to create PR: ' + (error.error?.error || error.error?.message || error.message), 'error');
           }
         });
       },
       error: (error) => {
         console.error('Error pushing to Git:', error);
         this.isPushing = false;
-        this.showNotification('Failed to push to Git: ' + (error.error?.message || error.message), 'error');
+        this.showNotification('Failed to push to Git: ' + (error.error?.error || error.error?.message || error.message), 'error');
       }
     });
   }

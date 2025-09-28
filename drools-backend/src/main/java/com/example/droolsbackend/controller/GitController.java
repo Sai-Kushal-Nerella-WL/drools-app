@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -84,6 +85,23 @@ public class GitController {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Pull request creation failed: " + e.getMessage());
             return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
+    @PostMapping("/branches")
+    public ResponseEntity<List<String>> listRemoteBranches(@RequestBody Map<String, String> request) {
+        try {
+            String repoUrl = request.get("repoUrl");
+            
+            if (repoUrl == null || repoUrl.trim().isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            
+            List<String> branches = gitService.listRemoteBranches(repoUrl);
+            return ResponseEntity.ok(branches);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
         }
     }
 }

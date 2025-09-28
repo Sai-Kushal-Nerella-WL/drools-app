@@ -132,4 +132,38 @@ public class GitService {
         System.out.println("Base: " + baseBranch + " <- Head: " + newBranch);
         System.out.println("Create PR at: https://github.com/" + repoPath + "/compare/" + baseBranch + "..." + newBranch);
     }
+
+    public java.util.List<String> listRemoteBranches(String repoUrl) throws IOException, InterruptedException {
+        java.util.List<String> branches = new java.util.ArrayList<>();
+        
+        ProcessBuilder pb = new ProcessBuilder("git", "ls-remote", "--heads", repoUrl);
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+        
+        StringBuilder output = new StringBuilder();
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+                if (line.contains("refs/heads/")) {
+                    String branchName = line.substring(line.lastIndexOf("refs/heads/") + 11);
+                    branches.add(branchName);
+                }
+            }
+        }
+        
+        int exitCode = process.waitFor();
+        
+        if (exitCode != 0) {
+            throw new RuntimeException("Failed to list remote branches: " + output.toString().trim());
+        }
+        
+        if (branches.isEmpty()) {
+            branches.add("main");
+            branches.add("master");
+        }
+        
+        return branches;
+    }
 }

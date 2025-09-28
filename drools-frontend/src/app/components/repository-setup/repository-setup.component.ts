@@ -2,6 +2,7 @@ import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RepositoryConfigService } from '../../services/repository-config.service';
+import { ApiService } from '../../services/api.service';
 import { RepositoryConfig } from '../../models/repository-config.model';
 
 @Component({
@@ -25,6 +26,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
               name="repoUrl"
               [(ngModel)]="config.repoUrl"
               #repoUrlInput="ngModel"
+              (blur)="onRepoUrlChange()"
               required
               class="form-control"
               placeholder="https://git-manager.devin.ai/proxy/github.com/username/repo-name"
@@ -36,18 +38,49 @@ import { RepositoryConfig } from '../../models/repository-config.model';
 
           <div class="form-group">
             <label for="branch">Branch *</label>
-            <input 
-              type="text" 
-              id="branch"
-              name="branch"
-              [(ngModel)]="config.branch"
-              #branchInput="ngModel"
-              required
-              class="form-control"
-              placeholder="main"
-              [class.error]="branchInput.invalid && branchInput.touched">
-            <div *ngIf="branchInput.invalid && branchInput.touched" class="error-message">
-              Please enter a branch name
+            <div class="branch-selection">
+              <div *ngIf="availableBranches.length > 0 && !branchFetchError">
+                <select 
+                  id="branch"
+                  name="branch"
+                  [(ngModel)]="config.branch"
+                  #branchSelect="ngModel"
+                  required
+                  class="form-control"
+                  [class.error]="branchSelect?.invalid && branchSelect?.touched">
+                  <option value="">Select a branch</option>
+                  <option *ngFor="let branch of availableBranches" [value]="branch">
+                    {{ branch }}
+                  </option>
+                </select>
+                <div *ngIf="branchSelect?.invalid && branchSelect?.touched" class="error-message">
+                  Please select a branch
+                </div>
+              </div>
+              
+              <div *ngIf="availableBranches.length === 0 || branchFetchError">
+                <input 
+                  type="text" 
+                  id="branch-input"
+                  name="branch"
+                  [(ngModel)]="config.branch"
+                  #branchTextInput="ngModel"
+                  required
+                  class="form-control"
+                  placeholder="main"
+                  [class.error]="branchTextInput?.invalid && branchTextInput?.touched">
+                <div *ngIf="branchTextInput?.invalid && branchTextInput?.touched" class="error-message">
+                  Please enter a branch name
+                </div>
+              </div>
+              
+              <div class="loading-indicator" *ngIf="loadingBranches">
+                <span class="spinner"></span> Loading branches...
+              </div>
+              
+              <div class="error-message" *ngIf="branchFetchError">
+                Could not fetch branches. Please enter manually.
+              </div>
             </div>
           </div>
 
@@ -343,6 +376,53 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       border: 1px solid #cbd5e1;
     }
 
+    .branch-selection {
+      position: relative;
+    }
+
+    .branch-selection select {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid #e5e7eb;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 400;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-sizing: border-box;
+      background: #ffffff;
+      color: #1f2937;
+    }
+
+    .branch-selection select:focus {
+      outline: none;
+      border-color: #6366f1;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .branch-selection select option {
+      background: #ffffff;
+      color: #1f2937;
+    }
+
+    .loading-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #6b7280;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
+    .loading-indicator .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #e5e7eb;
+      border-top: 2px solid #6366f1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
     @media (max-width: 768px) {
       .setup-container {
         padding: 16px;
@@ -380,8 +460,55 @@ export class RepositorySetupComponent {
   };
 
   isSubmitting = false;
+  availableBranches: string[] = [];
+  loadingBranches = false;
+  branchFetchError = false;
 
-  constructor(private repositoryConfigService: RepositoryConfigService) {}
+  constructor(
+    private repositoryConfigService: RepositoryConfigService,
+    private apiService: ApiService
+  ) {}
+
+  onRepoUrlChange() {
+    const repoUrl = this.config.repoUrl;
+    console.log('onRepoUrlChange called with:', repoUrl);
+    if (repoUrl && repoUrl.trim()) {
+      this.fetchBranches(repoUrl.trim());
+    } else {
+      this.availableBranches = [];
+      this.branchFetchError = false;
+    }
+  }
+
+  fetchBranches(repoUrl: string) {
+    console.log('fetchBranches called with:', repoUrl);
+    this.loadingBranches = true;
+    this.branchFetchError = false;
+    this.availableBranches = [];
+    
+    this.apiService.listRemoteBranches(repoUrl).subscribe({
+      next: (branches) => {
+        console.log('Branches fetched successfully:', branches);
+        this.availableBranches = branches;
+        this.loadingBranches = false;
+        
+        if (branches.includes('main')) {
+          this.config.branch = 'main';
+        } else if (branches.includes('master')) {
+          this.config.branch = 'master';
+        } else if (branches.length > 0) {
+          this.config.branch = branches[0];
+        }
+      },
+      error: (error) => {
+        console.error('Failed to fetch branches:', error);
+        this.loadingBranches = false;
+        this.branchFetchError = true;
+        this.availableBranches = [];
+        this.config.branch = 'main';
+      }
+    });
+  }
 
   onSubmit() {
     if (this.isSubmitting) return;

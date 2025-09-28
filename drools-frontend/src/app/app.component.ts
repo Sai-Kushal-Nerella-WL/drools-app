@@ -63,7 +63,8 @@ import { RepositoryConfig } from './models/repository-config.model';
     
     .right-panel {
       flex: 1;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: visible;
       min-width: 0;
     }
   `]

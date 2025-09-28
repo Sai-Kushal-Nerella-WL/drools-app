@@ -79,5 +79,4 @@ body {
 /* Ensure tables and their containers respect overflow controls */
 table, .rules-table, .grid-wrapper, .rules-grid-container {
   max-width: 100% !important;
-  overflow-x: hidden !important;
 }

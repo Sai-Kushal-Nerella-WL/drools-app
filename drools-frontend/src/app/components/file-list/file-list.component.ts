@@ -23,13 +23,13 @@ import { ApiService } from '../../services/api.service';
         <div *ngIf="files.length === 0" class="no-files">
           No Excel files found
         </div>
-      </div>
-      <div class="actions">
-        <button (click)="refreshFiles()" class="btn btn-secondary">Refresh</button>
-        <button (click)="pullFromGit()" class="btn btn-primary" [disabled]="isPulling">
-          <span *ngIf="isPulling" class="spinner"></span>
-          {{ isPulling ? 'Pulling...' : 'Pull from Git' }}
-        </button>
+        <div class="actions">
+          <button (click)="refreshFiles()" class="btn btn-secondary">Refresh</button>
+          <button (click)="pullFromGit()" class="btn btn-primary" [disabled]="isPulling">
+            <span *ngIf="isPulling" class="spinner"></span>
+            {{ isPulling ? 'Pulling...' : 'Pull from Git' }}
+          </button>
+        </div>
       </div>
       
     </div>
@@ -67,6 +67,7 @@ import { ApiService } from '../../services/api.service';
       overflow-y: auto;
       flex: 1;
       min-height: 0;
+      margin-bottom: 10px;
     }
     
     .file-item {
@@ -99,7 +100,9 @@ import { ApiService } from '../../services/api.service';
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin-top: 15px;
+      padding: 10px 0;
+      border-top: 1px solid #ddd;
+      margin-top: 0;
     }
     
     .btn {
@@ -177,6 +180,7 @@ export class FileListComponent implements OnInit {
   }
 
   refreshFiles() {
+    this.showNotification('Refreshing file list...', 'success');
     this.loadFiles();
   }
 

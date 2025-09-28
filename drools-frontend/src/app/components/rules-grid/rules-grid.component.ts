@@ -15,8 +15,8 @@ import { ApiService } from '../../services/api.service';
         <div class="actions">
           <button (click)="addRow()" class="btn btn-success">Add Row</button>
           <button (click)="save()" class="btn btn-primary" [disabled]="!hasChanges">Save</button>
-          <button (click)="discardChanges()" class="btn btn-secondary" [disabled]="!hasChanges">Discard Changes</button>
-          <button (click)="confirmPushToGit()" class="btn btn-warning" [disabled]="isPushing || !hasChanges">
+          <button (click)="discardChanges()" class="btn btn-secondary" [disabled]="!hasChanges && !hasSavedChanges">Discard Changes</button>
+          <button (click)="confirmPushToGit()" class="btn btn-warning" [disabled]="isPushing || hasChanges || !hasSavedChanges">
             <span *ngIf="isPushing" class="spinner"></span>
             {{ isPushing ? 'Pushing...' : 'Push to Git' }}
           </button>
@@ -321,6 +321,7 @@ export class RulesGridComponent implements OnChanges {
   tableView: DecisionTableView | null = null;
   originalTableView: DecisionTableView | null = null;
   hasChanges = false;
+  hasSavedChanges = false;
   isPushing = false;
   showConfirmDialog = false;
   pendingBranch = '';
@@ -345,6 +346,7 @@ export class RulesGridComponent implements OnChanges {
         this.tableView = view;
         this.originalTableView = JSON.parse(JSON.stringify(view));
         this.hasChanges = false;
+        this.hasSavedChanges = false;
       },
       error: (error) => {
         console.error('Error loading table:', error);
@@ -382,6 +384,7 @@ export class RulesGridComponent implements OnChanges {
       next: (response) => {
         console.log('Save successful:', response);
         this.hasChanges = false;
+        this.hasSavedChanges = true;
         this.showNotification(response.message || 'Changes saved successfully', 'success');
       },
       error: (error) => {
@@ -428,6 +431,7 @@ export class RulesGridComponent implements OnChanges {
       next: (response) => {
         console.log('Push successful:', response);
         this.isPushing = false;
+        this.hasSavedChanges = false;
         this.showNotification(`Successfully pushed to Git! Branch: ${this.pendingBranch}`, 'success');
         
         this.apiService.createPullRequest({
@@ -469,6 +473,7 @@ export class RulesGridComponent implements OnChanges {
     
     this.tableView = JSON.parse(JSON.stringify(this.originalTableView));
     this.hasChanges = false;
+    this.hasSavedChanges = false;
     this.showNotification('Changes discarded successfully', 'success');
   }
 

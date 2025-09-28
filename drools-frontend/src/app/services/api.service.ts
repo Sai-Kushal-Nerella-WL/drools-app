@@ -43,7 +43,7 @@ export class ApiService {
     return this.http.get(`${this.baseUrl}/repository/status`);
   }
 
-  listRemoteBranches(repoUrl: string): Observable<string[]> {
-    return this.http.post<string[]>(`${this.baseUrl}/git/branches`, { repoUrl });
+  listRemoteBranches(repoUrl: string): Observable<any[]> {
+    return this.http.post<any[]>(`${this.baseUrl}/git/branches`, { repoUrl });
   }
 }

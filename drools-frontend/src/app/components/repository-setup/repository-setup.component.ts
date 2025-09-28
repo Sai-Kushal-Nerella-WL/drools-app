@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RepositoryConfigService } from '../../services/repository-config.service';
@@ -40,20 +40,34 @@ import { RepositoryConfig } from '../../models/repository-config.model';
             <label for="branch">Branch *</label>
             <div class="branch-selection">
               <div *ngIf="availableBranches.length > 0 && !branchFetchError">
-                <select 
-                  id="branch"
-                  name="branch"
-                  [(ngModel)]="config.branch"
-                  #branchSelect="ngModel"
-                  required
-                  class="form-control"
-                  [class.error]="branchSelect?.invalid && branchSelect?.touched">
-                  <option value="">Select a branch</option>
-                  <option *ngFor="let branch of availableBranches" [value]="branch">
-                    {{ branch }}
-                  </option>
-                </select>
-                <div *ngIf="branchSelect?.invalid && branchSelect?.touched" class="error-message">
+                <div class="custom-dropdown" [class.open]="dropdownOpen">
+                  <div class="dropdown-trigger" 
+                       (click)="toggleDropdown()"
+                       [class.error]="!config.branch && branchTouched">
+                    <span class="selected-branch" *ngIf="config.branch">
+                      {{ config.branch }}
+                      <span *ngIf="getSelectedBranch()?.isMain" class="branch-tag main-tag">main</span>
+                      <span *ngIf="getSelectedBranch()?.isLatest" class="branch-tag latest-tag">latest</span>
+                    </span>
+                    <span class="placeholder" *ngIf="!config.branch">Select a branch</span>
+                    <svg class="dropdown-arrow" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <div class="dropdown-options" *ngIf="dropdownOpen">
+                    <div class="dropdown-option" 
+                         *ngFor="let branch of availableBranches" 
+                         (click)="selectBranch(branch)"
+                         [class.selected]="config.branch === branch.name">
+                      <span class="branch-name">{{ branch.name }}</span>
+                      <div class="branch-tags">
+                        <span *ngIf="branch.isMain" class="branch-tag main-tag">main</span>
+                        <span *ngIf="branch.isLatest" class="branch-tag latest-tag">latest</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="!config.branch && branchTouched" class="error-message">
                   Please select a branch
                 </div>
               </div>
@@ -64,12 +78,11 @@ import { RepositoryConfig } from '../../models/repository-config.model';
                   id="branch-input"
                   name="branch"
                   [(ngModel)]="config.branch"
-                  #branchTextInput="ngModel"
                   required
                   class="form-control"
                   placeholder="main"
-                  [class.error]="branchTextInput?.invalid && branchTextInput?.touched">
-                <div *ngIf="branchTextInput?.invalid && branchTextInput?.touched" class="error-message">
+                  [class.error]="!config.branch && branchTouched">
+                <div *ngIf="!config.branch && branchTouched" class="error-message">
                   Please enter a branch name
                 </div>
               </div>
@@ -380,7 +393,12 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       position: relative;
     }
 
-    .branch-selection select {
+    .custom-dropdown {
+      position: relative;
+      width: 100%;
+    }
+
+    .dropdown-trigger {
       width: 100%;
       padding: 16px 20px;
       border: 2px solid #e5e7eb;
@@ -391,18 +409,123 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       box-sizing: border-box;
       background: #ffffff;
       color: #1f2937;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 56px;
     }
 
-    .branch-selection select:focus {
+    .dropdown-trigger:hover {
+      border-color: #d1d5db;
+    }
+
+    .dropdown-trigger:focus,
+    .custom-dropdown.open .dropdown-trigger {
       outline: none;
       border-color: #6366f1;
       box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
       transform: translateY(-1px);
     }
 
-    .branch-selection select option {
+    .dropdown-trigger.error {
+      border-color: #ef4444;
+    }
+
+    .selected-branch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .placeholder {
+      color: #9ca3af;
+    }
+
+    .dropdown-arrow {
+      width: 20px;
+      height: 20px;
+      color: #6b7280;
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .custom-dropdown.open .dropdown-arrow {
+      transform: rotate(180deg);
+    }
+
+    .dropdown-options {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
       background: #ffffff;
-      color: #1f2937;
+      border: 2px solid #e5e7eb;
+      border-top: none;
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      z-index: 1000;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .dropdown-option {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .dropdown-option:last-child {
+      border-bottom: none;
+    }
+
+    .dropdown-option:hover {
+      background: #f8fafc;
+    }
+
+    .dropdown-option.selected {
+      background: #eff6ff;
+      color: #1d4ed8;
+      font-weight: 500;
+    }
+
+    .branch-name {
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .branch-tags {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .branch-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .main-tag {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+    }
+
+    .latest-tag {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
     }
 
     .loading-indicator {
@@ -449,7 +572,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
     }
   `]
 })
-export class RepositorySetupComponent {
+export class RepositorySetupComponent implements OnInit, OnDestroy {
   @Output() configurationComplete = new EventEmitter<RepositoryConfig>();
 
   config: RepositoryConfig = {
@@ -460,14 +583,32 @@ export class RepositorySetupComponent {
   };
 
   isSubmitting = false;
-  availableBranches: string[] = [];
+  availableBranches: any[] = [];
   loadingBranches = false;
   branchFetchError = false;
+  dropdownOpen = false;
+  branchTouched = false;
 
   constructor(
     private repositoryConfigService: RepositoryConfigService,
     private apiService: ApiService
   ) {}
+
+  ngOnInit() {
+    document.addEventListener('click', this.onDocumentClick.bind(this));
+  }
+
+  ngOnDestroy() {
+    document.removeEventListener('click', this.onDocumentClick.bind(this));
+  }
+
+  onDocumentClick(event: Event) {
+    const target = event.target as HTMLElement;
+    const dropdown = target.closest('.custom-dropdown');
+    if (!dropdown && this.dropdownOpen) {
+      this.dropdownOpen = false;
+    }
+  }
 
   onRepoUrlChange() {
     const repoUrl = this.config.repoUrl;
@@ -492,12 +633,11 @@ export class RepositorySetupComponent {
         this.availableBranches = branches;
         this.loadingBranches = false;
         
-        if (branches.includes('main')) {
-          this.config.branch = 'main';
-        } else if (branches.includes('master')) {
-          this.config.branch = 'master';
+        const mainBranch = branches.find(b => b.isMain);
+        if (mainBranch) {
+          this.config.branch = mainBranch.name;
         } else if (branches.length > 0) {
-          this.config.branch = branches[0];
+          this.config.branch = branches[0].name;
         }
       },
       error: (error) => {
@@ -508,6 +648,21 @@ export class RepositorySetupComponent {
         this.config.branch = 'main';
       }
     });
+  }
+
+  toggleDropdown() {
+    this.dropdownOpen = !this.dropdownOpen;
+    this.branchTouched = true;
+  }
+
+  selectBranch(branch: any) {
+    this.config.branch = branch.name;
+    this.dropdownOpen = false;
+    this.branchTouched = true;
+  }
+
+  getSelectedBranch() {
+    return this.availableBranches.find(b => b.name === this.config.branch);
   }
 
   onSubmit() {

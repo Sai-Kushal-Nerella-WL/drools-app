@@ -133,13 +133,14 @@ public class GitService {
         System.out.println("Create PR at: https://github.com/" + repoPath + "/compare/" + baseBranch + "..." + newBranch);
     }
 
-    public java.util.List<String> listRemoteBranches(String repoUrl) throws IOException, InterruptedException {
-        java.util.List<String> branches = new java.util.ArrayList<>();
+    public java.util.List<java.util.Map<String, Object>> listRemoteBranches(String repoUrl) throws IOException, InterruptedException {
+        java.util.List<java.util.Map<String, Object>> branches = new java.util.ArrayList<>();
         
         ProcessBuilder pb = new ProcessBuilder("git", "ls-remote", "--heads", repoUrl);
         pb.redirectErrorStream(true);
         Process process = pb.start();
         
+        java.util.Map<String, String> branchCommits = new java.util.HashMap<>();
         StringBuilder output = new StringBuilder();
         try (java.io.BufferedReader reader = new java.io.BufferedReader(
                 new java.io.InputStreamReader(process.getInputStream()))) {
@@ -147,8 +148,12 @@ public class GitService {
             while ((line = reader.readLine()) != null) {
                 output.append(line).append("\n");
                 if (line.contains("refs/heads/")) {
-                    String branchName = line.substring(line.lastIndexOf("refs/heads/") + 11);
-                    branches.add(branchName);
+                    String[] parts = line.split("\\s+");
+                    if (parts.length >= 2) {
+                        String commitHash = parts[0];
+                        String branchName = parts[1].substring(parts[1].lastIndexOf("refs/heads/") + 11);
+                        branchCommits.put(branchName, commitHash);
+                    }
                 }
             }
         }
@@ -159,9 +164,59 @@ public class GitService {
             throw new RuntimeException("Failed to list remote branches: " + output.toString().trim());
         }
         
+        for (java.util.Map.Entry<String, String> entry : branchCommits.entrySet()) {
+            String branchName = entry.getKey();
+            String commitHash = entry.getValue();
+            
+            try {
+                ProcessBuilder timestampPb = new ProcessBuilder("git", "show", "-s", "--format=%ct", commitHash);
+                timestampPb.redirectErrorStream(true);
+                Process timestampProcess = timestampPb.start();
+                
+                StringBuilder timestampOutput = new StringBuilder();
+                try (java.io.BufferedReader timestampReader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(timestampProcess.getInputStream()))) {
+                    String timestampLine;
+                    while ((timestampLine = timestampReader.readLine()) != null) {
+                        timestampOutput.append(timestampLine);
+                    }
+                }
+                
+                long timestamp = 0;
+                try {
+                    timestamp = Long.parseLong(timestampOutput.toString().trim());
+                } catch (NumberFormatException e) {
+                    timestamp = System.currentTimeMillis() / 1000;
+                }
+                
+                java.util.Map<String, Object> branchInfo = new java.util.HashMap<>();
+                branchInfo.put("name", branchName);
+                branchInfo.put("timestamp", timestamp);
+                branchInfo.put("isMain", branchName.equals("main") || branchName.equals("master"));
+                branches.add(branchInfo);
+                
+            } catch (Exception e) {
+                java.util.Map<String, Object> branchInfo = new java.util.HashMap<>();
+                branchInfo.put("name", branchName);
+                branchInfo.put("timestamp", 0L);
+                branchInfo.put("isMain", branchName.equals("main") || branchName.equals("master"));
+                branches.add(branchInfo);
+            }
+        }
+        
+        branches.sort((a, b) -> Long.compare((Long) b.get("timestamp"), (Long) a.get("timestamp")));
+        
+        if (!branches.isEmpty()) {
+            branches.get(0).put("isLatest", true);
+        }
+        
         if (branches.isEmpty()) {
-            branches.add("main");
-            branches.add("master");
+            java.util.Map<String, Object> mainBranch = new java.util.HashMap<>();
+            mainBranch.put("name", "main");
+            mainBranch.put("timestamp", System.currentTimeMillis() / 1000);
+            mainBranch.put("isMain", true);
+            mainBranch.put("isLatest", true);
+            branches.add(mainBranch);
         }
         
         return branches;

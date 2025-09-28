@@ -89,7 +89,7 @@ public class GitController {
     }
 
     @PostMapping("/branches")
-    public ResponseEntity<List<String>> listRemoteBranches(@RequestBody Map<String, String> request) {
+    public ResponseEntity<List<Map<String, Object>>> listRemoteBranches(@RequestBody Map<String, String> request) {
         try {
             String repoUrl = request.get("repoUrl");
             
@@ -97,7 +97,7 @@ public class GitController {
                 return ResponseEntity.badRequest().build();
             }
             
-            List<String> branches = gitService.listRemoteBranches(repoUrl);
+            List<Map<String, Object>> branches = gitService.listRemoteBranches(repoUrl);
             return ResponseEntity.ok(branches);
         } catch (Exception e) {
             e.printStackTrace();

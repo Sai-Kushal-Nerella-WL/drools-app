@@ -180,6 +180,12 @@ export class FileListComponent implements OnInit {
         this.showNotification('File list refreshed for new repository', 'success');
       });
     }
+    
+    this.repositoryConfigService.configSubject.subscribe(config => {
+      if (config) {
+        this.loadFiles();
+      }
+    });
   }
 
   loadFiles() {

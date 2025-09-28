@@ -882,8 +882,11 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
   confirmPushToGit() {
     if (!this.fileName) return;
     
-    const timestamp = Date.now();
-    this.pendingBranch = `devin/${timestamp}-rules-update`;
+    const config = this.repositoryConfigService.getCurrentConfig();
+    if (!config) return;
+    
+    const branchName = this.generateBranchName(config.repoUrl, this.fileName);
+    this.pendingBranch = branchName;
     this.showConfirmDialog = true;
   }
 
@@ -1154,6 +1157,8 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
 
   switchToBranch(): void {
     if (this.newBranchName) {
+      this.discardChanges();
+      
       this.repositoryConfigService.updateBranch(this.newBranchName);
       this.showNotification(`Switched to branch: ${this.newBranchName}`, 'success');
       this.hideBranchSwitchModal();
@@ -1164,5 +1169,24 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
 
   stayOnCurrentBranch(): void {
     this.hideBranchSwitchModal();
+    this.loadTable();
+  }
+
+  private generateBranchName(repoUrl: string, fileName: string): string {
+    const repoName = this.extractRepoName(repoUrl);
+    const excelName = fileName.replace(/\.[^/.]+$/, '');
+    
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const year = String(now.getFullYear()).slice(-2);
+    const hour = String(now.getHours()).padStart(2, '0');
+    const minute = String(now.getMinutes()).padStart(2, '0');
+    const datetime = `${month}${day}${year}${hour}${minute}`;
+    
+    const repoPrefix = repoName.substring(0, Math.min(3, repoName.length)).toUpperCase();
+    const excelPrefix = excelName.substring(0, Math.min(3, excelName.length)).toUpperCase();
+    
+    return `${repoPrefix}_${excelPrefix}_${datetime}`;
   }
 }

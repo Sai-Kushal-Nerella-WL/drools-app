@@ -30,6 +30,15 @@ public class ExcelService {
             return new ArrayList<>();
         }
         
+        try {
+            RepositoryConfig config = repositoryConfigService.getConfig();
+            if (config != null && config.getBranch() != null) {
+                ensureCorrectBranch(repositoryPath, config.getBranch());
+            }
+        } catch (Exception e) {
+            System.err.println("Warning: Could not ensure correct branch: " + e.getMessage());
+        }
+        
         File rulesDir = new File(repositoryPath + "/rules/");
         List<String> excelFiles = new ArrayList<>();
         
@@ -43,6 +52,27 @@ public class ExcelService {
         }
         
         return excelFiles;
+    }
+
+    private void ensureCorrectBranch(String repositoryPath, String branch) throws Exception {
+        File repoDir = new File(repositoryPath);
+        if (!repoDir.exists()) {
+            return;
+        }
+        
+        ProcessBuilder pb = new ProcessBuilder("git", "checkout", branch);
+        pb.directory(repoDir);
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+        
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            ProcessBuilder createPb = new ProcessBuilder("git", "checkout", "-b", branch, "origin/" + branch);
+            createPb.directory(repoDir);
+            createPb.redirectErrorStream(true);
+            Process createProcess = createPb.start();
+            createProcess.waitFor();
+        }
     }
 
     public DecisionTableView readDecisionTable(String fileName) throws IOException {

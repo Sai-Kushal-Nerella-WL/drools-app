@@ -9,7 +9,7 @@ import { RepositoryConfig } from '../models/repository-config.model';
 })
 export class RepositoryConfigService {
   private readonly STORAGE_KEY = 'drools-repository-config';
-  private configSubject = new BehaviorSubject<RepositoryConfig | null>(null);
+  public configSubject = new BehaviorSubject<RepositoryConfig | null>(null);
   private baseUrl = 'http://localhost:8080/api';
   
   constructor(private http: HttpClient) {
@@ -106,6 +106,7 @@ export class RepositoryConfigService {
     if (currentConfig) {
       const updatedConfig = { ...currentConfig, branch: newBranch };
       this.saveConfig(updatedConfig);
+      this.configSubject.next(updatedConfig);
     }
   }
 }

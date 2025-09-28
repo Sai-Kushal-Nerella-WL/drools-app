@@ -837,15 +837,17 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
     }
   }
 
-  loadTable() {
+  loadTable(preserveChanges: boolean = false) {
     if (!this.fileName) return;
     
     this.apiService.openSheet(this.fileName).subscribe({
       next: (view) => {
         this.tableView = view;
         this.originalTableView = JSON.parse(JSON.stringify(view));
-        this.hasChanges = false;
-        this.hasSavedChanges = false;
+        if (!preserveChanges) {
+          this.hasChanges = false;
+          this.hasSavedChanges = false;
+        }
         setTimeout(() => {
           this.applyDynamicScrollingStyles();
         }, 100);
@@ -1091,7 +1093,8 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
         next: (response) => {
           this.showNotification(response.message, 'success');
           this.hideAddColumnModal();
-          this.loadTable();
+          this.loadTable(true);
+          this.markChanged();
         },
         error: (error) => {
           console.error('Error adding column:', error);
@@ -1128,7 +1131,8 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
         next: (response) => {
           this.showNotification(response.message, 'success');
           this.hideDeleteColumnModal();
-          this.loadTable();
+          this.loadTable(true);
+          this.markChanged();
         },
         error: (error) => {
           console.error('Error deleting column:', error);

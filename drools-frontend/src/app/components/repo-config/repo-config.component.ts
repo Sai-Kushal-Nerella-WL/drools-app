@@ -58,7 +58,7 @@ import { RepoConfig, RepoValidationRequest, ValidationResult, ConnectionResult, 
               placeholder="Git username">
           </div>
 
-          <div class="form-group">
+          <div class="form-group password-field">
             <label for="password">Password/Token</label>
             <input 
               id="password"
@@ -204,6 +204,10 @@ import { RepoConfig, RepoValidationRequest, ValidationResult, ConnectionResult, 
       margin: 0 0 15px 0;
       color: #495057;
       font-size: 16px;
+    }
+
+    .credentials-section .password-field {
+      margin-top: 15px;
     }
 
     .validation-section {

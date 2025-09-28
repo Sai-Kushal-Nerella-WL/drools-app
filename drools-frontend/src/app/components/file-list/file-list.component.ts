@@ -187,7 +187,7 @@ export class FileListComponent implements OnInit {
   pullFromGit() {
     this.isPulling = true;
     
-    const repoUrl = 'https://github.com/Sai-Kushal-Nerella-WL/drools-rules-lite.git';
+    const repoUrl = 'https://git-manager.devin.ai/proxy/github.com/Sai-Kushal-Nerella-WL/drools-rules-lite';
     this.apiService.pullFromRepo({ repoUrl, branch: 'main' }).subscribe({
       next: (response) => {
         console.log('Pull successful:', response);

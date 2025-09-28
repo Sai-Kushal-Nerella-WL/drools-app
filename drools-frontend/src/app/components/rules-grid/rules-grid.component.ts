@@ -492,7 +492,7 @@ export class RulesGridComponent implements OnChanges {
     this.isPushing = true;
     
     const commitMessage = `Update rules in ${this.fileName}`;
-    const repoUrl = 'https://github.com/Sai-Kushal-Nerella-WL/drools-rules-lite.git';
+    const repoUrl = 'https://git-manager.devin.ai/proxy/github.com/Sai-Kushal-Nerella-WL/drools-rules-lite';
     
     this.apiService.pushToRepo({
       fileName: this.fileName,

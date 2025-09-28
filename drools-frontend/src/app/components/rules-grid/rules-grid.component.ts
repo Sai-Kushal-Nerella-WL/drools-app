@@ -170,7 +170,7 @@ interface NotificationItem {
     .rules-grid-container {
       padding: 20px;
       height: 100vh;
-      overflow: hidden;
+      overflow: visible;
       display: flex;
       flex-direction: column;
     }
@@ -241,13 +241,22 @@ interface NotificationItem {
       opacity: 0.9;
     }
     
-    ::ng-deep .grid-wrapper {
+    .grid-wrapper {
       overflow-x: scroll !important;
       overflow-y: auto !important;
       flex: 1;
       min-height: 0;
       position: relative;
       border: 1px solid #ddd;
+      max-width: 1200px !important;
+      width: 1200px !important;
+      height: 400px !important;
+      display: block !important;
+    }
+    
+    ::ng-deep .grid-wrapper {
+      overflow-x: scroll !important;
+      overflow-y: auto !important;
       max-width: 1200px !important;
       width: 1200px !important;
       height: 400px !important;

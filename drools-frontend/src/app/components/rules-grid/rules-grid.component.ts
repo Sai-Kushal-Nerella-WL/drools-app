@@ -22,11 +22,11 @@ interface NotificationItem {
       <div class="grid-header">
         <h3>{{ fileName }}</h3>
         <div class="actions">
-          <button (click)="addRow()" class="btn btn-success">Add Row</button>
-          <button (click)="showAddColumnModal()" class="btn btn-info">Add Column</button>
-          <button (click)="save()" class="btn btn-primary" [disabled]="!hasChanges">Save</button>
-          <button (click)="discardChanges()" class="btn btn-secondary" [disabled]="!hasChanges && !hasSavedChanges">Discard Changes</button>
-          <button (click)="confirmPushToGit()" class="btn btn-warning" [disabled]="isPushing || hasChanges || !hasSavedChanges">
+          <button (click)="addRow()" class="btn btn-success" [disabled]="isReadOnly">Add Row</button>
+          <button (click)="showAddColumnModal()" class="btn btn-info" [disabled]="isReadOnly">Add Column</button>
+          <button (click)="save()" class="btn btn-primary" [disabled]="!hasChanges || isReadOnly">Save</button>
+          <button (click)="discardChanges()" class="btn btn-secondary" [disabled]="(!hasChanges && !hasSavedChanges) || isReadOnly">Discard Changes</button>
+          <button (click)="confirmPushToGit()" class="btn btn-warning" [disabled]="isPushing || hasChanges || !hasSavedChanges || isReadOnly">
             <span *ngIf="isPushing" class="spinner"></span>
             {{ isPushing ? 'Pushing...' : 'Push to Git' }}
           </button>
@@ -39,7 +39,7 @@ interface NotificationItem {
             <tr>
               <th *ngFor="let label of tableView.columnLabels; let i = index">
                 {{ label }}
-                <button *ngIf="i > 0" (click)="confirmDeleteColumn(i)" class="btn-delete-column" title="Delete column">×</button>
+                <button *ngIf="i > 0 && !isReadOnly" (click)="confirmDeleteColumn(i)" class="btn-delete-column" title="Delete column">×</button>
               </th>
               <th>Events</th>
             </tr>
@@ -56,16 +56,18 @@ interface NotificationItem {
                   [(ngModel)]="row.name"
                   (ngModelChange)="markChanged()"
                   class="form-control"
-                  placeholder="Rule name">
+                  placeholder="Rule name"
+                  [readonly]="isReadOnly">
                 <input 
                   *ngIf="j > 0"
                   [(ngModel)]="row.values[j-1]"
                   (ngModelChange)="markChanged()"
                   class="form-control"
-                  [placeholder]="getPlaceholder(j-1)">
+                  [placeholder]="getPlaceholder(j-1)"
+                  [readonly]="isReadOnly">
               </td>
               <td>
-                <button (click)="deleteRow(i)" class="btn btn-danger btn-sm">Delete</button>
+                <button (click)="deleteRow(i)" class="btn btn-danger btn-sm" [disabled]="isReadOnly">Delete</button>
               </td>
             </tr>
           </tbody>
@@ -701,6 +703,17 @@ interface NotificationItem {
       color: white;
     }
 
+    input[readonly] {
+      background-color: #f8f9fa !important;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    
+    button[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
   `]
 })
 export class RulesGridComponent implements OnChanges, AfterViewInit {
@@ -730,6 +743,11 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
     private apiService: ApiService,
     private repositoryConfigService: RepositoryConfigService
   ) {}
+
+  get isReadOnly(): boolean {
+    const config = this.repositoryConfigService.getCurrentConfig();
+    return config ? config.branch !== 'main' : false;
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['fileName'] && this.fileName) {

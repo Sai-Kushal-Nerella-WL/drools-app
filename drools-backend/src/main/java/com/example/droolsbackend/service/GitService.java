@@ -81,9 +81,11 @@ public class GitService {
 
     public boolean validateRepositoryUrl(String repoUrl, String username, String password) {
         try {
-            UsernamePasswordCredentialsProvider credentialsProvider = null;
-            if (username != null && password != null) {
+            UsernamePasswordCredentialsProvider credentialsProvider;
+            if (username != null && password != null && !username.isEmpty() && !password.isEmpty()) {
                 credentialsProvider = new UsernamePasswordCredentialsProvider(username, password);
+            } else {
+                credentialsProvider = new UsernamePasswordCredentialsProvider("", "");
             }
 
             Git.lsRemoteRepository()
@@ -102,9 +104,11 @@ public class GitService {
 
     public boolean testRepositoryConnection(String repoUrl, String branch, String username, String password) {
         try {
-            UsernamePasswordCredentialsProvider credentialsProvider = null;
-            if (username != null && password != null) {
+            UsernamePasswordCredentialsProvider credentialsProvider;
+            if (username != null && password != null && !username.isEmpty() && !password.isEmpty()) {
                 credentialsProvider = new UsernamePasswordCredentialsProvider(username, password);
+            } else {
+                credentialsProvider = new UsernamePasswordCredentialsProvider("", "");
             }
 
             Collection<Ref> refs = Git.lsRemoteRepository()
@@ -141,9 +145,11 @@ public class GitService {
             String repoDirPath = getRepoDirectory(repoUrl);
             File repoDir = new File(repoDirPath);
             
-            UsernamePasswordCredentialsProvider credentialsProvider = null;
-            if (username != null && password != null) {
+            UsernamePasswordCredentialsProvider credentialsProvider;
+            if (username != null && password != null && !username.isEmpty() && !password.isEmpty()) {
                 credentialsProvider = new UsernamePasswordCredentialsProvider(username, password);
+            } else {
+                credentialsProvider = new UsernamePasswordCredentialsProvider("", "");
             }
 
             if (repoDir.exists()) {

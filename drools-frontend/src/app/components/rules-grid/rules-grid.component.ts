@@ -95,11 +95,8 @@ interface NotificationItem {
       <div *ngFor="let notif of notifications; trackBy: trackNotification" 
            class="notification" 
            [class]="notif.type"
-           [style.animation-delay]="getAnimationDelay(notif) + 'ms'"
-           [title]="notif.message">
-        <div class="notification-content">
-          {{ getTruncatedMessage(notif.message) }}
-        </div>
+           [style.animation-delay]="getAnimationDelay(notif) + 'ms'">
+        {{ notif.message }}
         <button (click)="removeNotification(notif.id)" class="close-btn">&times;</button>
         <div class="progress-bar">
           <div class="progress-fill" [style.width.%]="notif.progress"></div>
@@ -319,19 +316,14 @@ interface NotificationItem {
       padding: 15px 20px 10px 20px;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      width: 400px;
-      min-height: 60px;
-      max-height: 80px;
+      max-width: 400px;
+      min-width: 300px;
       font-size: 15px;
       font-weight: 500;
       border-left: 4px solid;
       animation: slideIn 0.3s ease-out;
       position: relative;
       background: white;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
     }
     
     @keyframes slideIn {
@@ -393,14 +385,6 @@ interface NotificationItem {
       opacity: 0.6;
     }
     
-    .notification-content {
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      line-height: 1.4;
-      padding-right: 25px;
-    }
   `]
 })
 export class RulesGridComponent implements OnChanges {
@@ -614,14 +598,6 @@ export class RulesGridComponent implements OnChanges {
     this.hasChanges = false;
     this.hasSavedChanges = false;
     this.showNotification('Changes discarded successfully', 'success');
-  }
-
-  getTruncatedMessage(message: string): string {
-    const maxLength = 60;
-    if (message.length <= maxLength) {
-      return message;
-    }
-    return message.substring(0, maxLength) + '...';
   }
 
   getPlaceholder(valueIndex: number): string {

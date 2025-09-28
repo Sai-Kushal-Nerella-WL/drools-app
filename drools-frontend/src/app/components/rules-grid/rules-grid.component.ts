@@ -242,13 +242,15 @@ interface NotificationItem {
     }
     
     .grid-wrapper {
-      overflow-x: auto;
+      overflow-x: scroll !important;
       overflow-y: auto;
       flex: 1;
       min-height: 0;
       position: relative;
       border: 1px solid #ddd;
-      max-width: 100%;
+      max-width: 1200px !important;
+      width: 1200px !important;
+      height: 400px;
     }
     
     .rules-table {
@@ -257,7 +259,8 @@ interface NotificationItem {
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       table-layout: fixed;
       overflow: hidden;
-      min-width: 2400px;
+      width: 3000px;
+      min-width: 3000px;
     }
     
     .rules-table th,
@@ -265,9 +268,9 @@ interface NotificationItem {
       padding: 12px;
       text-align: left;
       border: 1px solid #ddd;
-      width: 200px;
-      min-width: 200px;
-      max-width: 200px;
+      width: 250px !important;
+      min-width: 250px !important;
+      max-width: 250px !important;
       white-space: normal;
       word-wrap: break-word;
       overflow-wrap: break-word;

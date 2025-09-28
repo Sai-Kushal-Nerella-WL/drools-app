@@ -55,6 +55,6 @@ export class AppComponent {
     this.externalNotification = notification;
     setTimeout(() => {
       this.externalNotification = null;
-    }, 100);
+    }, 8000);
   }
 }

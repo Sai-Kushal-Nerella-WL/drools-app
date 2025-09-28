@@ -64,7 +64,6 @@ import { ApiService } from '../../services/api.service';
     }
     
     .file-list {
-      margin-bottom: 20px;
       overflow-y: auto;
       flex: 1;
       min-height: 0;
@@ -100,6 +99,7 @@ import { ApiService } from '../../services/api.service';
       display: flex;
       flex-direction: column;
       gap: 10px;
+      margin-top: 15px;
     }
     
     .btn {

@@ -16,7 +16,7 @@ import { ApiService } from '../../services/api.service';
           <button (click)="addRow()" class="btn btn-success">Add Row</button>
           <button (click)="save()" class="btn btn-primary" [disabled]="!hasChanges">Save</button>
           <button (click)="discardChanges()" class="btn btn-secondary" [disabled]="!hasChanges">Discard Changes</button>
-          <button (click)="confirmPushToGit()" class="btn btn-warning" [disabled]="isPushing || hasChanges">
+          <button (click)="confirmPushToGit()" class="btn btn-warning" [disabled]="isPushing || !hasChanges">
             <span *ngIf="isPushing" class="spinner"></span>
             {{ isPushing ? 'Pushing...' : 'Push to Git' }}
           </button>
@@ -394,11 +394,6 @@ export class RulesGridComponent implements OnChanges {
 
   confirmPushToGit() {
     if (!this.fileName) return;
-    
-    if (this.hasChanges) {
-      this.showNotification('Please save your changes before pushing to Git', 'error');
-      return;
-    }
     
     const timestamp = Date.now();
     this.pendingBranch = `devin/${timestamp}-rules-update`;

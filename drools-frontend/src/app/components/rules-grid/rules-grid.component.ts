@@ -23,6 +23,7 @@ interface NotificationItem {
         <h3>{{ fileName }}</h3>
         <div class="actions">
           <button (click)="addRow()" class="btn btn-success">Add Row</button>
+          <button (click)="showAddColumnModal()" class="btn btn-info">Add Column</button>
           <button (click)="save()" class="btn btn-primary" [disabled]="!hasChanges">Save</button>
           <button (click)="discardChanges()" class="btn btn-secondary" [disabled]="!hasChanges && !hasSavedChanges">Discard Changes</button>
           <button (click)="confirmPushToGit()" class="btn btn-warning" [disabled]="isPushing || hasChanges || !hasSavedChanges">
@@ -36,7 +37,10 @@ interface NotificationItem {
         <table class="rules-table">
           <thead>
             <tr>
-              <th *ngFor="let label of tableView.columnLabels">{{ label }}</th>
+              <th *ngFor="let label of tableView.columnLabels; let i = index">
+                {{ label }}
+                <button *ngIf="i > 0" (click)="confirmDeleteColumn(i)" class="btn-delete-column" title="Delete column">×</button>
+              </th>
               <th>Events</th>
             </tr>
             <tr class="template-row">
@@ -92,6 +96,62 @@ interface NotificationItem {
       </div>
     </div>
     
+    <!-- Add Column Modal -->
+    <div *ngIf="showAddColumnModalFlag" class="modal-overlay" (click)="hideAddColumnModal()">
+      <div class="modal-content add-column-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h4>Add New Column</h4>
+          <button class="modal-close" (click)="hideAddColumnModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Column Type:</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="columnType" value="CONDITION" [(ngModel)]="newColumnType">
+                Condition
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="columnType" value="ACTION" [(ngModel)]="newColumnType">
+                Action
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="columnName">Column Name:</label>
+            <input type="text" id="columnName" [(ngModel)]="newColumnName" placeholder="Enter column name" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="templateValue">Template Value:</label>
+            <input type="text" id="templateValue" [(ngModel)]="newColumnTemplate" 
+                   [placeholder]="getTemplatePlaceholder()" class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button (click)="hideAddColumnModal()" class="btn btn-secondary">Cancel</button>
+          <button (click)="addColumn()" class="btn btn-primary" [disabled]="!isAddColumnFormValid()">Add Column</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Column Confirmation Modal -->
+    <div *ngIf="showDeleteColumnModalFlag" class="modal-overlay" (click)="hideDeleteColumnModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h4>Confirm Delete Column</h4>
+          <button class="modal-close" (click)="hideDeleteColumnModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete the column "{{ getColumnToDelete() }}"?</p>
+          <p class="warning-text">This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button (click)="hideDeleteColumnModal()" class="btn btn-secondary">Cancel</button>
+          <button (click)="deleteColumn()" class="btn btn-danger">Delete Column</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Notification Stack -->
     <div class="notification-stack">
       <div *ngFor="let notif of notifications; trackBy: trackNotification" 
@@ -421,7 +481,114 @@ interface NotificationItem {
       transition: width 100ms linear;
       opacity: 0.6;
     }
-    
+
+    .btn-delete-column {
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      width: 20px;
+      height: 20px;
+      font-size: 12px;
+      line-height: 1;
+      cursor: pointer;
+      margin-left: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-delete-column:hover {
+      background-color: #c82333;
+    }
+
+    .add-column-modal {
+      max-width: 500px;
+      width: 90%;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .modal-header h4 {
+      margin: 0;
+      color: #333;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close:hover {
+      color: #333;
+    }
+
+    .modal-body {
+      padding: 20px;
+    }
+
+    .modal-footer {
+      padding: 20px;
+      border-top: 1px solid #dee2e6;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 20px;
+    }
+
+    .radio-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-weight: normal;
+    }
+
+    .radio-label input[type="radio"] {
+      margin: 0;
+    }
+
+    .warning-text {
+      color: #dc3545;
+      font-style: italic;
+      margin-top: 10px;
+    }
+
+    .btn-info {
+      background-color: #17a2b8;
+      color: white;
+    }
+
   `]
 })
 export class RulesGridComponent implements OnChanges {
@@ -436,6 +603,14 @@ export class RulesGridComponent implements OnChanges {
   showConfirmDialog = false;
   pendingBranch = '';
   notifications: NotificationItem[] = [];
+
+  showAddColumnModalFlag = false;
+  newColumnType: 'CONDITION' | 'ACTION' = 'CONDITION';
+  newColumnName = '';
+  newColumnTemplate = '';
+
+  showDeleteColumnModalFlag = false;
+  columnToDeleteIndex = -1;
 
   constructor(
     private apiService: ApiService,
@@ -662,5 +837,85 @@ export class RulesGridComponent implements OnChanges {
   getRepositoryDisplayName(): string {
     const config = this.repositoryConfigService.getCurrentConfig();
     return config?.displayName || config?.repoUrl || 'Unknown Repository';
+  }
+
+  showAddColumnModal(): void {
+    this.showAddColumnModalFlag = true;
+    this.newColumnType = 'CONDITION';
+    this.newColumnName = '';
+    this.newColumnTemplate = '';
+  }
+
+  hideAddColumnModal(): void {
+    this.showAddColumnModalFlag = false;
+  }
+
+  isAddColumnFormValid(): boolean {
+    return this.newColumnName.trim() !== '' && this.newColumnTemplate.trim() !== '';
+  }
+
+  getTemplatePlaceholder(): string {
+    if (this.newColumnType === 'CONDITION') {
+      return 'e.g., customer.getAge() >= $param';
+    } else {
+      return 'e.g., customer.setDiscount($param);';
+    }
+  }
+
+  addColumn(): void {
+    if (!this.isAddColumnFormValid()) {
+      return;
+    }
+
+    this.apiService.addColumn(this.fileName!, this.newColumnType, this.newColumnName, this.newColumnTemplate)
+      .subscribe({
+        next: (response) => {
+          this.showNotification(response.message, 'success');
+          this.hideAddColumnModal();
+          this.loadTable();
+        },
+        error: (error) => {
+          console.error('Error adding column:', error);
+          const errorMessage = error.error?.error || 'Failed to add column';
+          this.showNotification(errorMessage, 'error');
+        }
+      });
+  }
+
+  confirmDeleteColumn(columnIndex: number): void {
+    this.columnToDeleteIndex = columnIndex;
+    this.showDeleteColumnModalFlag = true;
+  }
+
+  hideDeleteColumnModal(): void {
+    this.showDeleteColumnModalFlag = false;
+    this.columnToDeleteIndex = -1;
+  }
+
+  getColumnToDelete(): string {
+    if (this.tableView && this.columnToDeleteIndex >= 0 && this.columnToDeleteIndex < this.tableView.columnLabels.length) {
+      return this.tableView.columnLabels[this.columnToDeleteIndex];
+    }
+    return '';
+  }
+
+  deleteColumn(): void {
+    if (this.columnToDeleteIndex < 0) {
+      return;
+    }
+
+    this.apiService.deleteColumn(this.fileName!, this.columnToDeleteIndex)
+      .subscribe({
+        next: (response) => {
+          this.showNotification(response.message, 'success');
+          this.hideDeleteColumnModal();
+          this.loadTable();
+        },
+        error: (error) => {
+          console.error('Error deleting column:', error);
+          const errorMessage = error.error?.error || 'Failed to delete column';
+          this.showNotification(errorMessage, 'error');
+        }
+      });
   }
 }

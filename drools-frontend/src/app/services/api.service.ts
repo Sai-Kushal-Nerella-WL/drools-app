@@ -46,4 +46,12 @@ export class ApiService {
   listRemoteBranches(repoUrl: string): Observable<any[]> {
     return this.http.post<any[]>(`${this.baseUrl}/git/branches`, { repoUrl });
   }
+
+  addColumn(fileName: string, columnType: 'CONDITION' | 'ACTION', columnName: string, templateValue: string): Observable<{message: string}> {
+    return this.http.post<{message: string}>(`${this.baseUrl}/sheets/add-column`, { fileName, columnType, columnName, templateValue });
+  }
+
+  deleteColumn(fileName: string, columnIndex: number): Observable<{message: string}> {
+    return this.http.post<{message: string}>(`${this.baseUrl}/sheets/delete-column`, { fileName, columnIndex });
+  }
 }

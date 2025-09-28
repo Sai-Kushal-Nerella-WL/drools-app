@@ -889,6 +889,7 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
         console.log('Save successful:', response);
         this.hasChanges = false;
         this.hasSavedChanges = true;
+        this.originalTableView = JSON.parse(JSON.stringify(this.tableView));
         this.showNotification(response.message || 'Changes saved successfully', 'success');
       },
       error: (error) => {
@@ -1035,9 +1036,11 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
   }
 
   discardChanges() {
+    if (!this.originalTableView) return;
+    
+    this.tableView = JSON.parse(JSON.stringify(this.originalTableView));
     this.hasChanges = false;
     this.hasSavedChanges = false;
-    this.loadTable();
     this.showNotification('Changes discarded successfully', 'success');
   }
 

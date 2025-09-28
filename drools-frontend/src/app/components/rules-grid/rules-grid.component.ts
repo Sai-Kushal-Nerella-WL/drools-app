@@ -4,6 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { DecisionTableView, RuleRow } from '../../models/decision-table.model';
 import { ApiService } from '../../services/api.service';
 
+interface NotificationItem {
+  id: string;
+  message: string;
+  type: 'success' | 'error';
+  progress: number;
+  timeoutId?: number;
+}
+
 @Component({
   selector: 'app-rules-grid',
   standalone: true,
@@ -82,10 +90,18 @@ import { ApiService } from '../../services/api.service';
       </div>
     </div>
     
-    <!-- Notification -->
-    <div *ngIf="notification" class="notification" [class]="notification.type">
-      {{ notification.message }}
-      <button (click)="clearNotification()" class="close-btn">&times;</button>
+    <!-- Notification Stack -->
+    <div class="notification-stack">
+      <div *ngFor="let notif of notifications; trackBy: trackNotification" 
+           class="notification" 
+           [class]="notif.type"
+           [style.animation-delay]="getAnimationDelay(notif) + 'ms'">
+        {{ notif.message }}
+        <button (click)="removeNotification(notif.id)" class="close-btn">&times;</button>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="notif.progress"></div>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
@@ -284,20 +300,30 @@ import { ApiService } from '../../services/api.service';
       margin-top: 20px;
     }
     
-    .notification {
+    .notification-stack {
       position: fixed;
       bottom: 20px;
       right: 20px;
-      padding: 15px 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: calc(100vh - 40px);
+      overflow: hidden;
+    }
+    
+    .notification {
+      padding: 15px 20px 10px 20px;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       max-width: 400px;
       min-width: 300px;
       font-size: 15px;
       font-weight: 500;
-      z-index: 1000;
       border-left: 4px solid;
       animation: slideIn 0.3s ease-out;
+      position: relative;
+      background: white;
     }
     
     @keyframes slideIn {
@@ -334,6 +360,29 @@ import { ApiService } from '../../services/api.service';
       font-size: 16px;
       cursor: pointer;
       color: inherit;
+      opacity: 0.7;
+    }
+    
+    .close-btn:hover {
+      opacity: 1;
+    }
+    
+    .progress-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background-color: rgba(0, 0, 0, 0.1);
+      border-radius: 0 0 8px 8px;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background-color: currentColor;
+      transition: width 100ms linear;
+      opacity: 0.6;
     }
   `]
 })
@@ -348,7 +397,7 @@ export class RulesGridComponent implements OnChanges {
   isPushing = false;
   showConfirmDialog = false;
   pendingBranch = '';
-  notification: { message: string; type: 'success' | 'error' } | null = null;
+  notifications: NotificationItem[] = [];
 
   constructor(private apiService: ApiService) {}
 
@@ -440,7 +489,6 @@ export class RulesGridComponent implements OnChanges {
     if (!this.fileName) return;
     
     this.isPushing = true;
-    this.clearNotification();
     
     const commitMessage = `Update rules in ${this.fileName}`;
     const repoUrl = 'https://github.com/Sai-Kushal-Nerella-WL/drools-rules-lite.git';
@@ -481,14 +529,65 @@ export class RulesGridComponent implements OnChanges {
   }
 
   showNotification(message: string, type: 'success' | 'error') {
-    this.notification = { message, type };
-    setTimeout(() => {
-      this.clearNotification();
-    }, 8000);
+    const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    const notification: NotificationItem = {
+      id,
+      message,
+      type,
+      progress: 100
+    };
+
+    this.notifications.push(notification);
+    
+    if (this.notifications.length > 3) {
+      const removed = this.notifications.shift();
+      if (removed?.timeoutId) {
+        clearInterval(removed.timeoutId);
+      }
+    }
+
+    this.startProgressCountdown(notification);
   }
 
-  clearNotification() {
-    this.notification = null;
+  private startProgressCountdown(notification: NotificationItem) {
+    const duration = 8000; // 8 seconds
+    const interval = 100; // Update every 100ms
+    const steps = duration / interval;
+    const progressStep = 100 / steps;
+    
+    let currentStep = 0;
+    
+    const progressInterval = setInterval(() => {
+      currentStep++;
+      notification.progress = Math.max(0, 100 - (currentStep * progressStep));
+      
+      if (currentStep >= steps) {
+        clearInterval(progressInterval);
+        this.removeNotification(notification.id);
+      }
+    }, interval);
+    
+    notification.timeoutId = progressInterval as any;
+  }
+
+  removeNotification(id: string) {
+    const index = this.notifications.findIndex(n => n.id === id);
+    if (index !== -1) {
+      const notification = this.notifications[index];
+      if (notification.timeoutId) {
+        clearInterval(notification.timeoutId);
+      }
+      this.notifications.splice(index, 1);
+    }
+  }
+
+  trackNotification(index: number, item: NotificationItem): string {
+    return item.id;
+  }
+
+  getAnimationDelay(notification: NotificationItem): number {
+    const index = this.notifications.findIndex(n => n.id === notification.id);
+    return index * 100; // Stagger animations by 100ms
   }
 
   discardChanges() {

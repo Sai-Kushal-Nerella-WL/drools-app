@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DecisionTableView, RuleRow } from '../../models/decision-table.model';
 import { ApiService } from '../../services/api.service';
+import { RepositoryConfigService } from '../../services/repository-config.service';
 
 interface NotificationItem {
   id: string;
@@ -83,6 +84,7 @@ interface NotificationItem {
         <p>Are you sure you want to push changes to Git?</p>
         <p><strong>File:</strong> {{ fileName }}</p>
         <p><strong>Branch:</strong> {{ pendingBranch }}</p>
+        <p><strong>Repository:</strong> {{ getRepositoryDisplayName() }}</p>
         <div class="modal-actions">
           <button (click)="cancelPush()" class="btn btn-secondary">Cancel</button>
           <button (click)="confirmPush()" class="btn btn-warning">Yes, Push</button>
@@ -400,7 +402,10 @@ export class RulesGridComponent implements OnChanges {
   pendingBranch = '';
   notifications: NotificationItem[] = [];
 
-  constructor(private apiService: ApiService) {}
+  constructor(
+    private apiService: ApiService,
+    private repositoryConfigService: RepositoryConfigService
+  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['fileName'] && this.fileName) {
@@ -489,14 +494,19 @@ export class RulesGridComponent implements OnChanges {
   pushToGit() {
     if (!this.fileName) return;
     
+    const config = this.repositoryConfigService.getCurrentConfig();
+    if (!config) {
+      this.showNotification('Repository not configured', 'error');
+      return;
+    }
+    
     this.isPushing = true;
     
     const commitMessage = `Update rules in ${this.fileName}`;
-    const repoUrl = 'https://git-manager.devin.ai/proxy/github.com/Sai-Kushal-Nerella-WL/drools-rules-lite';
     
     this.apiService.pushToRepo({
       fileName: this.fileName,
-      repoUrl,
+      repoUrl: config.repoUrl,
       newBranch: this.pendingBranch,
       commitMessage
     }).subscribe({
@@ -507,8 +517,8 @@ export class RulesGridComponent implements OnChanges {
         this.showNotification(response.message || `Successfully pushed to Git! Branch: ${this.pendingBranch}`, 'success');
         
         this.apiService.createPullRequest({
-          repoUrl,
-          baseBranch: 'main',
+          repoUrl: config.repoUrl,
+          baseBranch: config.branch,
           newBranch: this.pendingBranch,
           title: `Update Drools rules in ${this.fileName}`,
           body: `Automated update to decision table rules via Drools Rules Manager`
@@ -612,5 +622,10 @@ export class RulesGridComponent implements OnChanges {
       return 'Enter action value';
     }
     return 'Enter value';
+  }
+
+  getRepositoryDisplayName(): string {
+    const config = this.repositoryConfigService.getCurrentConfig();
+    return config?.displayName || config?.repoUrl || 'Unknown Repository';
   }
 }

@@ -1,6 +1,7 @@
 import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../services/api.service';
+import { RepositoryConfigService } from '../../services/repository-config.service';
 
 @Component({
   selector: 'app-file-list',
@@ -10,7 +11,7 @@ import { ApiService } from '../../services/api.service';
     <div class="file-list-container">
       <h3>Excel Decision Tables</h3>
       <div class="branch-indicator">
-        <span class="branch-label">Files from: <strong>main branch</strong></span>
+        <span class="branch-label">Files from: <strong>{{ getCurrentBranch() }} branch</strong></span>
       </div>
       <div class="file-list">
         <div 
@@ -157,7 +158,10 @@ export class FileListComponent implements OnInit {
   @Output() fileSelected = new EventEmitter<string>();
   @Output() notificationRequested = new EventEmitter<{ message: string; type: 'success' | 'error' }>();
 
-  constructor(private apiService: ApiService) {}
+  constructor(
+    private apiService: ApiService,
+    private repositoryConfigService: RepositoryConfigService
+  ) {}
 
   ngOnInit() {
     this.loadFiles();
@@ -187,8 +191,14 @@ export class FileListComponent implements OnInit {
   pullFromGit() {
     this.isPulling = true;
     
-    const repoUrl = 'https://git-manager.devin.ai/proxy/github.com/Sai-Kushal-Nerella-WL/drools-rules-lite';
-    this.apiService.pullFromRepo({ repoUrl, branch: 'main' }).subscribe({
+    const config = this.repositoryConfigService.getCurrentConfig();
+    if (!config) {
+      this.showNotification('Repository not configured', 'error');
+      this.isPulling = false;
+      return;
+    }
+    
+    this.apiService.pullFromRepo({ repoUrl: config.repoUrl, branch: config.branch }).subscribe({
       next: (response) => {
         console.log('Pull successful:', response);
         this.isPulling = false;
@@ -208,5 +218,10 @@ export class FileListComponent implements OnInit {
   }
 
   clearNotification() {
+  }
+
+  getCurrentBranch(): string {
+    const config = this.repositoryConfigService.getCurrentConfig();
+    return config?.branch || 'main';
   }
 }

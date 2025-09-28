@@ -467,6 +467,11 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
       z-index: 1000;
       max-height: 300px;
+      overflow-y: hidden;
+      overflow-x: hidden;
+    }
+
+    .dropdown-options:hover {
       overflow-y: auto;
     }
 

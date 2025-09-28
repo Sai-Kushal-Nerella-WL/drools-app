@@ -30,6 +30,7 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
             <span *ngIf="isPulling" class="spinner"></span>
             {{ isPulling ? 'Pulling...' : 'Pull from Git' }}
           </button>
+          <button (click)="changeRepository()" class="btn btn-warning">Change Repository</button>
         </div>
       </div>
       
@@ -124,6 +125,11 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       color: white;
     }
     
+    .btn-warning {
+      background-color: #ffc107;
+      color: #212529;
+    }
+    
     .btn:hover {
       opacity: 0.9;
     }
@@ -157,6 +163,7 @@ export class FileListComponent implements OnInit {
   
   @Output() fileSelected = new EventEmitter<string>();
   @Output() notificationRequested = new EventEmitter<{ message: string; type: 'success' | 'error' }>();
+  @Output() repositoryChangeRequested = new EventEmitter<void>();
 
   constructor(
     private apiService: ApiService,
@@ -223,5 +230,11 @@ export class FileListComponent implements OnInit {
   getCurrentBranch(): string {
     const config = this.repositoryConfigService.getCurrentConfig();
     return config?.branch || 'main';
+  }
+
+  changeRepository() {
+    this.repositoryConfigService.clearConfig();
+    this.repositoryChangeRequested.emit();
+    this.showNotification('Repository configuration cleared. Please configure a new repository.', 'success');
   }
 }

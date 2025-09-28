@@ -21,7 +21,8 @@ import { RepositoryConfig } from './models/repository-config.model';
       <div class="left-panel">
         <app-file-list 
           (fileSelected)="onFileSelected($event)"
-          (notificationRequested)="onNotificationRequested($event)">
+          (notificationRequested)="onNotificationRequested($event)"
+          (repositoryChangeRequested)="onRepositoryChangeRequested()">
         </app-file-list>
       </div>
       <div class="right-panel">
@@ -81,5 +82,10 @@ export class AppComponent implements OnInit {
 
   onConfigurationComplete(config: RepositoryConfig) {
     this.isConfigured = true;
+  }
+
+  onRepositoryChangeRequested() {
+    this.isConfigured = false;
+    this.selectedFileName = null;
   }
 }

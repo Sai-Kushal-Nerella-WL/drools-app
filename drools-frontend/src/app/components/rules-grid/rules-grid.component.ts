@@ -333,13 +333,12 @@ interface NotificationItem {
       gap: 10px !important;
       max-height: calc(100vh - 40px) !important;
       overflow: visible !important;
-      width: 320px !important;
+      width: min(300px, calc(100vw - 40px)) !important;
       max-width: calc(100vw - 40px) !important;
-      min-width: 250px !important;
+      min-width: 200px !important;
       min-height: 20px !important;
       pointer-events: auto !important;
       box-sizing: border-box !important;
-      transform: translateX(0) translateY(0) !important;
     }
     
     .notification {
@@ -347,8 +346,8 @@ interface NotificationItem {
       border-radius: 6px !important;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
       width: 100% !important;
-      max-width: 320px !important;
-      min-width: 250px !important;
+      max-width: 100% !important;
+      min-width: 200px !important;
       min-height: 50px !important;
       font-size: 13px !important;
       font-weight: 500 !important;

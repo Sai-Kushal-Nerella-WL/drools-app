@@ -46,17 +46,17 @@ import { RepositoryConfig } from './models/repository-config.model';
     .app-container {
       display: flex;
       height: 100vh;
-      width: 100%;
+      width: 100vw;
       max-width: 100vw;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      overflow-x: hidden;
+      overflow: hidden;
       box-sizing: border-box;
     }
     
     .left-panel {
-      width: 300px;
-      min-width: 250px;
-      max-width: 400px;
+      width: min(300px, 25vw);
+      min-width: min(250px, 20vw);
+      max-width: min(400px, 30vw);
       resize: horizontal;
       overflow: auto;
       flex-shrink: 0;

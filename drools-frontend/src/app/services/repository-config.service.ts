@@ -32,6 +32,11 @@ export class RepositoryConfigService {
     this.configSubject.next(null);
   }
 
+  getRepositoryDisplayName(): string {
+    const config = this.getCurrentConfig();
+    return config?.displayName || config?.repoUrl?.split('/').pop() || 'Repository';
+  }
+
   isConfigured(): boolean {
     const config = this.getCurrentConfig();
     return config?.isConfigured === true && !!config.repoUrl && !!config.branch;

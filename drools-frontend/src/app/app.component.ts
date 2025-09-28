@@ -61,6 +61,10 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.isConfigured = this.repositoryConfigService.isConfigured();
+    
+    this.repositoryConfigService.getConfig().subscribe((config: RepositoryConfig | null) => {
+      this.isConfigured = this.repositoryConfigService.isConfigured();
+    });
   }
 
   onFileSelected(fileName: string) {

@@ -38,14 +38,20 @@ import { RepositoryConfig } from '../../models/repository-config.model';
 
           <div class="form-group">
             <label for="branch">Branch *</label>
-            <input 
-              type="text" 
+            <select 
               id="branch"
               name="branch"
               [(ngModel)]="config.branch"
-              readonly
+              #branchSelect="ngModel"
+              required
               class="form-control"
-              value="main">
+              [class.error]="branchSelect.invalid && branchSelect.touched">
+              <option value="main">main</option>
+              <option value="master">master</option>
+            </select>
+            <div *ngIf="branchSelect.invalid && branchSelect.touched" class="error-message">
+              Please select a branch
+            </div>
           </div>
 
           <div class="form-group">
@@ -170,6 +176,16 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       box-sizing: border-box;
       background: #ffffff;
       color: #1f2937;
+    }
+
+    select.form-control {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 12px center;
+      background-repeat: no-repeat;
+      background-size: 16px;
+      padding-right: 40px;
+      appearance: none;
     }
 
     .form-control::placeholder {

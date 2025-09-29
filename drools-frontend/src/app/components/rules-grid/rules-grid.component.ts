@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, AfterViewInit } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -247,6 +247,7 @@ interface NotificationItem {
     .grid-wrapper {
       overflow-x: auto !important;
       overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch;
       flex: 1;
       min-height: 0;
       position: relative;
@@ -724,7 +725,7 @@ interface NotificationItem {
 
   `]
 })
-export class RulesGridComponent implements OnChanges, AfterViewInit {
+export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input() fileName: string | null = null;
   @Input() externalNotification: { message: string; type: 'success' | 'error' } | null = null;
 
@@ -750,6 +751,8 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
     private repositoryConfigService: RepositoryConfigService,
     private router: Router
   ) {}
+  
+  private wheelHandler?: (e: WheelEvent) => void;
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['fileName'] && this.fileName) {
@@ -763,6 +766,7 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
   ngAfterViewInit() {
     setTimeout(() => {
       this.applyDynamicScrollingStyles();
+      setTimeout(() => this.bindWheelToHorizontal(), 150);
     }, 100);
   }
 
@@ -927,10 +931,44 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
     });
   }
 
+
   cancelPush() {
     this.showConfirmDialog = false;
     this.pendingBranch = '';
   }
+
+  ngOnDestroy() {
+    const wrapper = document.querySelector('app-rules-grid .grid-wrapper') as HTMLElement
+                 || document.querySelector('.grid-wrapper') as HTMLElement;
+    if (wrapper && this.wheelHandler) {
+      wrapper.removeEventListener('wheel', this.wheelHandler as any);
+    }
+  }
+
+  private bindWheelToHorizontal() {
+    const wrapper = document.querySelector('app-rules-grid .grid-wrapper') as HTMLElement
+                 || document.querySelector('.grid-wrapper') as HTMLElement;
+    if (!wrapper) return;
+
+    if (this.wheelHandler) {
+      try {
+        wrapper.removeEventListener('wheel', this.wheelHandler as any);
+      } catch {}
+    }
+
+    this.wheelHandler = (e: WheelEvent) => {
+      const horizDelta = e.deltaX || (e.shiftKey ? e.deltaY : 0);
+      const effectiveDeltaX = horizDelta !== 0 ? horizDelta : (e.deltaY !== 0 ? e.deltaY : 0);
+
+      if (effectiveDeltaX !== 0) {
+        e.preventDefault();
+        wrapper.scrollLeft += effectiveDeltaX;
+      }
+    };
+
+    wrapper.addEventListener('wheel', this.wheelHandler as any, { passive: false });
+  }
+
 
   confirmPush() {
     this.showConfirmDialog = false;

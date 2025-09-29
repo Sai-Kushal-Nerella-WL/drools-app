@@ -4,6 +4,7 @@ import com.example.droolsbackend.model.DecisionTableView;
 import com.example.droolsbackend.model.RuleRow;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -19,6 +20,9 @@ public class ExcelService {
 
     private static final String BASE_REPO_DIR = "/home/ubuntu/repos/";
     
+    @Autowired
+    private RepoConfigService repoConfigService;
+    
     private String getRulesDirectory(String repoName, String rulesFolder) {
         String baseDir = BASE_REPO_DIR + repoName + "/";
         if (rulesFolder != null && !rulesFolder.isEmpty()) {
@@ -28,7 +32,9 @@ public class ExcelService {
     }
 
     public List<String> listExcelFiles() {
-        String rulesDir = getRulesDirectory("drools-rules-lite", "rules");
+        String repoName = getRepoNameFromConfig();
+        String rulesFolder = getRulesFolderFromConfig();
+        String rulesDir = getRulesDirectory(repoName, rulesFolder);
         File rulesDirFile = new File(rulesDir);
         List<String> excelFiles = new ArrayList<>();
         
@@ -45,7 +51,9 @@ public class ExcelService {
     }
 
     public DecisionTableView readDecisionTable(String fileName) throws IOException {
-        String rulesDir = getRulesDirectory("drools-rules-lite", "rules");
+        String repoName = getRepoNameFromConfig();
+        String rulesFolder = getRulesFolderFromConfig();
+        String rulesDir = getRulesDirectory(repoName, rulesFolder);
         File excelFile = new File(rulesDir + fileName);
         
         try (FileInputStream fis = new FileInputStream(excelFile);
@@ -107,7 +115,9 @@ public class ExcelService {
     }
 
     public void saveDecisionTable(String fileName, DecisionTableView view) throws IOException {
-        String rulesDir = getRulesDirectory("drools-rules-lite", "rules");
+        String repoName = getRepoNameFromConfig();
+        String rulesFolder = getRulesFolderFromConfig();
+        String rulesDir = getRulesDirectory(repoName, rulesFolder);
         File excelFile = new File(rulesDir + fileName);
         
         try (FileInputStream fis = new FileInputStream(excelFile);
@@ -213,5 +223,26 @@ public class ExcelService {
         } else {
             cell.setCellValue(value.toString());
         }
+    }
+    
+    private String getRepoNameFromConfig() {
+        RepoConfigService.RepoConfig config = repoConfigService.getCurrentRepoConfig();
+        if (config != null && config.getRepoUrl() != null) {
+            String repoUrl = config.getRepoUrl();
+            String repoName = repoUrl.substring(repoUrl.lastIndexOf('/') + 1);
+            if (repoName.endsWith(".git")) {
+                repoName = repoName.substring(0, repoName.length() - 4);
+            }
+            return repoName;
+        }
+        return "drools-rules-lite";
+    }
+    
+    private String getRulesFolderFromConfig() {
+        RepoConfigService.RepoConfig config = repoConfigService.getCurrentRepoConfig();
+        if (config != null && config.getRulesFolder() != null && !config.getRulesFolder().isEmpty()) {
+            return config.getRulesFolder();
+        }
+        return "rules";
     }
 }

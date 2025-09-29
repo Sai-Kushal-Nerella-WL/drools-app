@@ -1,6 +1,7 @@
 package com.example.droolsbackend.controller;
 
 import com.example.droolsbackend.service.GitService;
+import com.example.droolsbackend.service.RepoConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/git")
@@ -18,6 +18,9 @@ public class GitController {
 
     @Autowired
     private GitService gitService;
+    
+    @Autowired
+    private RepoConfigService repoConfigService;
 
     @PostMapping("/pull")
     public ResponseEntity<String> pullFromRepo(@RequestBody Map<String, String> request) {
@@ -118,6 +121,13 @@ public class GitController {
             }
             
             boolean isConnected = gitService.testRepositoryConnection(repoUrl, branch, username, password);
+            
+            if (isConnected) {
+                RepoConfigService.RepoConfig config = new RepoConfigService.RepoConfig(
+                    repoUrl, branch, username, password, null
+                );
+                repoConfigService.setCurrentRepoConfig(config);
+            }
             
             Map<String, Object> response = new HashMap<>();
             response.put("isConnected", isConnected);

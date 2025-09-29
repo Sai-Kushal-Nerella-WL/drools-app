@@ -38,32 +38,14 @@ import { RepositoryConfig } from '../../models/repository-config.model';
 
           <div class="form-group">
             <label for="branch">Branch *</label>
-            <div class="branch-selection">
-              <div class="custom-dropdown" [class.open]="dropdownOpen">
-                <div class="dropdown-trigger" 
-                     (click)="toggleDropdown()"
-                     [class.error]="!config.branch && branchTouched">
-                  <span class="selected-branch" *ngIf="config.branch">
-                    {{ config.branch }}
-                  </span>
-                  <span class="placeholder" *ngIf="!config.branch">Select a branch</span>
-                  <svg class="dropdown-arrow" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                  </svg>
-                </div>
-                <div class="dropdown-options" *ngIf="dropdownOpen">
-                  <div class="dropdown-option" 
-                       *ngFor="let branch of staticBranches" 
-                       (click)="selectBranch(branch)"
-                       [class.selected]="config.branch === branch.name">
-                    <span class="branch-name">{{ branch.name }}</span>
-                  </div>
-                </div>
-              </div>
-              <div *ngIf="!config.branch && branchTouched" class="error-message">
-                Please select a branch
-              </div>
-            </div>
+            <input 
+              type="text" 
+              id="branch"
+              name="branch"
+              [(ngModel)]="config.branch"
+              readonly
+              class="form-control"
+              value="master">
           </div>
 
           <div class="form-group">
@@ -586,9 +568,6 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
   };
 
   isSubmitting = false;
-  staticBranches = [{ name: 'master' }];
-  dropdownOpen = false;
-  branchTouched = false;
 
   constructor(
     private repositoryConfigService: RepositoryConfigService,
@@ -596,20 +575,11 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    document.addEventListener('click', this.onDocumentClick.bind(this));
   }
 
   ngOnDestroy() {
-    document.removeEventListener('click', this.onDocumentClick.bind(this));
   }
 
-  onDocumentClick(event: Event) {
-    const target = event.target as HTMLElement;
-    const dropdown = target.closest('.custom-dropdown');
-    if (!dropdown && this.dropdownOpen) {
-      this.dropdownOpen = false;
-    }
-  }
 
   onRepoUrlChange() {
     const repoUrl = this.config.repoUrl;
@@ -617,20 +587,6 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
   }
 
 
-  toggleDropdown() {
-    this.dropdownOpen = !this.dropdownOpen;
-    this.branchTouched = true;
-  }
-
-  selectBranch(branch: any) {
-    this.config.branch = branch.name;
-    this.dropdownOpen = false;
-    this.branchTouched = true;
-  }
-
-  getSelectedBranch() {
-    return this.staticBranches.find(b => b.name === this.config.branch);
-  }
 
   onSubmit() {
     if (this.isSubmitting) return;

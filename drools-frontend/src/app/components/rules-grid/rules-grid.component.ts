@@ -854,8 +854,7 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
   confirmPushToGit() {
     if (!this.fileName) return;
     
-    const timestamp = Date.now();
-    this.pendingBranch = `devin/${timestamp}-rules-update`;
+    this.pendingBranch = 'Generating branch name...';
     this.showConfirmDialog = true;
   }
 
@@ -905,6 +904,21 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
           next: (prResponse) => {
             console.log('PR created:', prResponse);
             this.showNotification(prResponse.message || 'Pull request created successfully!', 'success');
+            
+            this.apiService.pullFromRepo({
+              repoUrl: config.repoUrl,
+              branch: config.branch
+            }).subscribe({
+              next: (pullResponse) => {
+                console.log('Auto-sync to main completed:', pullResponse);
+                this.showNotification('Local files synced to main branch', 'success');
+                this.loadTable();
+              },
+              error: (pullError) => {
+                console.error('Error syncing to main:', pullError);
+                this.showNotification('Push successful but failed to sync to main branch', 'error');
+              }
+            });
           },
           error: (error) => {
             console.error('Error creating PR:', error);

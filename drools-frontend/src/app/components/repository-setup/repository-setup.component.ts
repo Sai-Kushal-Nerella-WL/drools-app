@@ -580,13 +580,13 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
 
   config: RepositoryConfig = {
     repoUrl: '',
-    branch: 'main',
+    branch: 'master',
     displayName: '',
     isConfigured: false
   };
 
   isSubmitting = false;
-  staticBranches = [{ name: 'main' }, { name: 'master' }];
+  staticBranches = [{ name: 'master' }];
   dropdownOpen = false;
   branchTouched = false;
 

@@ -305,7 +305,7 @@ interface NotificationItem {
       transition: left 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
     
-    .btn:hover::before {
+    .btn:hover:not(:disabled)::before {
       left: 100%;
     }
     
@@ -365,7 +365,7 @@ interface NotificationItem {
     }
     
     .btn-sm {
-      padding: 8px 14px;
+      padding: 12px 16px;
       font-size: 12px;
     }
     

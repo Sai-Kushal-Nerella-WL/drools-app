@@ -78,23 +78,43 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
     
     .branch-indicator {
       margin-bottom: 24px;
-      padding: 12px 16px;
-      background: rgba(255, 255, 255, 0.9);
+      padding: 16px 20px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
       border: 2px solid #3b82f6;
-      border-radius: 12px;
+      border-radius: 16px;
       font-size: 14px;
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.12);
       transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .branch-indicator::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.05), transparent);
+      transition: left 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
     
     .branch-indicator:hover {
-      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.15);
-      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.18);
+      transform: translateY(-2px);
+      border-color: #2563eb;
+    }
+    
+    .branch-indicator:hover::before {
+      left: 100%;
     }
     
     .branch-label {
       color: #1e40af;
-      font-weight: 500;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
     }
     
     .file-list {
@@ -147,6 +167,8 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       border-color: #2563eb;
       box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
       transform: translateY(-2px);
+      position: relative;
+      z-index: 1;
     }
     
     .no-files {
@@ -193,7 +215,7 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       transition: left 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
     
-    .btn:hover::before {
+    .btn:hover:not(:disabled)::before {
       left: 100%;
     }
     

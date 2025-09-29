@@ -35,6 +35,7 @@ public class GitService {
             @Override
             public void configure(Transport transport) {
                 if (useProxy && transport instanceof HttpTransport) {
+                    HttpTransport httpTransport = (HttpTransport) transport;
                     System.setProperty("https.proxyHost", proxyHost);
                     System.setProperty("https.proxyPort", proxyPort);
                     System.setProperty("http.proxyHost", proxyHost);
@@ -82,10 +83,13 @@ public class GitService {
         String repoDirPath = getRepoDirectory(repoUrl);
         File repoDir = new File(repoDirPath);
         
+        UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider("", "");
+        
         if (repoDir.exists()) {
             try (Git git = Git.open(repoDir)) {
                 git.pull()
                    .setRemoteBranchName(branch)
+                   .setCredentialsProvider(credentialsProvider)
                    .setTransportConfigCallback(createProxyTransportConfig())
                    .call();
             }
@@ -94,6 +98,7 @@ public class GitService {
                .setURI(transformedUrl)
                .setDirectory(repoDir)
                .setBranch(branch)
+               .setCredentialsProvider(credentialsProvider)
                .setTransportConfigCallback(createProxyTransportConfig())
                .call()
                .close();
@@ -104,6 +109,8 @@ public class GitService {
             throws GitAPIException, IOException {
         String repoDirPath = getRepoDirectory(repoUrl);
         File repoDir = new File(repoDirPath);
+        
+        UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider("", "");
         
         try (Git git = Git.open(repoDir)) {
             git.checkout()
@@ -122,6 +129,7 @@ public class GitService {
             var pushCommand = git.push()
                .setRemote("origin")
                .add(newBranch)
+               .setCredentialsProvider(credentialsProvider)
                .setTransportConfigCallback(createProxyTransportConfig());
             
             pushCommand.call();

@@ -2,115 +2,94 @@ package com.example.droolsbackend.service;
 
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.api.TransportConfigCallback;
-import org.eclipse.jgit.transport.Transport;
-import org.eclipse.jgit.transport.HttpTransport;
-import org.springframework.beans.factory.annotation.Value;
+import org.eclipse.jgit.merge.MergeStrategy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Collection;
 
 @Service
 public class GitService {
 
-    private static final String BASE_REPO_DIR = "/home/ubuntu/repos/";
+    @Autowired
+    private RepositoryConfigService repositoryConfigService;
     
-    @Value("${git.use-proxy:true}")
-    private boolean useProxy;
-    
-    @Value("${git.proxy.host:git-manager.devin.ai}")
-    private String proxyHost;
-    
-    @Value("${git.proxy.port:443}")
-    private String proxyPort;
-    
-    private TransportConfigCallback createProxyTransportConfig() {
-        return new TransportConfigCallback() {
-            @Override
-            public void configure(Transport transport) {
-                if (useProxy && transport instanceof HttpTransport) {
-                    HttpTransport httpTransport = (HttpTransport) transport;
-                    System.setProperty("https.proxyHost", proxyHost);
-                    System.setProperty("https.proxyPort", proxyPort);
-                    System.setProperty("http.proxyHost", proxyHost);
-                    System.setProperty("http.proxyPort", proxyPort);
-                    System.out.println("Configured HTTP transport with proxy: " + proxyHost + ":" + proxyPort);
-                } else {
-                    System.clearProperty("https.proxyHost");
-                    System.clearProperty("https.proxyPort");
-                    System.clearProperty("http.proxyHost");
-                    System.clearProperty("http.proxyPort");
-                    System.out.println("Cleared proxy settings for direct GitHub access");
-                }
-            }
-        };
-    }
-    
-    private String transformRepositoryUrl(String repoUrl) {
-        if (!useProxy) {
-            if (repoUrl.contains("git-manager.devin.ai/proxy/")) {
-                String directUrl = repoUrl.replace("https://git-manager.devin.ai/proxy/", "https://");
-                System.out.println("Transformed proxy URL to direct URL: " + directUrl);
-                return directUrl;
-            }
-            return repoUrl;
-        } else {
-            if (repoUrl.startsWith("https://github.com/")) {
-                String proxyUrl = repoUrl.replace("https://github.com/", "https://git-manager.devin.ai/proxy/github.com/");
-                System.out.println("Transformed direct URL to proxy URL: " + proxyUrl);
-                return proxyUrl;
-            }
-            return repoUrl;
-        }
-    }
-    
-    private String getRepoDirectory(String repoUrl) {
-        String repoName = repoUrl.substring(repoUrl.lastIndexOf('/') + 1);
-        if (repoName.endsWith(".git")) {
-            repoName = repoName.substring(0, repoName.length() - 4);
-        }
-        return BASE_REPO_DIR + repoName + "/";
-    }
 
-    public void pullFromRepo(String repoUrl, String branch) throws GitAPIException, IOException {
-        String transformedUrl = transformRepositoryUrl(repoUrl);
-        String repoDirPath = getRepoDirectory(repoUrl);
-        File repoDir = new File(repoDirPath);
+    public void pullFromRepo(String repoUrl, String branch) throws GitAPIException, IOException, InterruptedException {
+        if (!repositoryConfigService.isConfigured()) {
+            throw new IllegalStateException("Repository not configured. Please configure repository first.");
+        }
         
-        UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider("", "");
+        String repoPath = repositoryConfigService.getRepositoryPath();
+        File repoDir = new File(repoPath);
         
         if (repoDir.exists()) {
-            try (Git git = Git.open(repoDir)) {
-                git.pull()
-                   .setRemoteBranchName(branch)
-                   .setCredentialsProvider(credentialsProvider)
-                   .setTransportConfigCallback(createProxyTransportConfig())
-                   .call();
+            ProcessBuilder stashPb = new ProcessBuilder("git", "stash", "push", "-m", "Auto-stash before pull");
+            stashPb.directory(repoDir);
+            stashPb.redirectErrorStream(true);
+            Process stashProcess = stashPb.start();
+            stashProcess.waitFor();
+            
+            ProcessBuilder checkoutPb = new ProcessBuilder("git", "checkout", branch);
+            checkoutPb.directory(repoDir);
+            checkoutPb.redirectErrorStream(true);
+            Process checkoutProcess = checkoutPb.start();
+            checkoutProcess.waitFor();
+            
+            ProcessBuilder pb = new ProcessBuilder("git", "pull", "origin", branch, "--strategy=ours");
+            pb.directory(repoDir);
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+            
+            StringBuilder output = new StringBuilder();
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+            }
+            
+            int exitCode = process.waitFor();
+            
+            if (exitCode != 0) {
+                throw new RuntimeException("Git pull failed: " + output.toString().trim());
             }
         } else {
-            Git.cloneRepository()
-               .setURI(transformedUrl)
-               .setDirectory(repoDir)
-               .setBranch(branch)
-               .setCredentialsProvider(credentialsProvider)
-               .setTransportConfigCallback(createProxyTransportConfig())
-               .call()
-               .close();
+            repoDir.mkdirs();
+            ProcessBuilder pb = new ProcessBuilder("git", "clone", repoUrl, repoDir.getName());
+            pb.directory(repoDir.getParentFile());
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+            
+            StringBuilder output = new StringBuilder();
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+            }
+            
+            int exitCode = process.waitFor();
+            
+            if (exitCode != 0) {
+                throw new RuntimeException("Git clone failed: " + output.toString().trim());
+            }
         }
     }
 
     public void pushToRepo(String fileName, String repoUrl, String newBranch, String commitMessage) 
-            throws GitAPIException, IOException {
-        String repoDirPath = getRepoDirectory(repoUrl);
-        File repoDir = new File(repoDirPath);
+            throws GitAPIException, IOException, InterruptedException {
+        if (!repositoryConfigService.isConfigured()) {
+            throw new IllegalStateException("Repository not configured. Please configure repository first.");
+        }
         
-        UsernamePasswordCredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider("", "");
+        String repoPath = repositoryConfigService.getRepositoryPath();
+        File repoDir = new File(repoPath);
         
         try (Git git = Git.open(repoDir)) {
             git.checkout()
@@ -125,14 +104,26 @@ public class GitService {
             git.commit()
                .setMessage(commitMessage)
                .call();
-            
-            var pushCommand = git.push()
-               .setRemote("origin")
-               .add(newBranch)
-               .setCredentialsProvider(credentialsProvider)
-               .setTransportConfigCallback(createProxyTransportConfig());
-            
-            pushCommand.call();
+        }
+        
+        ProcessBuilder pb = new ProcessBuilder("git", "push", "origin", newBranch);
+        pb.directory(repoDir);
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+        
+        StringBuilder output = new StringBuilder();
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+        }
+        
+        int exitCode = process.waitFor();
+        
+        if (exitCode != 0) {
+            throw new RuntimeException("Git push failed: " + output.toString().trim());
         }
     }
 
@@ -146,71 +137,52 @@ public class GitService {
 
     public boolean validateRepositoryUrl(String repoUrl, String username, String password) {
         try {
-            String transformedUrl = transformRepositoryUrl(repoUrl);
+            ProcessBuilder pb = new ProcessBuilder("git", "ls-remote", "--heads", repoUrl);
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
             
-            UsernamePasswordCredentialsProvider credentialsProvider;
-            if (username != null && password != null && !username.isEmpty() && !password.isEmpty()) {
-                credentialsProvider = new UsernamePasswordCredentialsProvider(username, password);
-            } else {
-                credentialsProvider = new UsernamePasswordCredentialsProvider("", "");
+            StringBuilder output = new StringBuilder();
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
             }
-
-            Git.lsRemoteRepository()
-               .setHeads(true)
-               .setTags(false)
-               .setRemote(transformedUrl)
-               .setCredentialsProvider(credentialsProvider)
-               .setTransportConfigCallback(createProxyTransportConfig())
-               .call();
             
-            return true;
+            int exitCode = process.waitFor();
+            return exitCode == 0 && output.length() > 0;
         } catch (Exception e) {
             System.err.println("Repository validation failed: " + e.getMessage());
-            if (e.getMessage().contains("not authorized")) {
-                System.err.println("Proxy authentication may be required for Git operations");
-            }
             return false;
         }
     }
 
     public boolean testRepositoryConnection(String repoUrl, String branch, String username, String password) {
         try {
-            String transformedUrl = transformRepositoryUrl(repoUrl);
+            ProcessBuilder pb = new ProcessBuilder("git", "ls-remote", "--heads", repoUrl);
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
             
-            UsernamePasswordCredentialsProvider credentialsProvider;
-            if (username != null && password != null && !username.isEmpty() && !password.isEmpty()) {
-                credentialsProvider = new UsernamePasswordCredentialsProvider(username, password);
-            } else {
-                credentialsProvider = new UsernamePasswordCredentialsProvider("", "");
-            }
-
-            Collection<Ref> refs = Git.lsRemoteRepository()
-                .setHeads(true)
-                .setTags(false)
-                .setRemote(transformedUrl)
-                .setCredentialsProvider(credentialsProvider)
-                .setTransportConfigCallback(createProxyTransportConfig())
-                .call();
-
-            if (branch != null && !branch.isEmpty()) {
-                String branchRef = "refs/heads/" + branch;
-                String masterRef = "refs/heads/master";
-                String mainRef = "refs/heads/main";
-                
-                boolean branchExists = refs.stream()
-                    .anyMatch(ref -> ref.getName().equals(branchRef) || 
-                                   ref.getName().equals(masterRef) || 
-                                   ref.getName().equals(mainRef));
-                
-                return branchExists;
+            StringBuilder output = new StringBuilder();
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
             }
             
-            return !refs.isEmpty();
+            int exitCode = process.waitFor();
+            
+            if (exitCode == 0) {
+                repositoryConfigService.configure(repoUrl, branch, username, password);
+                return true;
+            }
+            
+            return false;
         } catch (Exception e) {
             System.err.println("Connection test failed: " + e.getMessage());
-            if (e.getMessage().contains("not authorized")) {
-                System.err.println("Proxy authentication may be required for Git operations");
-            }
             return false;
         }
     }
@@ -219,46 +191,141 @@ public class GitService {
         List<String> folders = new ArrayList<>();
         
         try {
-            String transformedUrl = transformRepositoryUrl(repoUrl);
-            String repoDirPath = getRepoDirectory(repoUrl);
-            File repoDir = new File(repoDirPath);
-            
-            UsernamePasswordCredentialsProvider credentialsProvider;
-            if (username != null && password != null && !username.isEmpty() && !password.isEmpty()) {
-                credentialsProvider = new UsernamePasswordCredentialsProvider(username, password);
-            } else {
-                credentialsProvider = new UsernamePasswordCredentialsProvider("", "");
+            String repoName = repoUrl.substring(repoUrl.lastIndexOf('/') + 1);
+            if (repoName.endsWith(".git")) {
+                repoName = repoName.substring(0, repoName.length() - 4);
             }
-
+            
+            String repoPath = "/home/ubuntu/repos/" + repoName;
+            File repoDir = new File(repoPath);
+            
             if (repoDir.exists()) {
-                try (Git git = Git.open(repoDir)) {
-                    git.pull()
-                       .setRemoteBranchName(branch)
-                       .setCredentialsProvider(credentialsProvider)
-                       .setTransportConfigCallback(createProxyTransportConfig())
-                       .call();
-                }
+                ProcessBuilder stashPb = new ProcessBuilder("git", "stash", "push", "-m", "Auto-stash before pull");
+                stashPb.directory(repoDir);
+                stashPb.redirectErrorStream(true);
+                Process stashProcess = stashPb.start();
+                stashProcess.waitFor();
+                
+                ProcessBuilder checkoutPb = new ProcessBuilder("git", "checkout", branch);
+                checkoutPb.directory(repoDir);
+                checkoutPb.redirectErrorStream(true);
+                Process checkoutProcess = checkoutPb.start();
+                checkoutProcess.waitFor();
+                
+                ProcessBuilder pb = new ProcessBuilder("git", "pull", "origin", branch, "--strategy=ours");
+                pb.directory(repoDir);
+                pb.redirectErrorStream(true);
+                Process process = pb.start();
+                process.waitFor();
             } else {
-                Git.cloneRepository()
-                   .setURI(transformedUrl)
-                   .setDirectory(repoDir)
-                   .setBranch(branch)
-                   .setCredentialsProvider(credentialsProvider)
-                   .setTransportConfigCallback(createProxyTransportConfig())
-                   .call()
-                   .close();
+                repoDir.mkdirs();
+                ProcessBuilder pb = new ProcessBuilder("git", "clone", repoUrl, repoDir.getName());
+                pb.directory(repoDir.getParentFile());
+                pb.redirectErrorStream(true);
+                Process process = pb.start();
+                
+                int exitCode = process.waitFor();
+                if (exitCode != 0) {
+                    throw new RuntimeException("Git clone failed");
+                }
             }
 
             scanForExcelFiles(repoDir, "", folders);
             
         } catch (Exception e) {
             System.err.println("Folder detection failed: " + e.getMessage());
-            if (e.getMessage().contains("not authorized")) {
-                System.err.println("Proxy authentication may be required for Git operations");
-            }
         }
         
         return folders;
+    }
+
+    public java.util.List<java.util.Map<String, Object>> listRemoteBranches(String repoUrl) throws IOException, InterruptedException {
+        java.util.List<java.util.Map<String, Object>> branches = new java.util.ArrayList<>();
+        
+        ProcessBuilder pb = new ProcessBuilder("git", "ls-remote", "--heads", repoUrl);
+        pb.redirectErrorStream(true);
+        Process process = pb.start();
+        
+        java.util.Map<String, String> branchCommits = new java.util.HashMap<>();
+        StringBuilder output = new StringBuilder();
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                new java.io.InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                output.append(line).append("\n");
+                if (line.contains("refs/heads/")) {
+                    String[] parts = line.split("\\s+");
+                    if (parts.length >= 2) {
+                        String commitHash = parts[0];
+                        String branchName = parts[1].substring(parts[1].lastIndexOf("refs/heads/") + 11);
+                        branchCommits.put(branchName, commitHash);
+                    }
+                }
+            }
+        }
+        
+        int exitCode = process.waitFor();
+        
+        if (exitCode != 0) {
+            throw new RuntimeException("Failed to list remote branches: " + output.toString().trim());
+        }
+        
+        for (java.util.Map.Entry<String, String> entry : branchCommits.entrySet()) {
+            String branchName = entry.getKey();
+            String commitHash = entry.getValue();
+            
+            try {
+                ProcessBuilder timestampPb = new ProcessBuilder("git", "show", "-s", "--format=%ct", commitHash);
+                timestampPb.redirectErrorStream(true);
+                Process timestampProcess = timestampPb.start();
+                
+                StringBuilder timestampOutput = new StringBuilder();
+                try (java.io.BufferedReader timestampReader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(timestampProcess.getInputStream()))) {
+                    String timestampLine;
+                    while ((timestampLine = timestampReader.readLine()) != null) {
+                        timestampOutput.append(timestampLine);
+                    }
+                }
+                
+                long timestamp = 0;
+                try {
+                    timestamp = Long.parseLong(timestampOutput.toString().trim());
+                } catch (NumberFormatException e) {
+                    timestamp = System.currentTimeMillis() / 1000;
+                }
+                
+                java.util.Map<String, Object> branchInfo = new java.util.HashMap<>();
+                branchInfo.put("name", branchName);
+                branchInfo.put("timestamp", timestamp);
+                branchInfo.put("isMain", branchName.equals("main") || branchName.equals("master"));
+                branches.add(branchInfo);
+                
+            } catch (Exception e) {
+                java.util.Map<String, Object> branchInfo = new java.util.HashMap<>();
+                branchInfo.put("name", branchName);
+                branchInfo.put("timestamp", 0L);
+                branchInfo.put("isMain", branchName.equals("main") || branchName.equals("master"));
+                branches.add(branchInfo);
+            }
+        }
+        
+        branches.sort((a, b) -> Long.compare((Long) b.get("timestamp"), (Long) a.get("timestamp")));
+        
+        if (!branches.isEmpty()) {
+            branches.get(0).put("isLatest", true);
+        }
+        
+        if (branches.isEmpty()) {
+            java.util.Map<String, Object> mainBranch = new java.util.HashMap<>();
+            mainBranch.put("name", "main");
+            mainBranch.put("timestamp", System.currentTimeMillis() / 1000);
+            mainBranch.put("isMain", true);
+            mainBranch.put("isLatest", true);
+            branches.add(mainBranch);
+        }
+        
+        return branches;
     }
 
     private void scanForExcelFiles(File directory, String relativePath, List<String> folders) {

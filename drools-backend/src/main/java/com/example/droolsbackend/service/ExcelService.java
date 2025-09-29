@@ -21,7 +21,7 @@ public class ExcelService {
     private static final String BASE_REPO_DIR = "/home/ubuntu/repos/";
     
     @Autowired
-    private RepoConfigService repoConfigService;
+    private RepositoryConfigService repositoryConfigService;
     
     private String getRulesDirectory(String repoName, String rulesFolder) {
         String baseDir = BASE_REPO_DIR + repoName + "/";
@@ -226,9 +226,8 @@ public class ExcelService {
     }
     
     private String getRepoNameFromConfig() {
-        RepoConfigService.RepoConfig config = repoConfigService.getCurrentRepoConfig();
-        if (config != null && config.getRepoUrl() != null) {
-            String repoUrl = config.getRepoUrl();
+        if (repositoryConfigService.isConfigured()) {
+            String repoUrl = repositoryConfigService.getCurrentRepoUrl();
             String repoName = repoUrl.substring(repoUrl.lastIndexOf('/') + 1);
             if (repoName.endsWith(".git")) {
                 repoName = repoName.substring(0, repoName.length() - 4);
@@ -239,10 +238,6 @@ public class ExcelService {
     }
     
     private String getRulesFolderFromConfig() {
-        RepoConfigService.RepoConfig config = repoConfigService.getCurrentRepoConfig();
-        if (config != null && config.getRulesFolder() != null && !config.getRulesFolder().isEmpty()) {
-            return config.getRulesFolder();
-        }
         return "rules";
     }
 }

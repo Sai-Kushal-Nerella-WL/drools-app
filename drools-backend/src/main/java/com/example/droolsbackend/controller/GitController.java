@@ -1,7 +1,7 @@
 package com.example.droolsbackend.controller;
 
 import com.example.droolsbackend.service.GitService;
-import com.example.droolsbackend.service.RepoConfigService;
+import com.example.droolsbackend.service.RepositoryConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +20,7 @@ public class GitController {
     private GitService gitService;
     
     @Autowired
-    private RepoConfigService repoConfigService;
+    private RepositoryConfigService repositoryConfigService;
 
     @PostMapping("/pull")
     public ResponseEntity<String> pullFromRepo(@RequestBody Map<String, String> request) {
@@ -123,10 +123,7 @@ public class GitController {
             boolean isConnected = gitService.testRepositoryConnection(repoUrl, branch, username, password);
             
             if (isConnected) {
-                RepoConfigService.RepoConfig config = new RepoConfigService.RepoConfig(
-                    repoUrl, branch, username, password, null
-                );
-                repoConfigService.setCurrentRepoConfig(config);
+                repositoryConfigService.configure(repoUrl, branch, username, password);
             }
             
             Map<String, Object> response = new HashMap<>();

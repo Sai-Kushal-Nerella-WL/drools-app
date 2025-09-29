@@ -174,7 +174,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       padding: 24px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       overflow-x: hidden;
-      transition: all 0.3s ease;
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .setup-card {
@@ -189,7 +189,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       width: 100%;
       position: relative;
       box-sizing: border-box;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       transform: translateY(0);
     }
 
@@ -227,7 +227,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       font-weight: 700;
       letter-spacing: -0.03em;
       line-height: 1.2;
-      transition: color 0.3s ease;
+      transition: color 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .setup-header p {
@@ -236,7 +236,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       font-weight: 400;
       line-height: 1.6;
       margin: 0;
-      transition: color 0.3s ease;
+      transition: color 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .setup-form {
@@ -255,7 +255,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       color: #334155;
       font-size: 14px;
       letter-spacing: -0.01em;
-      transition: color 0.3s ease;
+      transition: color 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       position: relative;
       padding-left: 16px;
     }
@@ -270,7 +270,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       height: 14px;
       background: linear-gradient(135deg, #3b82f6, #6366f1);
       border-radius: 2px;
-      transition: all 0.3s ease;
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .form-control {
@@ -280,7 +280,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       border-radius: 12px;
       font-size: 16px;
       font-weight: 400;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       box-sizing: border-box;
       background: #ffffff;
       color: #1e293b;
@@ -290,7 +290,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     .form-control::placeholder {
       color: #94a3b8;
       font-weight: 400;
-      transition: color 0.3s ease;
+      transition: color 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .form-control:hover {
@@ -371,7 +371,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       width: 100%;
       height: 100%;
       background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.6s ease;
+      transition: left 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .btn-primary:hover:not(:disabled) {
@@ -421,7 +421,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       padding: 28px;
       position: relative;
       box-shadow: 0 2px 8px rgba(148, 163, 184, 0.08);
-      transition: all 0.3s ease;
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .setup-help:hover {
@@ -437,7 +437,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       display: flex;
       align-items: center;
       gap: 10px;
-      transition: color 0.3s ease;
+      transition: color 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .setup-help h4::before {
@@ -466,7 +466,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       font-weight: 400;
       margin-bottom: 4px;
       font-size: 14px;
-      transition: all 0.3s ease;
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       border-radius: 8px;
     }
 
@@ -486,7 +486,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       height: 6px;
       background: linear-gradient(135deg, #3b82f6, #6366f1);
       border-radius: 50%;
-      transition: all 0.3s ease;
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .setup-help li:hover::before {
@@ -520,7 +520,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       border-radius: 12px;
       font-size: 16px;
       font-weight: 400;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       box-sizing: border-box;
       background: #ffffff;
       color: #1e293b;
@@ -570,7 +570,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       width: 24px;
       height: 24px;
       color: #64748b;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       flex-shrink: 0;
     }
 
@@ -594,7 +594,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       z-index: 1000;
       max-height: 240px;
       overflow-y: auto;
-      animation: dropdownSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: dropdownSlide 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     @keyframes dropdownSlide {
@@ -611,7 +611,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     .dropdown-option {
       padding: 16px 20px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -627,7 +627,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       bottom: 0;
       width: 0;
       background: linear-gradient(135deg, #3b82f6, #6366f1);
-      transition: width 0.3s ease;
+      transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .dropdown-option:last-child {

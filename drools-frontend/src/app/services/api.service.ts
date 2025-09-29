@@ -58,4 +58,8 @@ export class ApiService {
   executeRules(fileName: string, inputData: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/sheets/execute-rules`, { fileName, inputData });
   }
+
+  generateBranchName(request: GitRequest): Observable<{branchName: string}> {
+    return this.http.post<{branchName: string}>(`${this.baseUrl}/git/generate-branch-name`, request);
+  }
 }

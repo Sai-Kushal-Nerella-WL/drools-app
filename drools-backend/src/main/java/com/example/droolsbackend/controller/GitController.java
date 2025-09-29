@@ -39,6 +39,28 @@ public class GitController {
         }
     }
 
+    @PostMapping("/generate-branch-name")
+    public ResponseEntity<Map<String, String>> generateBranchName(@RequestBody Map<String, String> request) {
+        try {
+            String fileName = request.get("fileName");
+            String repoUrl = request.get("repoUrl");
+            
+            if (fileName == null || repoUrl == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            
+            String branchName = gitService.generateBranchName(fileName, repoUrl);
+            Map<String, String> response = new HashMap<>();
+            response.put("branchName", branchName);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Branch name generation failed: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
     @PostMapping("/push")
     public ResponseEntity<Map<String, String>> pushToRepo(@RequestBody Map<String, String> request) {
         try {

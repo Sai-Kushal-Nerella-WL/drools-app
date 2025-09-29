@@ -854,8 +854,29 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
   confirmPushToGit() {
     if (!this.fileName) return;
     
+    const config = this.repositoryConfigService.getCurrentConfig();
+    if (!config) {
+      this.showNotification('Repository not configured', 'error');
+      return;
+    }
+    
     this.pendingBranch = 'Generating branch name...';
     this.showConfirmDialog = true;
+    
+    this.apiService.generateBranchName({
+      fileName: this.fileName,
+      repoUrl: config.repoUrl,
+      newBranch: '',
+      commitMessage: ''
+    }).subscribe({
+      next: (response) => {
+        this.pendingBranch = response.branchName;
+      },
+      error: (error) => {
+        console.error('Error generating branch name:', error);
+        this.pendingBranch = 'Error generating branch name';
+      }
+    });
   }
 
   cancelPush() {

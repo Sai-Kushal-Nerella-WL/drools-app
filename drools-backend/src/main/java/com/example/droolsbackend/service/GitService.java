@@ -235,7 +235,7 @@ public class GitService {
         return branches;
     }
     
-    private String generateBranchName(String fileName, String repoUrl) {
+    public String generateBranchName(String fileName, String repoUrl) {
         String repoName = extractRepoName(repoUrl);
         String repoPrefix = repoName.length() >= 3 ? repoName.substring(0, 3).toUpperCase() : repoName.toUpperCase();
         

@@ -213,11 +213,11 @@ export class FileListComponent implements OnInit {
       return;
     }
     
-    this.apiService.pullFromRepo({ repoUrl: config.repoUrl, branch: 'main' }).subscribe({
+    this.apiService.pullFromRepo({ repoUrl: config.repoUrl, branch: config.branch }).subscribe({
       next: (response) => {
         console.log('Pull successful:', response);
         this.isPulling = false;
-        this.showNotification(response.message || 'Successfully pulled latest changes from main branch', 'success');
+        this.showNotification(response.message || `Successfully pulled latest changes from ${config.branch} branch`, 'success');
         this.loadFiles();
       },
       error: (error) => {

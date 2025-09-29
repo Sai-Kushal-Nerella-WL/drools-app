@@ -34,8 +34,8 @@ interface NotificationItem {
         </div>
       </div>
       
-      <div class="grid-wrapper" style="overflow-x: scroll !important; overflow-y: auto !important; max-width: 1200px !important; width: 1200px !important; height: 400px !important; display: block !important;">
-        <table class="rules-table" style="width: 4000px !important; min-width: 4000px !important; table-layout: fixed !important;">
+      <div class="grid-wrapper">
+        <table class="rules-table">
           <thead>
             <tr>
               <th *ngFor="let label of tableView.columnLabels; let i = index">
@@ -254,9 +254,21 @@ interface NotificationItem {
       border: 1px solid #ddd;
       width: 100% !important;
       max-width: 100% !important;
-      height: 400px !important;
+      height: auto !important;
+      max-height: calc(100vh - 160px) !important;
       display: block !important;
       scroll-behavior: smooth;
+    }
+    
+    @media (max-height: 800px) {
+      .grid-wrapper {
+        max-height: calc(100vh - 120px) !important;
+      }
+    }
+    @media (max-height: 600px) {
+      .grid-wrapper {
+        max-height: calc(100vh - 100px) !important;
+      }
     }
     
     ::ng-deep .grid-wrapper {

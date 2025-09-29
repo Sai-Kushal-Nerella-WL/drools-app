@@ -170,44 +170,73 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #fafafa;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
       padding: 24px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       overflow-x: hidden;
+      transition: all 0.3s ease;
     }
 
     .setup-card {
       background: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+      border-radius: 16px;
+      box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.15),
+        0 10px 20px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
       padding: 48px;
       max-width: min(600px, calc(100vw - 48px));
       width: 100%;
       position: relative;
       box-sizing: border-box;
-      border: 1px solid #e5e7eb;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: translateY(0);
+    }
+
+    .setup-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 
+        0 32px 64px rgba(0, 0, 0, 0.2),
+        0 16px 32px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
     }
 
     .setup-header {
       text-align: center;
       margin-bottom: 40px;
+      position: relative;
+    }
+
+    .setup-header::before {
+      content: '';
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(90deg, #1a1a1a, #4a4a4a);
+      border-radius: 2px;
+      opacity: 0.8;
     }
 
     .setup-header h2 {
-      color: #111827;
-      margin-bottom: 8px;
-      font-size: 28px;
-      font-weight: 600;
-      letter-spacing: -0.025em;
-      line-height: 1.25;
+      color: #1a1a1a;
+      margin-bottom: 12px;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      transition: color 0.3s ease;
     }
 
     .setup-header p {
       color: #6b7280;
       font-size: 16px;
       font-weight: 400;
-      line-height: 1.5;
+      line-height: 1.6;
       margin: 0;
+      transition: color 0.3s ease;
     }
 
     .setup-form {
@@ -221,39 +250,66 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
 
     .form-group label {
       display: block;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: #374151;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #1a1a1a;
       font-size: 14px;
-      letter-spacing: 0;
+      letter-spacing: -0.01em;
+      transition: color 0.3s ease;
+      position: relative;
+      padding-left: 16px;
+    }
+
+    .form-group label::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 14px;
+      background: linear-gradient(135deg, #1a1a1a, #4a4a4a);
+      border-radius: 2px;
+      transition: all 0.3s ease;
     }
 
     .form-control {
       width: 100%;
-      padding: 12px 16px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
+      padding: 16px 20px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
       font-size: 16px;
       font-weight: 400;
-      transition: all 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       box-sizing: border-box;
       background: #ffffff;
-      color: #111827;
+      color: #1a1a1a;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
     }
 
     .form-control::placeholder {
       color: #9ca3af;
       font-weight: 400;
+      transition: color 0.3s ease;
     }
 
     .form-control:hover {
-      border-color: #9ca3af;
+      border-color: #4a4a4a;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+      transform: translateY(-1px);
     }
 
     .form-control:focus {
       outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      border-color: #1a1a1a;
+      box-shadow: 
+        0 0 0 4px rgba(26, 26, 26, 0.1),
+        0 8px 16px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .form-control:focus::placeholder {
+      color: #d1d5db;
     }
 
     .form-control.error {
@@ -298,19 +354,44 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .btn-primary {
-      background: #3b82f6;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
       color: white;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      box-shadow: 
+        0 4px 12px rgba(26, 26, 26, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.6s ease;
     }
 
     .btn-primary:hover:not(:disabled) {
-      background: #2563eb;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      background: linear-gradient(135deg, #2d2d2d 0%, #4a4a4a 100%);
+      box-shadow: 
+        0 8px 20px rgba(26, 26, 26, 0.4),
+        0 4px 8px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:hover:not(:disabled)::before {
+      left: 100%;
     }
 
     .btn-primary:active:not(:disabled) {
-      background: #1d4ed8;
-      transform: translateY(1px);
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+      transform: translateY(0);
+      box-shadow: 
+        0 2px 8px rgba(26, 26, 26, 0.3),
+        0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
     .btn:disabled {
@@ -334,26 +415,41 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .setup-help {
-      background: #f9fafb;
+      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
       border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 24px;
+      border-radius: 12px;
+      padding: 28px;
       position: relative;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: all 0.3s ease;
+    }
+
+    .setup-help:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      transform: translateY(-1px);
     }
 
     .setup-help h4 {
-      color: #111827;
-      margin-bottom: 16px;
-      font-size: 16px;
-      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 20px;
+      font-size: 18px;
+      font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      transition: color 0.3s ease;
     }
 
     .setup-help h4::before {
       content: '💡';
-      font-size: 16px;
+      font-size: 18px;
+      padding: 8px;
+      background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(26, 26, 26, 0.2);
     }
 
     .setup-help ul {
@@ -363,21 +459,39 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .setup-help li {
-      color: #6b7280;
-      line-height: 1.5;
-      padding-left: 20px;
+      color: #4a5568;
+      line-height: 1.6;
+      padding: 12px 0 12px 28px;
       position: relative;
       font-weight: 400;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
       font-size: 14px;
+      transition: all 0.3s ease;
+      border-radius: 8px;
+    }
+
+    .setup-help li:hover {
+      background: rgba(26, 26, 26, 0.02);
+      color: #2d3748;
+      padding-left: 32px;
     }
 
     .setup-help li::before {
-      content: '•';
+      content: '';
       position: absolute;
-      left: 0;
-      color: #3b82f6;
-      font-weight: 600;
+      left: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 6px;
+      height: 6px;
+      background: linear-gradient(135deg, #1a1a1a, #4a4a4a);
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+
+    .setup-help li:hover::before {
+      transform: translateY(-50%) scale(1.2);
+      box-shadow: 0 0 8px rgba(26, 26, 26, 0.3);
     }
 
     .setup-help code {
@@ -401,31 +515,37 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
 
     .dropdown-trigger {
       width: 100%;
-      padding: 12px 16px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
+      padding: 16px 20px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
       font-size: 16px;
       font-weight: 400;
-      transition: all 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       box-sizing: border-box;
       background: #ffffff;
-      color: #111827;
+      color: #1a1a1a;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      min-height: 44px;
+      min-height: 56px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
     }
 
     .dropdown-trigger:hover {
-      border-color: #9ca3af;
+      border-color: #4a4a4a;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+      transform: translateY(-1px);
     }
 
     .dropdown-trigger:focus,
     .custom-dropdown.open .dropdown-trigger {
       outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      border-color: #1a1a1a;
+      box-shadow: 
+        0 0 0 4px rgba(26, 26, 26, 0.1),
+        0 8px 16px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
     }
 
     .dropdown-trigger.error {
@@ -447,40 +567,67 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .dropdown-arrow {
-      width: 20px;
-      height: 20px;
-      color: #6b7280;
-      transition: transform 0.2s ease;
+      width: 24px;
+      height: 24px;
+      color: #4a4a4a;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       flex-shrink: 0;
     }
 
     .custom-dropdown.open .dropdown-arrow {
       transform: rotate(180deg);
+      color: #1a1a1a;
     }
 
     .dropdown-options {
       position: absolute;
-      top: 100%;
+      top: calc(100% - 2px);
       left: 0;
       right: 0;
       background: #ffffff;
-      border: 1px solid #d1d5db;
+      border: 2px solid #e5e7eb;
       border-top: none;
-      border-radius: 0 0 6px 6px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 0 0 12px 12px;
+      box-shadow: 
+        0 8px 24px rgba(0, 0, 0, 0.12),
+        0 4px 8px rgba(0, 0, 0, 0.08);
       z-index: 1000;
-      max-height: 200px;
+      max-height: 240px;
       overflow-y: auto;
+      animation: dropdownSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes dropdownSlide {
+      from { 
+        opacity: 0; 
+        transform: translateY(-8px) scale(0.98); 
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+      }
     }
 
     .dropdown-option {
-      padding: 12px 16px;
+      padding: 16px 20px;
       cursor: pointer;
-      transition: background-color 0.15s ease;
+      transition: all 0.3s ease;
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid #f3f4f6;
+      position: relative;
+    }
+
+    .dropdown-option::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0;
+      background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+      transition: width 0.3s ease;
     }
 
     .dropdown-option:last-child {
@@ -488,13 +635,23 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .dropdown-option:hover {
-      background: #f9fafb;
+      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+      color: #1a1a1a;
+      transform: translateX(4px);
+    }
+
+    .dropdown-option:hover::before {
+      width: 4px;
     }
 
     .dropdown-option.selected {
-      background: #eff6ff;
-      color: #1d4ed8;
-      font-weight: 500;
+      background: linear-gradient(135deg, #f0f0f0 0%, #ffffff 100%);
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+
+    .dropdown-option.selected::before {
+      width: 4px;
     }
 
     .branch-name {

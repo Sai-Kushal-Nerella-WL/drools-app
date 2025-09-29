@@ -892,12 +892,13 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
         console.log('Push successful:', response);
         this.isPushing = false;
         this.hasSavedChanges = false;
-        this.showNotification(response.message || `Successfully pushed to Git! Branch: ${this.pendingBranch}`, 'success');
+        const branchName = response.branchName || this.pendingBranch;
+        this.showNotification(response.message || `Successfully pushed to Git! Branch: ${branchName}`, 'success');
         
         this.apiService.createPullRequest({
           repoUrl: config.repoUrl,
           baseBranch: config.branch,
-          newBranch: this.pendingBranch,
+          newBranch: branchName,
           title: `Update Drools rules in ${this.fileName}`,
           body: `Automated update to decision table rules via Drools Rules Manager`
         }).subscribe({

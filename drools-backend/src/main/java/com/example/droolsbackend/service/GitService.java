@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class GitService {
@@ -85,7 +88,7 @@ public class GitService {
         }
     }
 
-    public void pushToRepo(String fileName, String repoUrl, String newBranch, String commitMessage) 
+    public String pushToRepo(String fileName, String repoUrl, String newBranch, String commitMessage) 
             throws GitAPIException, IOException, InterruptedException {
         if (!repositoryConfigService.isConfigured()) {
             throw new IllegalStateException("Repository not configured. Please configure repository first.");
@@ -94,10 +97,12 @@ public class GitService {
         String repoPath = repositoryConfigService.getRepositoryPath();
         File repoDir = new File(repoPath);
         
+        String generatedBranch = generateBranchName(fileName, repoUrl);
+        
         try (Git git = Git.open(repoDir)) {
             git.checkout()
                .setCreateBranch(true)
-               .setName(newBranch)
+               .setName(generatedBranch)
                .call();
             
             git.add()
@@ -109,7 +114,7 @@ public class GitService {
                .call();
         }
         
-        ProcessBuilder pb = new ProcessBuilder("git", "push", "origin", newBranch);
+        ProcessBuilder pb = new ProcessBuilder("git", "push", "origin", generatedBranch);
         pb.directory(repoDir);
         pb.redirectErrorStream(true);
         Process process = pb.start();
@@ -128,6 +133,8 @@ public class GitService {
         if (exitCode != 0) {
             throw new RuntimeException("Git push failed: " + output.toString().trim());
         }
+        
+        return generatedBranch;
     }
 
     public void createPullRequest(String repoUrl, String baseBranch, String newBranch, 
@@ -226,5 +233,29 @@ public class GitService {
         }
         
         return branches;
+    }
+    
+    private String generateBranchName(String fileName, String repoUrl) {
+        String repoName = extractRepoName(repoUrl);
+        String repoPrefix = repoName.length() >= 3 ? repoName.substring(0, 3).toUpperCase() : repoName.toUpperCase();
+        
+        String fileNameWithoutExt = fileName.replaceAll("\\.(xlsx|xls)$", "");
+        String filePrefix = fileNameWithoutExt.length() >= 3 ? fileNameWithoutExt.substring(0, 3).toUpperCase() : fileNameWithoutExt.toUpperCase();
+        
+        ZonedDateTime cstTime = ZonedDateTime.now(ZoneId.of("America/Chicago"));
+        String dateTime = cstTime.format(DateTimeFormatter.ofPattern("MMddyyyyHHmm"));
+        
+        return repoPrefix + "_" + filePrefix + "_" + dateTime;
+    }
+    
+    private String extractRepoName(String repoUrl) {
+        String repoName = repoUrl;
+        if (repoUrl.contains("/")) {
+            repoName = repoUrl.substring(repoUrl.lastIndexOf("/") + 1);
+        }
+        if (repoName.endsWith(".git")) {
+            repoName = repoName.substring(0, repoName.length() - 4);
+        }
+        return repoName;
     }
 }

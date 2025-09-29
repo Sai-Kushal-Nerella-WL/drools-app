@@ -51,9 +51,10 @@ public class GitController {
                 return ResponseEntity.badRequest().build();
             }
             
-            gitService.pushToRepo(fileName, repoUrl, newBranch, commitMessage);
+            String actualBranchName = gitService.pushToRepo(fileName, repoUrl, newBranch, commitMessage);
             Map<String, String> response = new HashMap<>();
             response.put("message", "Push completed successfully");
+            response.put("branchName", actualBranchName);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             e.printStackTrace();

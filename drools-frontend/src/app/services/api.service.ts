@@ -27,8 +27,8 @@ export class ApiService {
     return this.http.post<{message: string}>(`${this.baseUrl}/git/pull`, request);
   }
 
-  pushToRepo(request: GitRequest): Observable<{message: string}> {
-    return this.http.post<{message: string}>(`${this.baseUrl}/git/push`, request);
+  pushToRepo(request: GitRequest): Observable<{message: string, branchName?: string}> {
+    return this.http.post<{message: string, branchName?: string}>(`${this.baseUrl}/git/push`, request);
   }
 
   createPullRequest(request: GitRequest): Observable<{message: string}> {

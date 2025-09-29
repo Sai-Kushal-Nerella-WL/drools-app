@@ -106,14 +106,14 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #0f3d2e;
+      background: #f3c623;
       padding: 24px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       overflow-x: hidden;
     }
 
     .setup-card {
-      background: #f7f2e7;
+      background: #ffffff;
       border-radius: 12px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
       border: 1px solid #e6dfcf;
@@ -181,7 +181,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       font-weight: 400;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       box-sizing: border-box;
-      background: #f7f2e7;
+      background: #ffffff;
       color: #2d2d2d;
     }
 
@@ -443,7 +443,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       font-weight: 400;
       transition: all 0.2s ease;
       box-sizing: border-box;
-      background: #f7f2e7;
+      background: #ffffff;
       color: #2d2d2d;
       cursor: pointer;
       display: flex;
@@ -495,7 +495,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       top: 100%;
       left: 0;
       right: 0;
-      background: #f7f2e7;
+      background: #ffffff;
       border: 1px solid #c0c0c0;
       border-top: none;
       border-radius: 0 0 8px 8px;

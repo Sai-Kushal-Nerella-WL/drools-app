@@ -17,6 +17,21 @@ public class GitService {
 
     private static final String BASE_REPO_DIR = "/home/ubuntu/repos/";
     
+    private void configureProxyAuthentication() {
+        System.setProperty("https.proxyHost", "git-manager.devin.ai");
+        System.setProperty("https.proxyPort", "443");
+        System.setProperty("http.proxyHost", "git-manager.devin.ai");
+        System.setProperty("http.proxyPort", "443");
+        
+        System.setProperty("jgit.http.proxy", "https://git-manager.devin.ai:443");
+        System.setProperty("jgit.https.proxy", "https://git-manager.devin.ai:443");
+        
+        System.setProperty("https.nonProxyHosts", "");
+        System.setProperty("http.nonProxyHosts", "");
+        
+        System.out.println("Configured proxy authentication for Git operations with JGit-specific properties");
+    }
+    
     private String getRepoDirectory(String repoUrl) {
         String repoName = repoUrl.substring(repoUrl.lastIndexOf('/') + 1);
         if (repoName.endsWith(".git")) {
@@ -88,6 +103,8 @@ public class GitService {
                 credentialsProvider = new UsernamePasswordCredentialsProvider("", "");
             }
 
+            configureProxyAuthentication();
+            
             Git.lsRemoteRepository()
                .setHeads(true)
                .setTags(false)
@@ -98,6 +115,9 @@ public class GitService {
             return true;
         } catch (Exception e) {
             System.err.println("Repository validation failed: " + e.getMessage());
+            if (e.getMessage().contains("not authorized")) {
+                System.err.println("Proxy authentication may be required for Git operations");
+            }
             return false;
         }
     }
@@ -111,6 +131,8 @@ public class GitService {
                 credentialsProvider = new UsernamePasswordCredentialsProvider("", "");
             }
 
+            configureProxyAuthentication();
+            
             Collection<Ref> refs = Git.lsRemoteRepository()
                 .setHeads(true)
                 .setTags(false)
@@ -134,6 +156,9 @@ public class GitService {
             return !refs.isEmpty();
         } catch (Exception e) {
             System.err.println("Connection test failed: " + e.getMessage());
+            if (e.getMessage().contains("not authorized")) {
+                System.err.println("Proxy authentication may be required for Git operations");
+            }
             return false;
         }
     }
@@ -154,12 +179,14 @@ public class GitService {
 
             if (repoDir.exists()) {
                 try (Git git = Git.open(repoDir)) {
+                    configureProxyAuthentication();
                     git.pull()
                        .setRemoteBranchName(branch)
                        .setCredentialsProvider(credentialsProvider)
                        .call();
                 }
             } else {
+                configureProxyAuthentication();
                 Git.cloneRepository()
                    .setURI(repoUrl)
                    .setDirectory(repoDir)
@@ -173,6 +200,9 @@ public class GitService {
             
         } catch (Exception e) {
             System.err.println("Folder detection failed: " + e.getMessage());
+            if (e.getMessage().contains("not authorized")) {
+                System.err.println("Proxy authentication may be required for Git operations");
+            }
         }
         
         return folders;

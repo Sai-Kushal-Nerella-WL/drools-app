@@ -98,6 +98,14 @@ import { RepositoryConfig } from './models/repository-config.model';
       background: transparent;
     }
 
+    /* Cap right panel height to viewport and let inner content scroll */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 24px);
+      overflow: hidden;
+    }
+
   `]
 })
 export class AppComponent implements OnInit {

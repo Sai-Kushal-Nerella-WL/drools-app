@@ -528,6 +528,20 @@ interface NotificationItem {
       height: 0;
       background: transparent;
     }
+    /* Make grid fill the right panel and keep content inside viewport */
+    .rules-grid-container {
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .grid-wrapper {
+      flex: 1;
+      height: auto !important;
+      max-height: 100% !important;
+      overflow: auto !important;
+    }
+
 
       background-color: #d4edda;
       color: #155724;

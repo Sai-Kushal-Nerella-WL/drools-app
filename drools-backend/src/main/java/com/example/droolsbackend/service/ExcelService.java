@@ -35,7 +35,7 @@ public class ExcelService {
         
         try {
             RepositoryConfig config = repositoryConfigService.getConfig();
-            if (config != null && config.getBranch() != null) {
+            if (config != null && config.getRepositoryType() == RepositoryConfig.RepositoryType.GIT && config.getBranch() != null) {
                 ensureCorrectBranch(repositoryPath, config.getBranch());
             }
         } catch (Exception e) {
@@ -499,7 +499,7 @@ public class ExcelService {
         
         try {
             RepositoryConfig config = repositoryConfigService.getConfig();
-            if (config != null && config.getBranch() != null) {
+            if (config != null && config.getRepositoryType() == RepositoryConfig.RepositoryType.GIT && config.getBranch() != null) {
                 ensureCorrectBranch(repositoryPath, config.getBranch());
             }
         } catch (Exception e) {

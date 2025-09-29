@@ -20,16 +20,35 @@ public class RepositoryConfigController {
     @PostMapping("/config")
     public ResponseEntity<Map<String, Object>> saveConfig(@RequestBody RepositoryConfig config) {
         try {
-            if (config.getRepoUrl() == null || config.getRepoUrl().trim().isEmpty()) {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("error", "Repository URL is required");
-                return ResponseEntity.badRequest().body(errorResponse);
+            if (config.getRepositoryType() == null) {
+                config.setRepositoryType(RepositoryConfig.RepositoryType.GIT);
             }
             
-            if (config.getBranch() == null || config.getBranch().trim().isEmpty()) {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("error", "Branch is required");
-                return ResponseEntity.badRequest().body(errorResponse);
+            if (config.getRepositoryType() == RepositoryConfig.RepositoryType.GIT) {
+                if (config.getRepoUrl() == null || config.getRepoUrl().trim().isEmpty()) {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("error", "Repository URL is required for Git repositories");
+                    return ResponseEntity.badRequest().body(errorResponse);
+                }
+                
+                if (config.getBranch() == null || config.getBranch().trim().isEmpty()) {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("error", "Branch is required for Git repositories");
+                    return ResponseEntity.badRequest().body(errorResponse);
+                }
+            } else if (config.getRepositoryType() == RepositoryConfig.RepositoryType.LOCAL_FILESYSTEM) {
+                if (config.getLocalPath() == null || config.getLocalPath().trim().isEmpty()) {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("error", "Local path is required for local file system repositories");
+                    return ResponseEntity.badRequest().body(errorResponse);
+                }
+                
+                java.io.File localDir = new java.io.File(config.getLocalPath());
+                if (!localDir.exists() || !localDir.isDirectory()) {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("error", "Local path must be an existing directory");
+                    return ResponseEntity.badRequest().body(errorResponse);
+                }
             }
             
             repositoryConfigService.saveConfig(config);

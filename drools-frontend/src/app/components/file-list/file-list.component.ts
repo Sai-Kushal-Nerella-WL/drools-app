@@ -10,7 +10,7 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
   template: `
     <div class="file-list-container">
       <h3>{{ getDisplayTitle() }}</h3>
-      <div class="branch-indicator">
+      <div class="branch-indicator" *ngIf="isGitRepository()">
         <span class="branch-label">Files from: <strong>{{ getCurrentBranch() }} branch</strong></span>
         <button 
           *ngIf="getCurrentBranch() !== 'main'" 
@@ -21,6 +21,9 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
           <span *ngIf="isSwitchingBranch" class="spinner"></span>
           {{ isSwitchingBranch ? 'Switching...' : 'Switch to Main' }}
         </button>
+      </div>
+      <div class="branch-indicator" *ngIf="!isGitRepository()">
+        <span class="branch-label">Files from: <strong>Local File System</strong></span>
       </div>
       <div class="file-list">
         <div 
@@ -38,7 +41,7 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
             <span *ngIf="isRefreshing" class="spinner"></span>
             {{ isRefreshing ? 'Refreshing...' : 'Refresh' }}
           </button>
-          <button (click)="pullFromGit()" class="btn btn-primary" [disabled]="isPulling">
+          <button (click)="pullFromGit()" class="btn btn-primary" [disabled]="isPulling || !isGitRepository()" *ngIf="isGitRepository()">
             <span *ngIf="isPulling" class="spinner"></span>
             {{ isPulling ? 'Pulling...' : 'Pull from Git' }}
           </button>
@@ -263,6 +266,12 @@ export class FileListComponent implements OnInit {
       return;
     }
     
+    if (!config.repoUrl || config.repositoryType === 'LOCAL_FILESYSTEM') {
+      this.showNotification('Pull from Git is only available for Git repositories', 'error');
+      this.isPulling = false;
+      return;
+    }
+    
     this.apiService.pullFromRepo({ repoUrl: config.repoUrl, branch: config.branch }).subscribe({
       next: (response) => {
         console.log('Pull successful:', response);
@@ -355,5 +364,10 @@ export class FileListComponent implements OnInit {
         this.showNotification('Failed to download file: ' + (error.error?.message || error.message), 'error');
       }
     });
+  }
+
+  isGitRepository(): boolean {
+    const config = this.repositoryConfigService.getCurrentConfig();
+    return config?.repositoryType !== 'LOCAL_FILESYSTEM';
   }
 }

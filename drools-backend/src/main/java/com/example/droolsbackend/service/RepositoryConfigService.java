@@ -15,7 +15,9 @@ public class RepositoryConfigService {
 
     public void saveConfig(RepositoryConfig config) {
         this.currentConfig = new RepositoryConfig(
+            config.getRepositoryType(),
             config.getRepoUrl(),
+            config.getLocalPath(),
             config.getBranch(),
             config.getDisplayName(),
             true
@@ -27,12 +29,19 @@ public class RepositoryConfigService {
     }
 
     public boolean isConfigured() {
-        return currentConfig != null && 
-               currentConfig.isConfigured() && 
-               currentConfig.getRepoUrl() != null && 
-               !currentConfig.getRepoUrl().trim().isEmpty() &&
-               currentConfig.getBranch() != null && 
-               !currentConfig.getBranch().trim().isEmpty();
+        if (currentConfig == null || !currentConfig.isConfigured()) {
+            return false;
+        }
+        
+        if (currentConfig.getRepositoryType() == RepositoryConfig.RepositoryType.LOCAL_FILESYSTEM) {
+            return currentConfig.getLocalPath() != null && 
+                   !currentConfig.getLocalPath().trim().isEmpty();
+        } else {
+            return currentConfig.getRepoUrl() != null && 
+                   !currentConfig.getRepoUrl().trim().isEmpty() &&
+                   currentConfig.getBranch() != null && 
+                   !currentConfig.getBranch().trim().isEmpty();
+        }
     }
 
     public void clearConfig() {
@@ -42,6 +51,10 @@ public class RepositoryConfigService {
     public String getRepositoryPath() {
         if (!isConfigured()) {
             throw new IllegalStateException("Repository not configured");
+        }
+        
+        if (currentConfig.getRepositoryType() == RepositoryConfig.RepositoryType.LOCAL_FILESYSTEM) {
+            return currentConfig.getLocalPath();
         }
         
         try {
@@ -74,6 +87,15 @@ public class RepositoryConfigService {
         
         if (currentConfig.getDisplayName() != null && !currentConfig.getDisplayName().trim().isEmpty()) {
             return currentConfig.getDisplayName();
+        }
+        
+        if (currentConfig.getRepositoryType() == RepositoryConfig.RepositoryType.LOCAL_FILESYSTEM) {
+            String localPath = currentConfig.getLocalPath();
+            if (localPath != null) {
+                String[] pathParts = localPath.split("/");
+                return pathParts[pathParts.length - 1];
+            }
+            return "Local Repository";
         }
         
         try {

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RepositoryConfigService } from '../../services/repository-config.service';
 import { ApiService } from '../../services/api.service';
-import { RepositoryConfig } from '../../models/repository-config.model';
+import { RepositoryConfig, RepositoryType } from '../../models/repository-config.model';
 
 @Component({
   selector: 'app-repository-setup',
@@ -14,11 +14,25 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       <div class="setup-card">
         <div class="setup-header">
           <h2>Repository Configuration</h2>
-          <p>Configure your Git repository to get started with Drools Rules Manager</p>
+          <p>Configure your repository to get started with Drools Rules Manager</p>
         </div>
         
         <form (ngSubmit)="onSubmit()" #setupForm="ngForm" class="setup-form">
           <div class="form-group">
+            <label for="repositoryType">Repository Type *</label>
+            <select 
+              id="repositoryType"
+              name="repositoryType"
+              [(ngModel)]="config.repositoryType"
+              required
+              class="form-control"
+              (change)="onRepositoryTypeChange()">
+              <option value="GIT">Git Repository</option>
+              <option value="LOCAL_FILESYSTEM">Local File System</option>
+            </select>
+          </div>
+
+          <div class="form-group" *ngIf="config.repositoryType === 'GIT'">
             <label for="repoUrl">Repository URL *</label>
             <input 
               type="url" 
@@ -27,7 +41,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
               [(ngModel)]="config.repoUrl"
               #repoUrlInput="ngModel"
               (blur)="onRepoUrlChange()"
-              required
+              [required]="config.repositoryType === 'GIT'"
               class="form-control"
               placeholder="https://git-manager.devin.ai/proxy/github.com/username/repo-name"
               [class.error]="repoUrlInput.invalid && repoUrlInput.touched">
@@ -36,7 +50,24 @@ import { RepositoryConfig } from '../../models/repository-config.model';
             </div>
           </div>
 
-          <div class="form-group">
+          <div class="form-group" *ngIf="config.repositoryType === 'LOCAL_FILESYSTEM'">
+            <label for="localPath">Local Directory Path *</label>
+            <input 
+              type="text" 
+              id="localPath"
+              name="localPath"
+              [(ngModel)]="config.localPath"
+              #localPathInput="ngModel"
+              [required]="config.repositoryType === 'LOCAL_FILESYSTEM'"
+              class="form-control"
+              placeholder="/path/to/your/rules/directory"
+              [class.error]="localPathInput.invalid && localPathInput.touched">
+            <div *ngIf="localPathInput.invalid && localPathInput.touched" class="error-message">
+              Please enter a valid local directory path
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="config.repositoryType === 'GIT'">
             <label for="branch">Branch *</label>
             <div class="branch-selection">
               <div *ngIf="availableBranches.length > 0 && !branchFetchError">
@@ -78,7 +109,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
                   id="branch-input"
                   name="branch"
                   [(ngModel)]="config.branch"
-                  required
+                  [required]="config.repositoryType === 'GIT'"
                   class="form-control"
                   placeholder="main"
                   [class.error]="!config.branch && branchTouched">
@@ -122,9 +153,11 @@ import { RepositoryConfig } from '../../models/repository-config.model';
         <div class="setup-help">
           <h4>Need Help?</h4>
           <ul>
-            <li>Repository URL should be the full HTTPS URL to your Git repository</li>
-            <li>For GitHub repositories, use the proxy format: <code>https://git-manager.devin.ai/proxy/github.com/username/repo</code></li>
-            <li>Branch should be the main branch containing your Excel decision tables</li>
+            <li *ngIf="config.repositoryType === 'GIT'">Repository URL should be the full HTTPS URL to your Git repository</li>
+            <li *ngIf="config.repositoryType === 'GIT'">For GitHub repositories, use the proxy format: <code>https://git-manager.devin.ai/proxy/github.com/username/repo</code></li>
+            <li *ngIf="config.repositoryType === 'GIT'">Branch should be the main branch containing your Excel decision tables</li>
+            <li *ngIf="config.repositoryType === 'LOCAL_FILESYSTEM'">Local path should point to a directory containing a 'rules' subdirectory with Excel files</li>
+            <li *ngIf="config.repositoryType === 'LOCAL_FILESYSTEM'">Make sure the directory exists and is accessible</li>
             <li>Display name is optional and used for identification purposes</li>
           </ul>
         </div>
@@ -609,8 +642,12 @@ import { RepositoryConfig } from '../../models/repository-config.model';
 export class RepositorySetupComponent implements OnInit, OnDestroy {
   @Output() configurationComplete = new EventEmitter<RepositoryConfig>();
 
+  RepositoryType = RepositoryType;
+  
   config: RepositoryConfig = {
+    repositoryType: RepositoryType.GIT,
     repoUrl: '',
+    localPath: '',
     branch: 'main',
     displayName: '',
     isConfigured: false
@@ -644,7 +681,26 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
     }
   }
 
+  onRepositoryTypeChange() {
+    this.availableBranches = [];
+    this.branchFetchError = false;
+    this.dropdownOpen = false;
+    this.branchTouched = false;
+    
+    if (this.config.repositoryType === RepositoryType.LOCAL_FILESYSTEM) {
+      this.config.branch = '';
+      this.config.repoUrl = '';
+    } else {
+      this.config.localPath = '';
+      this.config.branch = 'main';
+    }
+  }
+
   onRepoUrlChange() {
+    if (this.config.repositoryType !== RepositoryType.GIT) {
+      return;
+    }
+    
     const repoUrl = this.config.repoUrl;
     console.log('onRepoUrlChange called with:', repoUrl);
     if (repoUrl && repoUrl.trim()) {
@@ -656,6 +712,10 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
   }
 
   fetchBranches(repoUrl: string) {
+    if (this.config.repositoryType !== RepositoryType.GIT) {
+      return;
+    }
+    
     console.log('fetchBranches called with:', repoUrl);
     this.loadingBranches = true;
     this.branchFetchError = false;

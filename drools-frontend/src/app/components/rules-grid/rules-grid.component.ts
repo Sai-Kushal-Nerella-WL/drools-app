@@ -1005,7 +1005,7 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
     if (!this.fileName) return;
     
     const config = this.repositoryConfigService.getCurrentConfig();
-    if (!config) return;
+    if (!config || !config.repoUrl) return;
     
     const branchName = this.generateBranchName(config.repoUrl, this.fileName);
     this.pendingBranch = branchName;
@@ -1026,8 +1026,8 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
     if (!this.fileName) return;
     
     const config = this.repositoryConfigService.getCurrentConfig();
-    if (!config) {
-      this.showNotification('Repository not configured', 'error');
+    if (!config || !config.repoUrl) {
+      this.showNotification('Repository not configured or not a Git repository', 'error');
       return;
     }
     
@@ -1159,7 +1159,13 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
 
   getRepositoryDisplayName(): string {
     const config = this.repositoryConfigService.getCurrentConfig();
-    return config?.displayName || config?.repoUrl || 'Unknown Repository';
+    if (config?.displayName) {
+      return config.displayName;
+    }
+    if (config?.repositoryType === 'LOCAL_FILESYSTEM') {
+      return config?.localPath?.split('/').pop() || 'Local Repository';
+    }
+    return config?.repoUrl || 'Unknown Repository';
   }
 
   showAddColumnModal(): void {

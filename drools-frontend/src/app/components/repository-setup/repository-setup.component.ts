@@ -67,12 +67,24 @@ import { RepositoryConfig } from '../../models/repository-config.model';
 
           <div class="form-actions">
             <button 
+              type="button"
+              class="btn btn-secondary"
+              (click)="clearForm()"
+              [disabled]="isSubmitting || isValidating">
+              Clear
+            </button>
+            <button 
               type="submit" 
               class="btn btn-primary"
-              [disabled]="!setupForm.form.valid || isSubmitting">
-              <span *ngIf="isSubmitting" class="spinner"></span>
-              {{ isSubmitting ? 'Configuring...' : 'Configure Repository' }}
+              [disabled]="!setupForm.form.valid || isSubmitting || isValidating">
+              <span *ngIf="isValidating" class="spinner"></span>
+              {{ isValidating ? 'Validating...' : isSubmitting ? 'Configuring...' : 'Configure Repository' }}
             </button>
+          </div>
+          
+          <div *ngIf="validationError" class="validation-error">
+            <span class="error-icon">⚠️</span>
+            {{ validationError }}
           </div>
         </form>
 
@@ -94,22 +106,21 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+      background: #ececec;
       padding: 24px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       overflow-x: hidden;
     }
 
     .setup-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border-radius: 24px;
-      box-shadow: 0 32px 64px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      border: 1px solid #b0b0b0;
       padding: 48px;
       max-width: min(640px, calc(100vw - 48px));
       width: 100%;
       position: relative;
-      overflow: hidden;
       box-sizing: border-box;
     }
 
@@ -119,8 +130,8 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       top: 0;
       left: 0;
       right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+      height: 3px;
+      background: #4a90e2;
     }
 
     .setup-header {
@@ -129,20 +140,16 @@ import { RepositoryConfig } from '../../models/repository-config.model';
     }
 
     .setup-header h2 {
-      color: #1f2937;
+      color: #2d2d2d;
       margin-bottom: 12px;
-      font-size: 32px;
-      font-weight: 700;
-      letter-spacing: -0.025em;
-      background: linear-gradient(135deg, #1f2937, #4b5563);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -0.015em;
     }
 
     .setup-header p {
-      color: #6b7280;
-      font-size: 18px;
+      color: #5a5a5a;
+      font-size: 15px;
       font-weight: 400;
       line-height: 1.6;
     }
@@ -160,22 +167,22 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       display: block;
       margin-bottom: 12px;
       font-weight: 600;
-      color: #374151;
+      color: #333333;
       font-size: 15px;
       letter-spacing: -0.01em;
     }
 
     .form-control {
       width: 100%;
-      padding: 16px 20px;
-      border: 2px solid #e5e7eb;
-      border-radius: 16px;
-      font-size: 16px;
+      padding: 12px 16px;
+      border: 1px solid #c0c0c0;
+      border-radius: 8px;
+      font-size: 15px;
       font-weight: 400;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       box-sizing: border-box;
       background: #ffffff;
-      color: #1f2937;
+      color: #2d2d2d;
     }
 
     select.form-control {
@@ -189,20 +196,20 @@ import { RepositoryConfig } from '../../models/repository-config.model';
     }
 
     .form-control::placeholder {
-      color: #9ca3af;
+      color: #999999;
       font-weight: 400;
     }
 
     .form-control:focus {
       outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+      border-color: #4a90e2;
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15);
       transform: translateY(-1px);
     }
 
     .form-control.error {
-      border-color: #ef4444;
-      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+      border-color: #d9534f;
+      box-shadow: 0 0 0 3px rgba(217, 83, 79, 0.15);
     }
 
     .error-message {
@@ -221,18 +228,21 @@ import { RepositoryConfig } from '../../models/repository-config.model';
     }
 
     .form-actions {
-      text-align: center;
-      margin-top: 40px;
+      margin-top: 32px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
     }
 
     .btn {
-      padding: 16px 32px;
+      padding: 12px 32px;
       border: none;
-      border-radius: 16px;
-      font-size: 16px;
+      border-radius: 8px;
+      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -242,41 +252,97 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       overflow: hidden;
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: white;
-      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
-    }
-
-    .btn-primary::before {
+    .btn::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.5s;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .btn:active::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .btn-primary {
+      background: #4a90e2;
+      color: white;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
     }
 
     .btn-primary:hover:not(:disabled) {
+      background: #357abd;
+      box-shadow: 0 4px 12px rgba(53, 122, 189, 0.3);
       transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(99, 102, 241, 0.4);
-    }
-
-    .btn-primary:hover:not(:disabled)::before {
-      left: 100%;
     }
 
     .btn-primary:active:not(:disabled) {
+      background: #2a66a0;
       transform: translateY(0);
     }
 
     .btn:disabled {
-      opacity: 0.7;
+      opacity: 0.6;
       cursor: not-allowed;
-      transform: none;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+      background: #8ab8e6;
+    }
+
+    .btn-secondary {
+      background: #f5f5f5;
+      color: #4a4a4a;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+      border: 1px solid #c0c0c0;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #e8e8e8;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+      border-color: #a0a0a0;
+    }
+
+    .btn-secondary:active:not(:disabled) {
+      background: #d8d8d8;
+      transform: translateY(0);
+    }
+
+    .validation-error {
+      margin-top: 20px;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #fff5f5 0%, #fee2e2 100%);
+      border: 2px solid #f87171;
+      border-radius: 10px;
+      color: #991b1b;
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      line-height: 1.6;
+      box-shadow: 0 2px 8px rgba(248, 113, 113, 0.15);
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .error-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+      margin-top: 2px;
     }
 
     .spinner {
@@ -294,11 +360,12 @@ import { RepositoryConfig } from '../../models/repository-config.model';
     }
 
     .setup-help {
-      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-      border: 1px solid #e2e8f0;
-      border-radius: 20px;
-      padding: 28px;
+      background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+      border: 1px solid #d0d0d0;
+      border-radius: 10px;
+      padding: 24px;
       position: relative;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
 
     .setup-help::before {
@@ -306,14 +373,14 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       position: absolute;
       top: 20px;
       right: 24px;
-      font-size: 20px;
+      font-size: 18px;
     }
 
     .setup-help h4 {
-      color: #1e293b;
-      margin-bottom: 20px;
-      font-size: 18px;
-      font-weight: 700;
+      color: #2d2d2d;
+      margin-bottom: 16px;
+      font-size: 16px;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -321,7 +388,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
 
     .setup-help h4::before {
       content: '📋';
-      font-size: 16px;
+      font-size: 14px;
     }
 
     .setup-help ul {
@@ -331,31 +398,31 @@ import { RepositoryConfig } from '../../models/repository-config.model';
     }
 
     .setup-help li {
-      margin-bottom: 12px;
-      color: #475569;
+      margin-bottom: 10px;
+      color: #4a4a4a;
       line-height: 1.6;
-      padding-left: 24px;
+      padding-left: 20px;
       position: relative;
       font-weight: 400;
     }
 
     .setup-help li::before {
-      content: '→';
+      content: '•';
       position: absolute;
       left: 0;
-      color: #6366f1;
+      color: #4a90e2;
       font-weight: 600;
+      font-size: 16px;
     }
 
     .setup-help code {
-      background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
-      padding: 4px 8px;
-      border-radius: 8px;
+      background: #e0e0e0;
+      padding: 3px 7px;
+      border-radius: 4px;
       font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
       font-size: 13px;
       font-weight: 500;
-      color: #1e293b;
-      border: 1px solid #cbd5e1;
+      color: #2d2d2d;
     }
 
     .branch-selection {
@@ -369,32 +436,31 @@ import { RepositoryConfig } from '../../models/repository-config.model';
 
     .dropdown-trigger {
       width: 100%;
-      padding: 16px 20px;
-      border: 2px solid #e5e7eb;
-      border-radius: 16px;
-      font-size: 16px;
+      padding: 12px 16px;
+      border: 1px solid #c0c0c0;
+      border-radius: 8px;
+      font-size: 15px;
       font-weight: 400;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.2s ease;
       box-sizing: border-box;
       background: #ffffff;
-      color: #1f2937;
+      color: #2d2d2d;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      min-height: 56px;
+      min-height: 48px;
     }
 
     .dropdown-trigger:hover {
-      border-color: #d1d5db;
+      border-color: #a0a0a0;
     }
 
     .dropdown-trigger:focus,
     .custom-dropdown.open .dropdown-trigger {
       outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-      transform: translateY(-1px);
+      border-color: #4a90e2;
+      box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.15);
     }
 
     .dropdown-trigger.error {
@@ -430,10 +496,10 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       left: 0;
       right: 0;
       background: #ffffff;
-      border: 2px solid #e5e7eb;
+      border: 1px solid #c0c0c0;
       border-top: none;
-      border-radius: 0 0 16px 16px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
       z-index: 1000;
       max-height: 300px;
       overflow-y: hidden;
@@ -463,8 +529,8 @@ import { RepositoryConfig } from '../../models/repository-config.model';
     }
 
     .dropdown-option.selected {
-      background: #eff6ff;
-      color: #1d4ed8;
+      background: #e8f4fd;
+      color: #2a66a0;
       font-weight: 500;
     }
 
@@ -491,15 +557,13 @@ import { RepositoryConfig } from '../../models/repository-config.model';
     }
 
     .main-tag {
-      background: linear-gradient(135deg, #10b981, #059669);
+      background: #5cb85c;
       color: white;
-      box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
     }
 
     .latest-tag {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
+      background: #f0ad4e;
       color: white;
-      box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
     }
 
     .loading-indicator {
@@ -514,8 +578,8 @@ import { RepositoryConfig } from '../../models/repository-config.model';
     .loading-indicator .spinner {
       width: 16px;
       height: 16px;
-      border: 2px solid #e5e7eb;
-      border-top: 2px solid #6366f1;
+      border: 2px solid #e0e0e0;
+      border-top: 2px solid #4a90e2;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
@@ -527,21 +591,21 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       
       .setup-card {
         padding: 24px 16px;
-        border-radius: 16px;
+        border-radius: 12px;
         max-width: calc(100vw - 24px);
       }
       
       .setup-header h2 {
-        font-size: 24px;
+        font-size: 22px;
       }
       
       .form-control {
-        padding: 12px 14px;
-        font-size: 16px;
+        padding: 10px 12px;
+        font-size: 15px;
       }
       
       .btn {
-        padding: 12px 20px;
+        padding: 10px 20px;
         min-width: 140px;
       }
     }
@@ -553,21 +617,21 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       
       .setup-card {
         padding: 32px 24px;
-        border-radius: 20px;
+        border-radius: 12px;
         max-width: calc(100vw - 32px);
       }
       
       .setup-header h2 {
-        font-size: 28px;
+        font-size: 24px;
       }
       
       .form-control {
-        padding: 14px 16px;
-        font-size: 16px;
+        padding: 11px 14px;
+        font-size: 15px;
       }
       
       .btn {
-        padding: 14px 24px;
+        padding: 11px 24px;
         min-width: 160px;
       }
     }
@@ -584,6 +648,8 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
   };
 
   isSubmitting = false;
+  validationError = '';
+  isValidating = false;
 
   constructor(
     private repositoryConfigService: RepositoryConfigService,
@@ -602,22 +668,45 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
     console.log('onRepoUrlChange called with:', repoUrl);
   }
 
-
+  clearForm() {
+    this.config = {
+      repoUrl: '',
+      branch: 'main',
+      displayName: '',
+      isConfigured: false
+    };
+    this.validationError = '';
+  }
 
   onSubmit() {
-    if (this.isSubmitting) return;
+    if (this.isSubmitting || this.isValidating) return;
     
-    this.isSubmitting = true;
+    this.isValidating = true;
+    this.validationError = '';
     
-    setTimeout(() => {
-      const configToSave: RepositoryConfig = {
-        ...this.config,
-        isConfigured: true
-      };
-      
-      this.repositoryConfigService.saveConfig(configToSave);
-      this.configurationComplete.emit(configToSave);
-      this.isSubmitting = false;
-    }, 1000);
+    this.apiService.listRemoteBranches(this.config.repoUrl).subscribe({
+      next: (branches) => {
+        const branchExists = branches.some((b: any) => b.name === this.config.branch);
+        
+        if (!branchExists) {
+          this.validationError = `Branch "${this.config.branch}" not found in repository. Please select a valid branch.`;
+          this.isValidating = false;
+          return;
+        }
+        
+        const configToSave: RepositoryConfig = {
+          ...this.config,
+          isConfigured: true
+        };
+        
+        this.repositoryConfigService.saveConfig(configToSave);
+        this.configurationComplete.emit(configToSave);
+        this.isValidating = false;
+      },
+      error: (error) => {
+        this.validationError = `Unable to access repository: ${error.error?.error || error.message || 'Please check the URL and try again'}`;
+        this.isValidating = false;
+      }
+    });
   }
 }

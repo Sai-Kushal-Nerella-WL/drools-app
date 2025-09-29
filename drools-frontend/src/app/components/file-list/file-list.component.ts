@@ -41,7 +41,7 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       padding: 20px;
       border-right: 1px solid #ddd;
       height: 100vh;
-      background-color: #f8f9fa;
+      background-color: #ffffff;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -55,14 +55,14 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
     .branch-indicator {
       margin-bottom: 20px;
       padding: 8px 12px;
-      background-color: #e3f2fd;
-      border: 1px solid #2196f3;
+      background-color: #fff7d1;
+      border: 1px solid #f3c623;
       border-radius: 4px;
       font-size: 14px;
     }
     
     .branch-label {
-      color: #1976d2;
+      color: #6b5a00;
     }
     
     .file-list {
@@ -86,8 +86,8 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
     }
     
     .file-item.selected {
-      background-color: #007bff;
-      color: white;
+      background-color: #ffe166;
+      color: #1b1b1b;
     }
     
     .no-files {
@@ -104,7 +104,7 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       padding: 10px;
       border-top: 1px solid #ddd;
       margin-top: 10px;
-      background-color: #f8f9fa;
+      background-color: #ffffff;
     }
     
     .btn {
@@ -116,8 +116,8 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
     }
     
     .btn-primary {
-      background-color: #007bff;
-      color: white;
+      background-color: #f3c623;
+      color: #1b1b1b;
     }
     
     .btn-secondary {
@@ -153,6 +153,18 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    /* Smooth scroll and hide scrollbars for the file list area */
+    .file-list {
+      scroll-behavior: smooth;
+      -ms-overflow-style: none; /* IE/Edge */
+      scrollbar-width: none; /* Firefox */
+    }
+    .file-list::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      background: transparent;
+    }
+
     
   `]
 })

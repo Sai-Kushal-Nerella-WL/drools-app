@@ -39,7 +39,7 @@ import { RepositoryConfig } from './models/repository-config.model';
       display: block;
       width: 100%;
       height: 100vh;
-      overflow: auto;
+      overflow: hidden;
     }
 
     .app-container {
@@ -48,8 +48,11 @@ import { RepositoryConfig } from './models/repository-config.model';
       width: 100vw;
       max-width: 100vw;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      overflow: auto;
+      overflow: hidden;
       box-sizing: border-box;
+      background: #f3c623;
+      gap: 12px;
+      padding: 12px;
     }
     
     .left-panel {
@@ -59,14 +62,55 @@ import { RepositoryConfig } from './models/repository-config.model';
       resize: horizontal;
       overflow: auto;
       flex-shrink: 0;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      border: 1px solid #e6dfcf;
     }
+    .left-panel {
+      max-height: calc(100vh - 24px);
+      overflow: hidden;
+    }
+
     
     .right-panel {
       flex: 1;
       overflow-y: auto;
       overflow-x: visible;
       min-width: 0;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      border: 1px solid #e6dfcf;
     }
+    /* Smooth scrolling globally within the app container */
+    :host, .app-container, .left-panel, .right-panel {
+      scroll-behavior: smooth;
+    }
+
+    /* Hide scrollbars cross-browser while preserving scroll */
+    .app-container,
+    .left-panel,
+    .right-panel {
+      -ms-overflow-style: none; /* IE/Edge */
+      scrollbar-width: none; /* Firefox */
+    }
+    .app-container::-webkit-scrollbar,
+    .left-panel::-webkit-scrollbar,
+    .right-panel::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      background: transparent;
+    }
+
+    /* Cap right panel height to viewport and let inner content scroll */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 24px);
+      overflow: hidden;
+    }
+
   `]
 })
 export class AppComponent implements OnInit {

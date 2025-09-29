@@ -928,16 +928,16 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
             
             this.apiService.pullFromRepo({
               repoUrl: config.repoUrl,
-              branch: config.branch
+              branch: 'main'
             }).subscribe({
               next: (pullResponse) => {
-                console.log(`Auto-sync to ${config.branch} completed:`, pullResponse);
-                this.showNotification(`Local files synced to ${config.branch} branch`, 'success');
+                console.log('Auto-sync to main completed:', pullResponse);
+                this.showNotification('Local files synced to main branch', 'success');
                 this.loadTable();
               },
               error: (pullError) => {
-                console.error('Error syncing to configured branch:', pullError);
-                this.showNotification(`Push successful but failed to sync to ${config.branch} branch`, 'error');
+                console.error('Error syncing to main:', pullError);
+                this.showNotification('Push successful but failed to sync to main branch', 'error');
               }
             });
           },

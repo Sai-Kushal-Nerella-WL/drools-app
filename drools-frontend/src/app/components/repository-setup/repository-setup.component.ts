@@ -45,7 +45,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
               [(ngModel)]="config.branch"
               readonly
               class="form-control"
-              value="master">
+              value="main">
           </div>
 
           <div class="form-group">
@@ -562,7 +562,7 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
 
   config: RepositoryConfig = {
     repoUrl: '',
-    branch: 'master',
+    branch: 'main',
     displayName: '',
     isConfigured: false
   };

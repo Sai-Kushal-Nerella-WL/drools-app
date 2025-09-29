@@ -838,8 +838,14 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
       console.log('Dynamic scrolling styles applied successfully');
       console.log('Table width:', table.offsetWidth, 'Wrapper width:', wrapper.offsetWidth);
       console.log('Wrapper overflow-x:', window.getComputedStyle(wrapper).overflowX);
+      try {
+        this.bindWheelToHorizontal();
+      } catch {}
     } else {
       console.log('Could not find table or wrapper elements for dynamic scrolling');
+      try {
+        this.bindWheelToHorizontal();
+      } catch {}
     }
   }
 

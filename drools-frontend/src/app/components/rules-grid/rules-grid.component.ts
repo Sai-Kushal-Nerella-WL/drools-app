@@ -91,7 +91,7 @@ interface NotificationItem {
                   [readonly]="isReadOnly || isLoading">
               </td>
               <td>
-                <button (click)="deleteRow(getOriginalRowIndex(row))" class="btn btn-danger btn-sm" [disabled]="isReadOnly || isLoading">Delete</button>
+                <button (click)="confirmDeleteRow(getOriginalRowIndex(row))" class="btn btn-danger btn-sm" [disabled]="isReadOnly || isLoading">Delete</button>
               </td>
             </tr>
           </tbody>
@@ -198,6 +198,24 @@ interface NotificationItem {
       </div>
     </div>
 
+    <!-- Delete Row Confirmation Modal -->
+    <div *ngIf="showDeleteRowModalFlag" class="modal-overlay" (click)="hideDeleteRowModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h4>Confirm Delete Row</h4>
+          <button class="modal-close" (click)="hideDeleteRowModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete this rule row?</p>
+          <p class="warning-text">This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button (click)="hideDeleteRowModal()" class="btn btn-secondary">Cancel</button>
+          <button (click)="deleteRow()" class="btn btn-danger">Delete Row</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Notification Stack -->
     <div class="notification-stack">
       <div *ngFor="let notif of notifications; trackBy: trackNotification" 
@@ -214,90 +232,168 @@ interface NotificationItem {
   `,
   styles: [`
     .rules-grid-container {
-      padding: 20px;
+      padding: 24px;
       height: 100vh;
       overflow: visible;
       display: flex;
       flex-direction: column;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     }
     
     .grid-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #ddd;
+      margin-bottom: 24px;
+      padding: 20px 24px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(148, 163, 184, 0.1);
       flex-wrap: wrap;
-      gap: 15px;
+      gap: 16px;
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .grid-header:hover {
+      box-shadow: 0 8px 24px rgba(148, 163, 184, 0.15);
+      transform: translateY(-1px);
     }
     
     .search-controls {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
     
     .search-input {
-      width: 200px;
-      min-width: 150px;
+      width: 240px;
+      min-width: 180px;
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.9);
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      box-shadow: 0 2px 8px rgba(148, 163, 184, 0.08);
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      background: white;
     }
     
     .grid-header h3 {
       margin: 0;
-      color: #333;
+      color: #1e293b;
+      font-weight: 700;
+      font-size: 24px;
+      letter-spacing: -0.02em;
     }
     
     .actions {
       display: flex;
-      gap: 10px;
+      gap: 12px;
+      flex-wrap: wrap;
     }
     
     .btn {
-      padding: 8px 16px;
+      padding: 12px 20px;
       border: none;
-      border-radius: 4px;
+      border-radius: 12px;
       cursor: pointer;
       font-size: 14px;
+      font-weight: 600;
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .btn:hover:not(:disabled)::before {
+      left: 100%;
     }
     
     .btn-success {
-      background-color: #28a745;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       color: white;
+    }
+    
+    .btn-success:hover:not(:disabled) {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
     }
     
     .btn-primary {
-      background-color: #007bff;
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
       color: white;
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
     }
     
     .btn-warning {
-      background-color: #ffc107;
-      color: #212529;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: white;
+    }
+    
+    .btn-warning:hover:not(:disabled) {
+      background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
     }
     
     .btn-secondary {
-      background-color: #6c757d;
+      background: linear-gradient(135deg, #64748b 0%, #475569 100%);
       color: white;
+    }
+    
+    .btn-secondary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #475569 0%, #334155 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(100, 116, 139, 0.3);
     }
     
     .btn-danger {
-      background-color: #dc3545;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
       color: white;
     }
     
+    .btn-danger:hover:not(:disabled) {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3);
+    }
+    
     .btn-sm {
-      padding: 4px 8px;
-      font-size: 12px;
+      padding: 12px 16px;
+      font-size: 14px;
+      height: 48px;
+      line-height: 1.5;
     }
     
     .btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
-    }
-    
-    .btn:hover:not(:disabled) {
-      opacity: 0.9;
+      transform: none !important;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
     }
     
     .grid-wrapper {
@@ -306,12 +402,20 @@ interface NotificationItem {
       flex: 1;
       min-height: 0;
       position: relative;
-      border: 1px solid #ddd;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.9);
       width: 100% !important;
       max-width: 100% !important;
       height: 400px !important;
       display: block !important;
       scroll-behavior: smooth;
+      box-shadow: 0 4px 16px rgba(148, 163, 184, 0.1);
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .grid-wrapper:hover {
+      box-shadow: 0 8px 24px rgba(148, 163, 184, 0.15);
     }
     
     ::ng-deep .grid-wrapper {
@@ -368,18 +472,20 @@ interface NotificationItem {
     ::ng-deep .rules-table {
       border-collapse: collapse;
       background: white;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 16px rgba(148, 163, 184, 0.1);
       table-layout: fixed !important;
       overflow: visible !important;
       width: max-content !important;
       min-width: 100% !important;
+      border-radius: 12px;
+      overflow: hidden;
     }
     
     ::ng-deep .rules-table th,
     ::ng-deep .rules-table td {
-      padding: 12px;
+      padding: 16px;
       text-align: left;
-      border: 1px solid #ddd;
+      border: 1px solid #e2e8f0;
       width: 200px !important;
       min-width: 200px !important;
       max-width: 200px !important;
@@ -387,6 +493,11 @@ interface NotificationItem {
       word-wrap: break-word !important;
       overflow-wrap: break-word !important;
       vertical-align: top !important;
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    ::ng-deep .rules-table td:hover {
+      background-color: rgba(59, 130, 246, 0.05);
     }
     
     .rules-table th:last-child,
@@ -399,70 +510,96 @@ interface NotificationItem {
       right: 0 !important;
       background-color: white !important;
       z-index: 10 !important;
+      box-shadow: -2px 0 8px rgba(148, 163, 184, 0.1);
     }
 
     .rules-table th:last-child {
-      padding: 8px 12px !important;
-      background-color: #f8f9fa !important;
-      font-weight: 600;
+      padding: 12px 16px !important;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+      font-weight: 700;
       text-align: center;
+      color: #1e293b;
     }
     
     .rules-table th {
-      background-color: #f8f9fa;
-      font-weight: 600;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      font-weight: 700;
       position: sticky;
       top: 0;
+      color: #1e293b;
+      border-bottom: 2px solid #3b82f6;
     }
     
     .template-row {
-      background-color: #e9ecef;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
     }
     
     .template-header {
-      font-size: 11px;
-      font-weight: 400;
+      font-size: 12px;
+      font-weight: 500;
       font-style: italic;
-      color: #6c757d;
-      padding: 6px 12px;
-      background-color: #e9ecef !important;
+      color: #475569;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
       white-space: normal !important;
       word-wrap: break-word !important;
       overflow-wrap: break-word !important;
-      line-height: 1.3 !important;
+      line-height: 1.4 !important;
       max-height: 80px !important;
       overflow-y: auto !important;
       width: 200px !important;
       min-width: 200px !important;
       max-width: 200px !important;
+      border: 2px solid #cbd5e1;
     }
     
     .form-control {
       width: 100%;
       min-width: 120px;
       max-width: 100%;
-      padding: 6px 10px;
-      border: 1px solid #ced4da;
-      border-radius: 4px;
+      padding: 10px 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
       font-size: 14px;
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
       box-sizing: border-box;
+      background: rgba(255, 255, 255, 0.9);
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
     
     .form-control:focus {
       outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      background: white;
+      transform: scale(1.02);
+    }
+    
+    .form-control:hover {
+      border-color: #94a3b8;
+      background: white;
     }
     
     .no-data,
     .no-file-selected {
       text-align: center;
-      padding: 40px;
-      color: #666;
+      padding: 48px 32px;
+      color: #64748b;
       font-style: italic;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 16px;
+      border: 2px dashed #cbd5e1;
+      margin: 20px;
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    .no-data:hover,
+    .no-file-selected:hover {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: #94a3b8;
     }
     
     .spinner {
@@ -486,38 +623,61 @@ interface NotificationItem {
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(8px);
       display: flex;
       justify-content: center;
       align-items: center;
       z-index: 1000;
+      animation: fadeIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     
     .modal-content {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      max-width: 400px;
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      padding: 32px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.3);
+      max-width: 480px;
       width: 90%;
+      border: 2px solid #e2e8f0;
+      animation: slideUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    
+    @keyframes slideUp {
+      from { 
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+      }
+      to { 
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
     
     .modal-content h4 {
       margin-top: 0;
-      margin-bottom: 15px;
-      color: #333;
+      margin-bottom: 20px;
+      color: #1e293b;
+      font-weight: 700;
+      font-size: 20px;
     }
     
     .modal-content p {
-      margin-bottom: 10px;
-      color: #666;
+      margin-bottom: 12px;
+      color: #475569;
+      line-height: 1.6;
     }
     
     .modal-actions {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       justify-content: flex-end;
-      margin-top: 20px;
+      margin-top: 24px;
     }
     
     .notification-stack {
@@ -551,7 +711,7 @@ interface NotificationItem {
       border-left: 4px solid !important;
       animation: slideIn 0.3s ease-out !important;
       position: relative !important;
-      background: white !important;
+      background: transparent !important;
       flex-shrink: 0 !important;
       display: block !important;
       word-wrap: break-word !important;
@@ -620,31 +780,37 @@ interface NotificationItem {
     }
 
     .btn-delete-column {
-      background: #dc3545;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
       color: white;
       border: none;
       border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      font-size: 14px;
+      width: 20px;
+      height: 20px;
+      font-size: 12px;
       line-height: 1;
       cursor: pointer;
-      margin-left: 8px;
+      margin-left: auto;
+      margin-right: 4px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+      z-index: 10;
     }
 
     .btn-delete-column:hover {
-      background-color: #c82333;
-      transform: scale(1.1);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      transform: translateY(-50%) scale(1.1);
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
     }
 
     .btn-delete-column:active {
-      transform: scale(0.95);
+      transform: translateY(-50%) scale(0.9);
     }
 
     .add-column-modal {
@@ -656,71 +822,92 @@ interface NotificationItem {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 20px;
-      border-bottom: 1px solid #dee2e6;
+      padding: 24px;
+      border-bottom: 2px solid #e2e8f0;
+      margin: -32px -32px 24px -32px;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 20px 20px 0 0;
     }
 
     .modal-header h4 {
       margin: 0;
-      color: #333;
+      color: #1e293b;
+      font-weight: 700;
+      font-size: 20px;
     }
 
     .modal-close {
-      background: none;
-      border: none;
-      font-size: 24px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 2px solid transparent;
+      border-radius: 50%;
+      font-size: 20px;
       cursor: pointer;
-      color: #999;
+      color: #ef4444;
       padding: 0;
-      width: 30px;
-      height: 30px;
+      width: 36px;
+      height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .modal-close:hover {
-      color: #333;
+      background: #ef4444;
+      color: white;
+      transform: scale(1.1);
     }
 
     .modal-body {
-      padding: 20px;
+      padding: 0;
     }
 
     .modal-footer {
-      padding: 20px;
-      border-top: 1px solid #dee2e6;
+      padding: 24px 0 0 0;
+      border-top: 2px solid #e2e8f0;
       display: flex;
       justify-content: flex-end;
-      gap: 10px;
+      gap: 12px;
+      margin-top: 24px;
     }
 
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
 
     .form-group label {
       display: block;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: #333;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #1e293b;
+      font-size: 14px;
     }
 
     .radio-group {
       display: flex;
-      gap: 20px;
+      gap: 24px;
     }
 
     .radio-label {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       cursor: pointer;
-      font-weight: normal;
+      font-weight: 500;
+      color: #475569;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .radio-label:hover {
+      background: rgba(59, 130, 246, 0.05);
+      color: #3b82f6;
     }
 
     .radio-label input[type="radio"] {
       margin: 0;
+      accent-color: #3b82f6;
     }
 
     .warning-text {
@@ -781,23 +968,29 @@ interface NotificationItem {
       cursor: pointer;
       user-select: none;
       position: relative;
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      padding-right: 32px;
     }
     
     .sortable-header:hover {
-      background-color: #e9ecef;
+      background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+      transform: translateY(-1px);
     }
     
     .header-content {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
       width: 100%;
+      gap: 8px;
     }
     
     .sort-indicator {
-      font-size: 12px;
-      margin-left: 5px;
-      color: #007bff;
+      font-size: 14px;
+      margin-left: auto;
+      color: #3b82f6;
+      font-weight: 700;
+      flex-shrink: 0;
     }
 
   `]
@@ -827,6 +1020,10 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
 
   showDeleteColumnModalFlag = false;
   columnToDeleteIndex = -1;
+  
+  showDeleteRowModalFlag = false;
+  rowToDeleteIndex = -1;
+  
   showBranchSwitchModalFlag = false;
   newBranchName = '';
 
@@ -966,11 +1163,23 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
     this.markChanged();
   }
 
-  deleteRow(index: number) {
-    if (!this.tableView) return;
-    
-    this.tableView.rows.splice(index, 1);
-    this.markChanged();
+  confirmDeleteRow(index: number): void {
+    this.rowToDeleteIndex = index;
+    this.showDeleteRowModalFlag = true;
+  }
+
+  hideDeleteRowModal(): void {
+    this.showDeleteRowModalFlag = false;
+    this.rowToDeleteIndex = -1;
+  }
+
+  deleteRow(): void {
+    if (this.tableView && this.rowToDeleteIndex >= 0 && this.rowToDeleteIndex < this.tableView.rows.length) {
+      this.tableView.rows.splice(this.rowToDeleteIndex, 1);
+      this.markChanged();
+      this.showNotification('Row deleted successfully', 'success');
+    }
+    this.hideDeleteRowModal();
   }
 
   markChanged() {
@@ -1005,7 +1214,7 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
     if (!this.fileName) return;
     
     const config = this.repositoryConfigService.getCurrentConfig();
-    if (!config) return;
+    if (!config || !config.repoUrl) return;
     
     const branchName = this.generateBranchName(config.repoUrl, this.fileName);
     this.pendingBranch = branchName;
@@ -1026,8 +1235,8 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
     if (!this.fileName) return;
     
     const config = this.repositoryConfigService.getCurrentConfig();
-    if (!config) {
-      this.showNotification('Repository not configured', 'error');
+    if (!config || !config.repoUrl) {
+      this.showNotification('Repository not configured or not a Git repository', 'error');
       return;
     }
     
@@ -1159,7 +1368,13 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
 
   getRepositoryDisplayName(): string {
     const config = this.repositoryConfigService.getCurrentConfig();
-    return config?.displayName || config?.repoUrl || 'Unknown Repository';
+    if (config?.displayName) {
+      return config.displayName;
+    }
+    if (config?.repositoryType === 'LOCAL_FILESYSTEM') {
+      return config?.localPath?.split('/').pop() || 'Local Repository';
+    }
+    return config?.repoUrl || 'Unknown Repository';
   }
 
   showAddColumnModal(): void {
@@ -1287,7 +1502,7 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
       this.showNotification(`Switched to branch: ${this.newBranchName}`, 'success');
       this.hideBranchSwitchModal();
       
-      window.location.reload();
+      this.loadTable();
     }
   }
 

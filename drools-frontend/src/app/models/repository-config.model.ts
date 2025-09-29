@@ -1,12 +1,21 @@
+export enum RepositoryType {
+  GIT = 'GIT',
+  LOCAL_FILESYSTEM = 'LOCAL_FILESYSTEM'
+}
+
 export interface RepositoryConfig {
-  repoUrl: string;
-  branch: string;
+  repositoryType: RepositoryType;
+  repoUrl?: string;
+  localPath?: string;
+  branch?: string;
   displayName?: string;
   isConfigured: boolean;
 }
 
 export interface RepositoryConfigRequest {
-  repoUrl: string;
-  branch: string;
+  repositoryType: RepositoryType;
+  repoUrl?: string;
+  localPath?: string;
+  branch?: string;
   displayName?: string;
 }

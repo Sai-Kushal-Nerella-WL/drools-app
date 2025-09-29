@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { RepositoryConfig } from '../models/repository-config.model';
+import { RepositoryConfig, RepositoryType } from '../models/repository-config.model';
 
 @Injectable({
   providedIn: 'root'
@@ -55,12 +55,28 @@ export class RepositoryConfigService {
 
   getRepositoryDisplayName(): string {
     const config = this.getCurrentConfig();
-    return config?.displayName || config?.repoUrl?.split('/').pop() || 'Repository';
+    if (config?.displayName) {
+      return config.displayName;
+    }
+    
+    if (config?.repositoryType === RepositoryType.LOCAL_FILESYSTEM) {
+      return config?.localPath?.split('/').pop() || 'Local Repository';
+    }
+    
+    return config?.repoUrl?.split('/').pop() || 'Repository';
   }
 
   isConfigured(): boolean {
     const config = this.getCurrentConfig();
-    return config?.isConfigured === true && !!config.repoUrl && !!config.branch;
+    if (!config?.isConfigured) {
+      return false;
+    }
+    
+    if (config.repositoryType === RepositoryType.LOCAL_FILESYSTEM) {
+      return !!config.localPath;
+    }
+    
+    return !!config.repoUrl && !!config.branch;
   }
 
   private loadConfig(): void {

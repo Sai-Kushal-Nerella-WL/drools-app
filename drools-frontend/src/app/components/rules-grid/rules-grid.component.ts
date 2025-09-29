@@ -174,6 +174,9 @@ interface NotificationItem {
       overflow: visible;
       display: flex;
       flex-direction: column;
+      background: #ffffff;
+      border-radius: 12px;
+      box-sizing: border-box;
     }
     
     .grid-header {
@@ -209,8 +212,8 @@ interface NotificationItem {
     }
     
     .btn-primary {
-      background-color: #007bff;
-      color: white;
+      background-color: #f3c623;
+      color: #1b1b1b;
     }
     
     .btn-warning {
@@ -395,8 +398,8 @@ interface NotificationItem {
     
     .form-control:focus {
       outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+      border-color: #f3c623;
+      box-shadow: 0 0 0 2px rgba(243,198,35,0.25);
     }
     
     .no-data,

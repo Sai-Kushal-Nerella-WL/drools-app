@@ -50,6 +50,9 @@ import { RepositoryConfig } from './models/repository-config.model';
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       overflow: auto;
       box-sizing: border-box;
+      background: #f3c623;
+      gap: 12px;
+      padding: 12px;
     }
     
     .left-panel {
@@ -59,6 +62,10 @@ import { RepositoryConfig } from './models/repository-config.model';
       resize: horizontal;
       overflow: auto;
       flex-shrink: 0;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      border: 1px solid #e6dfcf;
     }
     
     .right-panel {
@@ -66,6 +73,10 @@ import { RepositoryConfig } from './models/repository-config.model';
       overflow-y: auto;
       overflow-x: visible;
       min-width: 0;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      border: 1px solid #e6dfcf;
     }
   `]
 })

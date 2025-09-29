@@ -723,6 +723,30 @@ interface NotificationItem {
       color: white;
     }
 
+    /* Visible, themed horizontal scrollbar for the grid */
+    .grid-wrapper {
+      overflow-x: auto !important;
+      overflow-y: auto !important;
+      scrollbar-width: thin; /* Firefox */
+      scrollbar-color: #f3c623 #fff7d1; /* thumb track */
+    }
+    .grid-wrapper::-webkit-scrollbar {
+      height: 10px;
+      background: transparent;
+    }
+    .grid-wrapper::-webkit-scrollbar-track {
+      background: #fff7d1;
+      border-radius: 8px;
+    }
+    .grid-wrapper::-webkit-scrollbar-thumb {
+      background: #f3c623;
+      border-radius: 8px;
+      border: 2px solid #fff7d1;
+    }
+    .grid-wrapper::-webkit-scrollbar-thumb:hover {
+      background: #e0b71f;
+    }
+
   `]
 })
 export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
@@ -752,7 +776,6 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
     private router: Router
   ) {}
   
-  private wheelHandler?: (e: WheelEvent) => void;
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['fileName'] && this.fileName) {
@@ -766,7 +789,6 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     setTimeout(() => {
       this.applyDynamicScrollingStyles();
-      setTimeout(() => this.bindWheelToHorizontal(), 150);
     }, 100);
   }
 
@@ -838,14 +860,8 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
       console.log('Dynamic scrolling styles applied successfully');
       console.log('Table width:', table.offsetWidth, 'Wrapper width:', wrapper.offsetWidth);
       console.log('Wrapper overflow-x:', window.getComputedStyle(wrapper).overflowX);
-      try {
-        this.bindWheelToHorizontal();
-      } catch {}
     } else {
       console.log('Could not find table or wrapper elements for dynamic scrolling');
-      try {
-        this.bindWheelToHorizontal();
-      } catch {}
     }
   }
 
@@ -943,37 +959,8 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.pendingBranch = '';
   }
 
-  ngOnDestroy() {
-    const wrapper = document.querySelector('app-rules-grid .grid-wrapper') as HTMLElement
-                 || document.querySelector('.grid-wrapper') as HTMLElement;
-    if (wrapper && this.wheelHandler) {
-      wrapper.removeEventListener('wheel', this.wheelHandler as any);
-    }
-  }
+  ngOnDestroy() {}
 
-  private bindWheelToHorizontal() {
-    const wrapper = document.querySelector('app-rules-grid .grid-wrapper') as HTMLElement
-                 || document.querySelector('.grid-wrapper') as HTMLElement;
-    if (!wrapper) return;
-
-    if (this.wheelHandler) {
-      try {
-        wrapper.removeEventListener('wheel', this.wheelHandler as any);
-      } catch {}
-    }
-
-    this.wheelHandler = (e: WheelEvent) => {
-      const horizDelta = e.deltaX || (e.shiftKey ? e.deltaY : 0);
-      const effectiveDeltaX = horizDelta !== 0 ? horizDelta : (e.deltaY !== 0 ? e.deltaY : 0);
-
-      if (effectiveDeltaX !== 0) {
-        e.preventDefault();
-        wrapper.scrollLeft += effectiveDeltaX;
-      }
-    };
-
-    wrapper.addEventListener('wheel', this.wheelHandler as any, { passive: false });
-  }
 
 
   confirmPush() {

@@ -814,12 +814,12 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
       const cells = table.querySelectorAll('th, td');
       cells.forEach((cell, index) => {
         const htmlCell = cell as HTMLElement;
-        htmlCell.style.setProperty('width', '200px', 'important');
-        htmlCell.style.setProperty('min-width', '200px', 'important');
-        htmlCell.style.setProperty('max-width', '200px', 'important');
-        htmlCell.style.setProperty('white-space', 'normal', 'important');
-        htmlCell.style.setProperty('word-wrap', 'break-word', 'important');
-        htmlCell.style.setProperty('overflow-wrap', 'break-word', 'important');
+        htmlCell.style.setProperty('width', '260px', 'important');
+        htmlCell.style.setProperty('min-width', '260px', 'important');
+        htmlCell.style.setProperty('max-width', '260px', 'important');
+        htmlCell.style.setProperty('white-space', 'nowrap', 'important');
+        htmlCell.style.setProperty('word-wrap', 'normal', 'important');
+        htmlCell.style.setProperty('overflow-wrap', 'normal', 'important');
         htmlCell.style.setProperty('padding', '12px', 'important');
         htmlCell.style.setProperty('border', '1px solid #ddd', 'important');
         htmlCell.style.setProperty('vertical-align', 'top', 'important');

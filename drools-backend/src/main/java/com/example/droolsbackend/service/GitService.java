@@ -36,7 +36,13 @@ public class GitService {
             Process checkoutProcess = checkoutPb.start();
             checkoutProcess.waitFor();
             
-            ProcessBuilder pb = new ProcessBuilder("git", "pull", "origin", branch, "--strategy=ours");
+            ProcessBuilder fetchPb = new ProcessBuilder("git", "fetch", "origin", branch);
+            fetchPb.directory(repoDir);
+            fetchPb.redirectErrorStream(true);
+            Process fetchProcess = fetchPb.start();
+            fetchProcess.waitFor();
+            
+            ProcessBuilder pb = new ProcessBuilder("git", "reset", "--hard", "origin/" + branch);
             pb.directory(repoDir);
             pb.redirectErrorStream(true);
             Process process = pb.start();

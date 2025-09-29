@@ -170,33 +170,22 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+      background: #fafafa;
       padding: 24px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       overflow-x: hidden;
     }
 
     .setup-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      border-radius: 24px;
-      box-shadow: 0 32px 64px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
       padding: 48px;
-      max-width: min(640px, calc(100vw - 48px));
+      max-width: min(600px, calc(100vw - 48px));
       width: 100%;
       position: relative;
-      overflow: hidden;
       box-sizing: border-box;
-    }
-
-    .setup-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+      border: 1px solid #e5e7eb;
     }
 
     .setup-header {
@@ -205,53 +194,51 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .setup-header h2 {
-      color: #1f2937;
-      margin-bottom: 12px;
-      font-size: 32px;
-      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+      font-size: 28px;
+      font-weight: 600;
       letter-spacing: -0.025em;
-      background: linear-gradient(135deg, #1f2937, #4b5563);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      line-height: 1.25;
     }
 
     .setup-header p {
       color: #6b7280;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 400;
-      line-height: 1.6;
+      line-height: 1.5;
+      margin: 0;
     }
 
     .setup-form {
-      margin-bottom: 40px;
+      margin-bottom: 32px;
     }
 
     .form-group {
-      margin-bottom: 28px;
+      margin-bottom: 24px;
       position: relative;
     }
 
     .form-group label {
       display: block;
-      margin-bottom: 12px;
-      font-weight: 600;
+      margin-bottom: 8px;
+      font-weight: 500;
       color: #374151;
-      font-size: 15px;
-      letter-spacing: -0.01em;
+      font-size: 14px;
+      letter-spacing: 0;
     }
 
     .form-control {
       width: 100%;
-      padding: 16px 20px;
-      border: 2px solid #e5e7eb;
-      border-radius: 16px;
+      padding: 12px 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
       font-size: 16px;
       font-weight: 400;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.2s ease;
       box-sizing: border-box;
       background: #ffffff;
-      color: #1f2937;
+      color: #111827;
     }
 
     .form-control::placeholder {
@@ -259,23 +246,26 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       font-weight: 400;
     }
 
+    .form-control:hover {
+      border-color: #9ca3af;
+    }
+
     .form-control:focus {
       outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-      transform: translateY(-1px);
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
     .form-control.error {
       border-color: #ef4444;
-      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
     }
 
     .error-message {
       color: #ef4444;
       font-size: 14px;
       font-weight: 500;
-      margin-top: 8px;
+      margin-top: 6px;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -288,67 +278,51 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
 
     .form-actions {
       text-align: center;
-      margin-top: 40px;
+      margin-top: 32px;
     }
 
     .btn {
-      padding: 16px 32px;
+      padding: 12px 24px;
       border: none;
-      border-radius: 16px;
+      border-radius: 6px;
       font-size: 16px;
-      font-weight: 600;
+      font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.2s ease;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      min-width: 200px;
+      gap: 8px;
+      min-width: 160px;
       position: relative;
-      overflow: hidden;
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      background: #3b82f6;
       color: white;
-      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
-    }
-
-    .btn-primary::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left 0.5s;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     }
 
     .btn-primary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 32px rgba(99, 102, 241, 0.4);
-    }
-
-    .btn-primary:hover:not(:disabled)::before {
-      left: 100%;
+      background: #2563eb;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     .btn-primary:active:not(:disabled) {
-      transform: translateY(0);
+      background: #1d4ed8;
+      transform: translateY(1px);
     }
 
     .btn:disabled {
-      opacity: 0.7;
+      opacity: 0.5;
       cursor: not-allowed;
       transform: none;
-      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
     }
 
     .spinner {
       display: inline-block;
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       border: 2px solid rgba(255, 255, 255, 0.3);
       border-radius: 50%;
       border-top-color: #ffffff;
@@ -360,33 +334,25 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .setup-help {
-      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-      border: 1px solid #e2e8f0;
-      border-radius: 20px;
-      padding: 28px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 24px;
       position: relative;
     }
 
-    .setup-help::before {
-      content: '💡';
-      position: absolute;
-      top: 20px;
-      right: 24px;
-      font-size: 20px;
-    }
-
     .setup-help h4 {
-      color: #1e293b;
-      margin-bottom: 20px;
-      font-size: 18px;
-      font-weight: 700;
+      color: #111827;
+      margin-bottom: 16px;
+      font-size: 16px;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
     .setup-help h4::before {
-      content: '📋';
+      content: '💡';
       font-size: 16px;
     }
 
@@ -397,31 +363,31 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .setup-help li {
-      margin-bottom: 12px;
-      color: #475569;
-      line-height: 1.6;
-      padding-left: 24px;
+      color: #6b7280;
+      line-height: 1.5;
+      padding-left: 20px;
       position: relative;
       font-weight: 400;
+      margin-bottom: 8px;
+      font-size: 14px;
     }
 
     .setup-help li::before {
-      content: '→';
+      content: '•';
       position: absolute;
       left: 0;
-      color: #6366f1;
+      color: #3b82f6;
       font-weight: 600;
     }
 
     .setup-help code {
-      background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
-      padding: 4px 8px;
-      border-radius: 8px;
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 4px;
       font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
       font-size: 13px;
       font-weight: 500;
-      color: #1e293b;
-      border: 1px solid #cbd5e1;
+      color: #374151;
     }
 
     .branch-selection {
@@ -435,36 +401,36 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
 
     .dropdown-trigger {
       width: 100%;
-      padding: 16px 20px;
-      border: 2px solid #e5e7eb;
-      border-radius: 16px;
+      padding: 12px 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
       font-size: 16px;
       font-weight: 400;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.2s ease;
       box-sizing: border-box;
       background: #ffffff;
-      color: #1f2937;
+      color: #111827;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      min-height: 56px;
+      min-height: 44px;
     }
 
     .dropdown-trigger:hover {
-      border-color: #d1d5db;
+      border-color: #9ca3af;
     }
 
     .dropdown-trigger:focus,
     .custom-dropdown.open .dropdown-trigger {
       outline: none;
-      border-color: #6366f1;
-      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
-      transform: translateY(-1px);
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
     .dropdown-trigger.error {
       border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
     }
 
     .selected-branch {
@@ -472,10 +438,12 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       align-items: center;
       gap: 8px;
       flex: 1;
+      font-weight: 400;
     }
 
     .placeholder {
       color: #9ca3af;
+      font-weight: 400;
     }
 
     .dropdown-arrow {
@@ -496,22 +464,17 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       left: 0;
       right: 0;
       background: #ffffff;
-      border: 2px solid #e5e7eb;
+      border: 1px solid #d1d5db;
       border-top: none;
-      border-radius: 0 0 16px 16px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      border-radius: 0 0 6px 6px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       z-index: 1000;
-      max-height: 300px;
-      overflow-y: hidden;
-      overflow-x: hidden;
-    }
-
-    .dropdown-options:hover {
+      max-height: 200px;
       overflow-y: auto;
     }
 
     .dropdown-option {
-      padding: 12px 20px;
+      padding: 12px 16px;
       cursor: pointer;
       transition: background-color 0.15s ease;
       display: flex;
@@ -525,7 +488,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .dropdown-option:hover {
-      background: #f8fafc;
+      background: #f9fafb;
     }
 
     .dropdown-option.selected {
@@ -588,13 +551,12 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
 
     @media (max-width: 480px) {
       .setup-container {
-        padding: 12px;
+        padding: 16px;
       }
       
       .setup-card {
-        padding: 24px 16px;
-        border-radius: 16px;
-        max-width: calc(100vw - 24px);
+        padding: 24px;
+        max-width: calc(100vw - 32px);
       }
       
       .setup-header h2 {
@@ -602,39 +564,29 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       }
       
       .form-control {
-        padding: 12px 14px;
+        padding: 10px 12px;
         font-size: 16px;
       }
       
       .btn {
-        padding: 12px 20px;
-        min-width: 140px;
+        padding: 10px 16px;
+        min-width: 120px;
+        font-size: 14px;
       }
     }
 
     @media (max-width: 768px) {
       .setup-container {
-        padding: 16px;
+        padding: 20px;
       }
       
       .setup-card {
-        padding: 32px 24px;
-        border-radius: 20px;
-        max-width: calc(100vw - 32px);
+        padding: 32px;
+        max-width: calc(100vw - 40px);
       }
       
       .setup-header h2 {
-        font-size: 28px;
-      }
-      
-      .form-control {
-        padding: 14px 16px;
-        font-size: 16px;
-      }
-      
-      .btn {
-        padding: 14px 24px;
-        min-width: 160px;
+        font-size: 26px;
       }
     }
   `]

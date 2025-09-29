@@ -39,60 +39,29 @@ import { RepositoryConfig } from '../../models/repository-config.model';
           <div class="form-group">
             <label for="branch">Branch *</label>
             <div class="branch-selection">
-              <div *ngIf="availableBranches.length > 0 && !branchFetchError">
-                <div class="custom-dropdown" [class.open]="dropdownOpen">
-                  <div class="dropdown-trigger" 
-                       (click)="toggleDropdown()"
-                       [class.error]="!config.branch && branchTouched">
-                    <span class="selected-branch" *ngIf="config.branch">
-                      {{ config.branch }}
-                      <span *ngIf="getSelectedBranch()?.isMain" class="branch-tag main-tag">main</span>
-                      <span *ngIf="getSelectedBranch()?.isLatest" class="branch-tag latest-tag">latest</span>
-                    </span>
-                    <span class="placeholder" *ngIf="!config.branch">Select a branch</span>
-                    <svg class="dropdown-arrow" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
-                  </div>
-                  <div class="dropdown-options" *ngIf="dropdownOpen">
-                    <div class="dropdown-option" 
-                         *ngFor="let branch of availableBranches" 
-                         (click)="selectBranch(branch)"
-                         [class.selected]="config.branch === branch.name">
-                      <span class="branch-name">{{ branch.name }}</span>
-                      <div class="branch-tags">
-                        <span *ngIf="branch.isMain" class="branch-tag main-tag">main</span>
-                        <span *ngIf="branch.isLatest" class="branch-tag latest-tag">latest</span>
-                      </div>
-                    </div>
+              <div class="custom-dropdown" [class.open]="dropdownOpen">
+                <div class="dropdown-trigger" 
+                     (click)="toggleDropdown()"
+                     [class.error]="!config.branch && branchTouched">
+                  <span class="selected-branch" *ngIf="config.branch">
+                    {{ config.branch }}
+                  </span>
+                  <span class="placeholder" *ngIf="!config.branch">Select a branch</span>
+                  <svg class="dropdown-arrow" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="dropdown-options" *ngIf="dropdownOpen">
+                  <div class="dropdown-option" 
+                       *ngFor="let branch of staticBranches" 
+                       (click)="selectBranch(branch)"
+                       [class.selected]="config.branch === branch.name">
+                    <span class="branch-name">{{ branch.name }}</span>
                   </div>
                 </div>
-                <div *ngIf="!config.branch && branchTouched" class="error-message">
-                  Please select a branch
-                </div>
               </div>
-              
-              <div *ngIf="availableBranches.length === 0 || branchFetchError">
-                <input 
-                  type="text" 
-                  id="branch-input"
-                  name="branch"
-                  [(ngModel)]="config.branch"
-                  required
-                  class="form-control"
-                  placeholder="main"
-                  [class.error]="!config.branch && branchTouched">
-                <div *ngIf="!config.branch && branchTouched" class="error-message">
-                  Please enter a branch name
-                </div>
-              </div>
-              
-              <div class="loading-indicator" *ngIf="loadingBranches">
-                <span class="spinner"></span> Loading branches...
-              </div>
-              
-              <div class="error-message" *ngIf="branchFetchError">
-                Could not fetch branches. Please enter manually.
+              <div *ngIf="!config.branch && branchTouched" class="error-message">
+                Please select a branch
               </div>
             </div>
           </div>
@@ -617,9 +586,7 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
   };
 
   isSubmitting = false;
-  availableBranches: any[] = [];
-  loadingBranches = false;
-  branchFetchError = false;
+  staticBranches = [{ name: 'main' }, { name: 'master' }];
   dropdownOpen = false;
   branchTouched = false;
 
@@ -647,42 +614,8 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
   onRepoUrlChange() {
     const repoUrl = this.config.repoUrl;
     console.log('onRepoUrlChange called with:', repoUrl);
-    if (repoUrl && repoUrl.trim()) {
-      this.fetchBranches(repoUrl.trim());
-    } else {
-      this.availableBranches = [];
-      this.branchFetchError = false;
-    }
   }
 
-  fetchBranches(repoUrl: string) {
-    console.log('fetchBranches called with:', repoUrl);
-    this.loadingBranches = true;
-    this.branchFetchError = false;
-    this.availableBranches = [];
-    
-    this.apiService.listRemoteBranches(repoUrl).subscribe({
-      next: (branches) => {
-        console.log('Branches fetched successfully:', branches);
-        this.availableBranches = branches;
-        this.loadingBranches = false;
-        
-        const mainBranch = branches.find(b => b.isMain);
-        if (mainBranch) {
-          this.config.branch = mainBranch.name;
-        } else if (branches.length > 0) {
-          this.config.branch = branches[0].name;
-        }
-      },
-      error: (error) => {
-        console.error('Failed to fetch branches:', error);
-        this.loadingBranches = false;
-        this.branchFetchError = true;
-        this.availableBranches = [];
-        this.config.branch = 'main';
-      }
-    });
-  }
 
   toggleDropdown() {
     this.dropdownOpen = !this.dropdownOpen;
@@ -696,7 +629,7 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
   }
 
   getSelectedBranch() {
-    return this.availableBranches.find(b => b.name === this.config.branch);
+    return this.staticBranches.find(b => b.name === this.config.branch);
   }
 
   onSubmit() {

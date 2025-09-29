@@ -91,7 +91,7 @@ interface NotificationItem {
                   [readonly]="isReadOnly || isLoading">
               </td>
               <td>
-                <button (click)="deleteRow(getOriginalRowIndex(row))" class="btn btn-danger btn-sm" [disabled]="isReadOnly || isLoading">Delete</button>
+                <button (click)="confirmDeleteRow(getOriginalRowIndex(row))" class="btn btn-danger btn-sm" [disabled]="isReadOnly || isLoading">Delete</button>
               </td>
             </tr>
           </tbody>
@@ -194,6 +194,24 @@ interface NotificationItem {
         <div class="modal-footer">
           <button (click)="stayOnCurrentBranch()" class="btn btn-secondary">Stay on Current Branch</button>
           <button (click)="switchToBranch()" class="btn btn-primary">Switch to New Branch</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Row Confirmation Modal -->
+    <div *ngIf="showDeleteRowModalFlag" class="modal-overlay" (click)="hideDeleteRowModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h4>Confirm Delete Row</h4>
+          <button class="modal-close" (click)="hideDeleteRowModal()">×</button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete this rule row?</p>
+          <p class="warning-text">This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button (click)="hideDeleteRowModal()" class="btn btn-secondary">Cancel</button>
+          <button (click)="deleteRow()" class="btn btn-danger">Delete Row</button>
         </div>
       </div>
     </div>
@@ -366,7 +384,9 @@ interface NotificationItem {
     
     .btn-sm {
       padding: 12px 16px;
-      font-size: 12px;
+      font-size: 14px;
+      height: 48px;
+      line-height: 1.5;
     }
     
     .btn:disabled {
@@ -691,7 +711,7 @@ interface NotificationItem {
       border-left: 4px solid !important;
       animation: slideIn 0.3s ease-out !important;
       position: relative !important;
-      background: white !important;
+      background: transparent !important;
       flex-shrink: 0 !important;
       display: block !important;
       word-wrap: break-word !important;
@@ -1000,6 +1020,10 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
 
   showDeleteColumnModalFlag = false;
   columnToDeleteIndex = -1;
+  
+  showDeleteRowModalFlag = false;
+  rowToDeleteIndex = -1;
+  
   showBranchSwitchModalFlag = false;
   newBranchName = '';
 
@@ -1139,11 +1163,23 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
     this.markChanged();
   }
 
-  deleteRow(index: number) {
-    if (!this.tableView) return;
-    
-    this.tableView.rows.splice(index, 1);
-    this.markChanged();
+  confirmDeleteRow(index: number): void {
+    this.rowToDeleteIndex = index;
+    this.showDeleteRowModalFlag = true;
+  }
+
+  hideDeleteRowModal(): void {
+    this.showDeleteRowModalFlag = false;
+    this.rowToDeleteIndex = -1;
+  }
+
+  deleteRow(): void {
+    if (this.tableView && this.rowToDeleteIndex >= 0 && this.rowToDeleteIndex < this.tableView.rows.length) {
+      this.tableView.rows.splice(this.rowToDeleteIndex, 1);
+      this.markChanged();
+      this.showNotification('Row deleted successfully', 'success');
+    }
+    this.hideDeleteRowModal();
   }
 
   markChanged() {
@@ -1466,7 +1502,7 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
       this.showNotification(`Switched to branch: ${this.newBranchName}`, 'success');
       this.hideBranchSwitchModal();
       
-      window.location.reload();
+      this.loadTable();
     }
   }
 

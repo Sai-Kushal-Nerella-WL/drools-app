@@ -657,6 +657,11 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    setTimeout(() => {
+      if (!this.config.branch) {
+        this.config.branch = 'main';
+      }
+    }, 0);
   }
 
   ngOnDestroy() {

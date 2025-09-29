@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges, SimpleChanges, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { DecisionTableView, RuleRow } from '../../models/decision-table.model';
 import { ApiService } from '../../services/api.service';
 import { RepositoryConfigService } from '../../services/repository-config.service';
@@ -700,7 +701,8 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
 
   constructor(
     private apiService: ApiService,
-    private repositoryConfigService: RepositoryConfigService
+    private repositoryConfigService: RepositoryConfigService,
+    private router: Router
   ) {}
 
   ngOnChanges(changes: SimpleChanges) {
@@ -934,6 +936,10 @@ export class RulesGridComponent implements OnChanges, AfterViewInit {
                 console.log('Auto-sync to main completed:', pullResponse);
                 this.showNotification('Local files synced to main branch', 'success');
                 this.loadTable();
+                
+                setTimeout(() => {
+                  this.router.navigate(['/']);
+                }, 1500);
               },
               error: (pullError) => {
                 console.error('Error syncing to main:', pullError);

@@ -255,19 +255,19 @@ interface NotificationItem {
       width: 100% !important;
       max-width: 100% !important;
       height: auto !important;
-      max-height: calc(100vh - 160px) !important;
+      max-height: calc(100vh - 220px) !important;
       display: block !important;
       scroll-behavior: smooth;
     }
     
     @media (max-height: 800px) {
       .grid-wrapper {
-        max-height: calc(100vh - 120px) !important;
+        max-height: calc(100vh - 180px) !important;
       }
     }
     @media (max-height: 600px) {
       .grid-wrapper {
-        max-height: calc(100vh - 100px) !important;
+        max-height: calc(100vh - 160px) !important;
       }
     }
     

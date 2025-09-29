@@ -760,31 +760,37 @@ interface NotificationItem {
     }
 
     .btn-delete-column {
-      background: #dc3545;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
       color: white;
       border: none;
       border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      font-size: 14px;
+      width: 20px;
+      height: 20px;
+      font-size: 12px;
       line-height: 1;
       cursor: pointer;
-      margin-left: 8px;
+      margin-left: auto;
+      margin-right: 4px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+      z-index: 10;
     }
 
     .btn-delete-column:hover {
-      background-color: #c82333;
-      transform: scale(1.1);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      transform: translateY(-50%) scale(1.1);
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
     }
 
     .btn-delete-column:active {
-      transform: scale(0.95);
+      transform: translateY(-50%) scale(0.9);
     }
 
     .add-column-modal {
@@ -943,6 +949,7 @@ interface NotificationItem {
       user-select: none;
       position: relative;
       transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      padding-right: 32px;
     }
     
     .sortable-header:hover {
@@ -953,15 +960,17 @@ interface NotificationItem {
     .header-content {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
       width: 100%;
+      gap: 8px;
     }
     
     .sort-indicator {
       font-size: 14px;
-      margin-left: 8px;
+      margin-left: auto;
       color: #3b82f6;
       font-weight: 700;
+      flex-shrink: 0;
     }
 
   `]

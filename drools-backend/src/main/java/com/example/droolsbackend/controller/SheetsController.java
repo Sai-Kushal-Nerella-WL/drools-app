@@ -2,11 +2,15 @@ package com.example.droolsbackend.controller;
 
 import com.example.droolsbackend.model.DecisionTableView;
 import com.example.droolsbackend.service.ExcelService;
+import com.example.droolsbackend.service.DroolsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +21,9 @@ public class SheetsController {
 
     @Autowired
     private ExcelService excelService;
+    
+    @Autowired
+    private DroolsService droolsService;
 
     @GetMapping
     public ResponseEntity<List<String>> listSheets() {
@@ -45,20 +52,124 @@ public class SheetsController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity<String> saveSheet(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<Map<String, String>> saveSheet(@RequestBody Map<String, Object> request) {
         try {
             String fileName = (String) request.get("fileName");
             @SuppressWarnings("unchecked")
             Map<String, Object> viewData = (Map<String, Object>) request.get("view");
             
             if (fileName == null || viewData == null) {
-                return ResponseEntity.badRequest().build();
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Missing required parameters");
+                return ResponseEntity.badRequest().body(errorResponse);
             }
             
             DecisionTableView view = convertToDecisionTableView(viewData);
             
             excelService.saveDecisionTable(fileName, view);
-            return ResponseEntity.ok("Saved successfully");
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Saved successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Save failed: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+
+    @PostMapping("/add-column")
+    public ResponseEntity<Map<String, Object>> addColumn(@RequestBody Map<String, Object> request) {
+        try {
+            String fileName = (String) request.get("fileName");
+            String columnType = (String) request.get("columnType");
+            String columnName = (String) request.get("columnName");
+            String templateValue = (String) request.get("templateValue");
+            
+            if (fileName == null || columnType == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "fileName and columnType are required");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            excelService.addColumn(fileName, columnType, columnName, templateValue);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Column added successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to add column: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+    
+    @PostMapping("/delete-column")
+    public ResponseEntity<Map<String, Object>> deleteColumn(@RequestBody Map<String, Object> request) {
+        try {
+            String fileName = (String) request.get("fileName");
+            Integer columnIndex = (Integer) request.get("columnIndex");
+            
+            if (fileName == null || columnIndex == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "fileName and columnIndex are required");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            excelService.deleteColumn(fileName, columnIndex);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Column deleted successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to delete column: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+
+    @PostMapping("/execute-rules")
+    public ResponseEntity<Map<String, Object>> executeRules(@RequestBody Map<String, Object> request) {
+        try {
+            String fileName = (String) request.get("fileName");
+            @SuppressWarnings("unchecked")
+            Map<String, Object> inputData = (Map<String, Object>) request.get("inputData");
+            
+            if (fileName == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "fileName is required");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            DecisionTableView tableView = excelService.readDecisionTable(fileName);
+            
+            if (!droolsService.validateDroolsDecisionTableStructure(tableView)) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Invalid Drools decision table structure");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            Map<String, Object> results = droolsService.executeRules(tableView, inputData);
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to execute rules: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+
+    @GetMapping("/download/{fileName}")
+    public ResponseEntity<Resource> downloadSheet(@PathVariable String fileName) {
+        try {
+            Resource resource = excelService.downloadExcelFile(fileName);
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .header(HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                    .body(resource);
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
@@ -68,10 +179,12 @@ public class SheetsController {
     @SuppressWarnings("unchecked")
     private DecisionTableView convertToDecisionTableView(Map<String, Object> viewData) {
         List<String> columnLabels = (List<String>) viewData.get("columnLabels");
+        List<String> templateLabels = (List<String>) viewData.get("templateLabels");
         List<Map<String, Object>> rowsData = (List<Map<String, Object>>) viewData.get("rows");
         
         DecisionTableView view = new DecisionTableView();
         view.setColumnLabels(columnLabels);
+        view.setTemplateLabels(templateLabels != null ? templateLabels : new ArrayList<>());
         
         List<com.example.droolsbackend.model.RuleRow> rows = new ArrayList<>();
         for (Map<String, Object> rowData : rowsData) {

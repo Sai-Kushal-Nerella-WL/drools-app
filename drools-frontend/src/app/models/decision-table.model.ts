@@ -5,6 +5,7 @@ export interface RuleRow {
 
 export interface DecisionTableView {
   columnLabels: string[];
+  templateLabels: string[];
   rows: RuleRow[];
 }
 

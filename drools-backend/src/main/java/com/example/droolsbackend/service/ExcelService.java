@@ -5,6 +5,8 @@ import com.example.droolsbackend.model.RuleRow;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -22,6 +24,9 @@ public class ExcelService {
     
     @Autowired
     private RepositoryConfigService repositoryConfigService;
+    
+    @Autowired
+    private DroolsService droolsService;
     
     private String getRulesDirectory(String repoName, String rulesFolder) {
         String baseDir = BASE_REPO_DIR + repoName + "/";
@@ -110,7 +115,21 @@ public class ExcelService {
                 }
             }
             
-            return new DecisionTableView(columnLabels, rows);
+            List<String> templateLabels = new ArrayList<>();
+            Row templateRow = sheet.getRow(headerRowIndex + 1);
+            if (templateRow != null) {
+                for (int i = 0; i < columnLabels.size(); i++) {
+                    Cell cell = templateRow.getCell(i);
+                    String value = getCellValueAsString(cell);
+                    templateLabels.add(value != null ? value : "");
+                }
+            } else {
+                for (int i = 0; i < columnLabels.size(); i++) {
+                    templateLabels.add("");
+                }
+            }
+            
+            return new DecisionTableView(columnLabels, templateLabels, rows);
         }
     }
 
@@ -239,5 +258,220 @@ public class ExcelService {
     
     private String getRulesFolderFromConfig() {
         return "rules";
+    }
+    
+    public void addColumn(String fileName, String columnType, String columnName, String templateValue) throws IOException {
+        ensureCorrectBranch();
+        String repositoryPath = repositoryConfigService.getRepositoryPath();
+        if (repositoryPath == null) {
+            throw new IOException("Repository not configured");
+        }
+        
+        File excelFile = new File(repositoryPath + "/rules/" + fileName);
+        
+        try (FileInputStream fis = new FileInputStream(excelFile);
+             Workbook workbook = new XSSFWorkbook(fis)) {
+            
+            Sheet sheet = workbook.getSheetAt(0);
+            Row headerRow = sheet.getRow(0);
+            Row templateRow = sheet.getRow(1);
+            
+            if (headerRow == null) {
+                throw new IOException("Invalid Excel file: missing header row");
+            }
+            
+            List<String> existingColumns = new ArrayList<>();
+            for (Cell cell : headerRow) {
+                existingColumns.add(getCellValueAsString(cell));
+            }
+            
+            String droolsColumnName = droolsService.generateDroolsColumnName(columnType, existingColumns);
+            String droolsTemplateValue = templateValue != null && !templateValue.trim().isEmpty() 
+                ? templateValue 
+                : droolsService.getDefaultTemplateValue(columnType);
+            
+            int insertPosition = findInsertPosition(headerRow, columnType);
+            
+            shiftColumnsRight(sheet, insertPosition);
+            
+            Cell newHeaderCell = headerRow.createCell(insertPosition);
+            newHeaderCell.setCellValue(droolsColumnName);
+            
+            if (templateRow == null) {
+                templateRow = sheet.createRow(1);
+            }
+            Cell newTemplateCell = templateRow.createCell(insertPosition);
+            newTemplateCell.setCellValue(droolsTemplateValue);
+            
+            try (FileOutputStream fos = new FileOutputStream(excelFile)) {
+                workbook.write(fos);
+            }
+        }
+    }
+    
+    public void deleteColumn(String fileName, int columnIndex) throws IOException {
+        ensureCorrectBranch();
+        String repositoryPath = repositoryConfigService.getRepositoryPath();
+        if (repositoryPath == null) {
+            throw new IOException("Repository not configured");
+        }
+        
+        File excelFile = new File(repositoryPath + "/rules/" + fileName);
+        
+        try (FileInputStream fis = new FileInputStream(excelFile);
+             Workbook workbook = new XSSFWorkbook(fis)) {
+            
+            Sheet sheet = workbook.getSheetAt(0);
+            
+            if (!canDeleteColumn(sheet, columnIndex)) {
+                throw new IOException("Cannot delete this column: it may be required for Drools structure");
+            }
+            
+            shiftColumnsLeft(sheet, columnIndex);
+            
+            try (FileOutputStream fos = new FileOutputStream(excelFile)) {
+                workbook.write(fos);
+            }
+        }
+    }
+    
+    public Resource downloadExcelFile(String fileName) throws IOException {
+        ensureCorrectBranch();
+        String repositoryPath = repositoryConfigService.getRepositoryPath();
+        if (repositoryPath == null) {
+            throw new IOException("Repository not configured");
+        }
+        
+        File excelFile = new File(repositoryPath + "/rules/" + fileName);
+        if (!excelFile.exists()) {
+            throw new IOException("File not found: " + fileName);
+        }
+        
+        return new FileSystemResource(excelFile);
+    }
+    
+    private void ensureCorrectBranch() throws IOException {
+        if (!repositoryConfigService.isConfigured()) {
+            throw new IOException("Repository not configured");
+        }
+        
+        String repositoryPath = repositoryConfigService.getRepositoryPath();
+        String currentBranch = repositoryConfigService.getCurrentBranch();
+        
+        try {
+            ProcessBuilder pb = new ProcessBuilder("git", "checkout", currentBranch);
+            pb.directory(new File(repositoryPath));
+            Process process = pb.start();
+            int exitCode = process.waitFor();
+            
+            if (exitCode != 0) {
+                throw new IOException("Failed to checkout branch: " + currentBranch);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Branch checkout interrupted", e);
+        }
+    }
+    
+    private int findInsertPosition(Row headerRow, String columnType) {
+        int lastConditionIndex = -1;
+        int firstActionIndex = -1;
+        
+        for (int i = 0; i < headerRow.getLastCellNum(); i++) {
+            Cell cell = headerRow.getCell(i);
+            if (cell != null) {
+                String cellValue = getCellValueAsString(cell);
+                if (cellValue.startsWith("CONDITION")) {
+                    lastConditionIndex = i;
+                } else if (cellValue.startsWith("ACTION") && firstActionIndex == -1) {
+                    firstActionIndex = i;
+                }
+            }
+        }
+        
+        if ("CONDITION".equals(columnType)) {
+            return lastConditionIndex + 1;
+        } else if ("ACTION".equals(columnType)) {
+            return firstActionIndex == -1 ? headerRow.getLastCellNum() : firstActionIndex;
+        }
+        
+        return headerRow.getLastCellNum();
+    }
+    
+    private void shiftColumnsRight(Sheet sheet, int fromColumn) {
+        for (int rowIndex = 0; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+            Row row = sheet.getRow(rowIndex);
+            if (row != null) {
+                int lastCellNum = row.getLastCellNum();
+                for (int cellIndex = lastCellNum; cellIndex >= fromColumn; cellIndex--) {
+                    Cell oldCell = row.getCell(cellIndex);
+                    if (oldCell != null) {
+                        Cell newCell = row.createCell(cellIndex + 1);
+                        copyCellValue(oldCell, newCell);
+                        row.removeCell(oldCell);
+                    }
+                }
+            }
+        }
+    }
+    
+    private void shiftColumnsLeft(Sheet sheet, int columnToDelete) {
+        for (int rowIndex = 0; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+            Row row = sheet.getRow(rowIndex);
+            if (row != null) {
+                int lastCellNum = row.getLastCellNum();
+                for (int cellIndex = columnToDelete + 1; cellIndex < lastCellNum; cellIndex++) {
+                    Cell oldCell = row.getCell(cellIndex);
+                    Cell newCell = row.getCell(cellIndex - 1);
+                    if (newCell == null) {
+                        newCell = row.createCell(cellIndex - 1);
+                    }
+                    if (oldCell != null) {
+                        copyCellValue(oldCell, newCell);
+                    } else {
+                        newCell.setBlank();
+                    }
+                }
+                Cell lastCell = row.getCell(lastCellNum - 1);
+                if (lastCell != null) {
+                    row.removeCell(lastCell);
+                }
+            }
+        }
+    }
+    
+    private void copyCellValue(Cell source, Cell target) {
+        switch (source.getCellType()) {
+            case STRING:
+                target.setCellValue(source.getStringCellValue());
+                break;
+            case NUMERIC:
+                target.setCellValue(source.getNumericCellValue());
+                break;
+            case BOOLEAN:
+                target.setCellValue(source.getBooleanCellValue());
+                break;
+            case FORMULA:
+                target.setCellFormula(source.getCellFormula());
+                break;
+            default:
+                target.setBlank();
+                break;
+        }
+    }
+    
+    private boolean canDeleteColumn(Sheet sheet, int columnIndex) {
+        Row headerRow = sheet.getRow(0);
+        if (headerRow == null || columnIndex >= headerRow.getLastCellNum()) {
+            return false;
+        }
+        
+        Cell cell = headerRow.getCell(columnIndex);
+        if (cell == null) {
+            return true;
+        }
+        
+        String columnName = getCellValueAsString(cell);
+        return !"NAME".equals(columnName);
     }
 }

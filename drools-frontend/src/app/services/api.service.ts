@@ -19,20 +19,20 @@ export class ApiService {
     return this.http.post<DecisionTableView>(`${this.baseUrl}/sheets/open`, { fileName });
   }
 
-  saveSheet(fileName: string, view: DecisionTableView): Observable<string> {
-    return this.http.post<string>(`${this.baseUrl}/sheets/save`, { fileName, view });
+  saveSheet(fileName: string, view: DecisionTableView): Observable<{message: string}> {
+    return this.http.post<{message: string}>(`${this.baseUrl}/sheets/save`, { fileName, view });
   }
 
-  pullFromRepo(request: GitRequest): Observable<string> {
-    return this.http.post<string>(`${this.baseUrl}/git/pull`, request);
+  pullFromRepo(request: GitRequest): Observable<{message: string}> {
+    return this.http.post<{message: string}>(`${this.baseUrl}/git/pull`, request);
   }
 
-  pushToRepo(request: GitRequest): Observable<string> {
-    return this.http.post<string>(`${this.baseUrl}/git/push`, request);
+  pushToRepo(request: GitRequest): Observable<{message: string}> {
+    return this.http.post<{message: string}>(`${this.baseUrl}/git/push`, request);
   }
 
-  createPullRequest(request: GitRequest): Observable<string> {
-    return this.http.post<string>(`${this.baseUrl}/git/pr`, request);
+  createPullRequest(request: GitRequest): Observable<{message: string}> {
+    return this.http.post<{message: string}>(`${this.baseUrl}/git/pr`, request);
   }
 
   validateRepository(request: RepoValidationRequest): Observable<ValidationResult> {
@@ -45,5 +45,39 @@ export class ApiService {
 
   detectFolders(request: RepoValidationRequest): Observable<FolderDetectionResult> {
     return this.http.post<FolderDetectionResult>(`${this.baseUrl}/git/detect-folders`, request);
+  }
+
+  addColumn(fileName: string, columnType: 'CONDITION' | 'ACTION', columnName: string, templateValue: string): Observable<{message: string}> {
+    return this.http.post<{message: string}>(`${this.baseUrl}/sheets/add-column`, { fileName, columnType, columnName, templateValue });
+  }
+
+  deleteColumn(fileName: string, columnIndex: number): Observable<{message: string}> {
+    return this.http.post<{message: string}>(`${this.baseUrl}/sheets/delete-column`, { fileName, columnIndex });
+  }
+
+  executeRules(fileName: string, inputData: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/sheets/execute-rules`, { fileName, inputData });
+  }
+
+  configureRepository(config: any): Observable<{message: string}> {
+    return this.http.post<{message: string}>(`${this.baseUrl}/repository/configure`, config);
+  }
+
+  downloadSheet(fileName: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/sheets/download/${fileName}`, { 
+      responseType: 'blob' 
+    });
+  }
+
+  getRepositoryConfig(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/repository/config`);
+  }
+
+  getRepositoryStatus(): Observable<any> {
+    return this.http.get(`${this.baseUrl}/repository/status`);
+  }
+
+  listRemoteBranches(repoUrl: string): Observable<any[]> {
+    return this.http.post<any[]>(`${this.baseUrl}/git/branches`, { repoUrl });
   }
 }

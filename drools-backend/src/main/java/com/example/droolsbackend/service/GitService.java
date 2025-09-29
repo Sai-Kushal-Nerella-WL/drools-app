@@ -7,6 +7,7 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.HttpTransport;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -20,19 +21,52 @@ public class GitService {
 
     private static final String BASE_REPO_DIR = "/home/ubuntu/repos/";
     
+    @Value("${git.use-proxy:true}")
+    private boolean useProxy;
+    
+    @Value("${git.proxy.host:git-manager.devin.ai}")
+    private String proxyHost;
+    
+    @Value("${git.proxy.port:443}")
+    private String proxyPort;
+    
     private TransportConfigCallback createProxyTransportConfig() {
         return new TransportConfigCallback() {
             @Override
             public void configure(Transport transport) {
-                if (transport instanceof HttpTransport) {
-                    System.setProperty("https.proxyHost", "git-manager.devin.ai");
-                    System.setProperty("https.proxyPort", "443");
-                    System.setProperty("http.proxyHost", "git-manager.devin.ai");
-                    System.setProperty("http.proxyPort", "443");
-                    System.out.println("Configured HTTP transport with proxy: git-manager.devin.ai:443");
+                if (useProxy && transport instanceof HttpTransport) {
+                    System.setProperty("https.proxyHost", proxyHost);
+                    System.setProperty("https.proxyPort", proxyPort);
+                    System.setProperty("http.proxyHost", proxyHost);
+                    System.setProperty("http.proxyPort", proxyPort);
+                    System.out.println("Configured HTTP transport with proxy: " + proxyHost + ":" + proxyPort);
+                } else {
+                    System.clearProperty("https.proxyHost");
+                    System.clearProperty("https.proxyPort");
+                    System.clearProperty("http.proxyHost");
+                    System.clearProperty("http.proxyPort");
+                    System.out.println("Cleared proxy settings for direct GitHub access");
                 }
             }
         };
+    }
+    
+    private String transformRepositoryUrl(String repoUrl) {
+        if (!useProxy) {
+            if (repoUrl.contains("git-manager.devin.ai/proxy/")) {
+                String directUrl = repoUrl.replace("https://git-manager.devin.ai/proxy/", "https://");
+                System.out.println("Transformed proxy URL to direct URL: " + directUrl);
+                return directUrl;
+            }
+            return repoUrl;
+        } else {
+            if (repoUrl.startsWith("https://github.com/")) {
+                String proxyUrl = repoUrl.replace("https://github.com/", "https://git-manager.devin.ai/proxy/github.com/");
+                System.out.println("Transformed direct URL to proxy URL: " + proxyUrl);
+                return proxyUrl;
+            }
+            return repoUrl;
+        }
     }
     
     private String getRepoDirectory(String repoUrl) {
@@ -44,6 +78,7 @@ public class GitService {
     }
 
     public void pullFromRepo(String repoUrl, String branch) throws GitAPIException, IOException {
+        String transformedUrl = transformRepositoryUrl(repoUrl);
         String repoDirPath = getRepoDirectory(repoUrl);
         File repoDir = new File(repoDirPath);
         
@@ -51,13 +86,15 @@ public class GitService {
             try (Git git = Git.open(repoDir)) {
                 git.pull()
                    .setRemoteBranchName(branch)
+                   .setTransportConfigCallback(createProxyTransportConfig())
                    .call();
             }
         } else {
             Git.cloneRepository()
-               .setURI(repoUrl)
+               .setURI(transformedUrl)
                .setDirectory(repoDir)
                .setBranch(branch)
+               .setTransportConfigCallback(createProxyTransportConfig())
                .call()
                .close();
         }
@@ -82,10 +119,12 @@ public class GitService {
                .setMessage(commitMessage)
                .call();
             
-            git.push()
+            var pushCommand = git.push()
                .setRemote("origin")
                .add(newBranch)
-               .call();
+               .setTransportConfigCallback(createProxyTransportConfig());
+            
+            pushCommand.call();
         }
     }
 
@@ -99,6 +138,8 @@ public class GitService {
 
     public boolean validateRepositoryUrl(String repoUrl, String username, String password) {
         try {
+            String transformedUrl = transformRepositoryUrl(repoUrl);
+            
             UsernamePasswordCredentialsProvider credentialsProvider;
             if (username != null && password != null && !username.isEmpty() && !password.isEmpty()) {
                 credentialsProvider = new UsernamePasswordCredentialsProvider(username, password);
@@ -109,7 +150,7 @@ public class GitService {
             Git.lsRemoteRepository()
                .setHeads(true)
                .setTags(false)
-               .setRemote(repoUrl)
+               .setRemote(transformedUrl)
                .setCredentialsProvider(credentialsProvider)
                .setTransportConfigCallback(createProxyTransportConfig())
                .call();
@@ -126,6 +167,8 @@ public class GitService {
 
     public boolean testRepositoryConnection(String repoUrl, String branch, String username, String password) {
         try {
+            String transformedUrl = transformRepositoryUrl(repoUrl);
+            
             UsernamePasswordCredentialsProvider credentialsProvider;
             if (username != null && password != null && !username.isEmpty() && !password.isEmpty()) {
                 credentialsProvider = new UsernamePasswordCredentialsProvider(username, password);
@@ -136,7 +179,7 @@ public class GitService {
             Collection<Ref> refs = Git.lsRemoteRepository()
                 .setHeads(true)
                 .setTags(false)
-                .setRemote(repoUrl)
+                .setRemote(transformedUrl)
                 .setCredentialsProvider(credentialsProvider)
                 .setTransportConfigCallback(createProxyTransportConfig())
                 .call();
@@ -168,6 +211,7 @@ public class GitService {
         List<String> folders = new ArrayList<>();
         
         try {
+            String transformedUrl = transformRepositoryUrl(repoUrl);
             String repoDirPath = getRepoDirectory(repoUrl);
             File repoDir = new File(repoDirPath);
             
@@ -188,7 +232,7 @@ public class GitService {
                 }
             } else {
                 Git.cloneRepository()
-                   .setURI(repoUrl)
+                   .setURI(transformedUrl)
                    .setDirectory(repoDir)
                    .setBranch(branch)
                    .setCredentialsProvider(credentialsProvider)

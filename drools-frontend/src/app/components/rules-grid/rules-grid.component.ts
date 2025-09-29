@@ -564,6 +564,13 @@ interface NotificationItem {
       color: #8a1c24 !important;
       border: 1px solid #f3c2c7 !important;
       border-left-color: #dc3545 !important;
+    .notification.success .progress-fill {
+      background-color: #f3c623 !important;
+    }
+    .notification.error .progress-fill {
+      background-color: #dc3545 !important;
+    }
+
     }
 
     .close-btn {

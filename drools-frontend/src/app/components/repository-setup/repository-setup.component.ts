@@ -170,7 +170,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
       padding: 24px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       overflow-x: hidden;
@@ -181,9 +181,9 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       background: #ffffff;
       border-radius: 16px;
       box-shadow: 
-        0 20px 40px rgba(0, 0, 0, 0.15),
-        0 10px 20px rgba(0, 0, 0, 0.1),
-        0 0 0 1px rgba(255, 255, 255, 0.05);
+        0 20px 40px rgba(148, 163, 184, 0.15),
+        0 10px 20px rgba(148, 163, 184, 0.1),
+        0 0 0 1px rgba(226, 232, 240, 0.8);
       padding: 48px;
       max-width: min(600px, calc(100vw - 48px));
       width: 100%;
@@ -196,9 +196,9 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     .setup-card:hover {
       transform: translateY(-4px);
       box-shadow: 
-        0 32px 64px rgba(0, 0, 0, 0.2),
-        0 16px 32px rgba(0, 0, 0, 0.15),
-        0 0 0 1px rgba(255, 255, 255, 0.1);
+        0 32px 64px rgba(148, 163, 184, 0.2),
+        0 16px 32px rgba(148, 163, 184, 0.15),
+        0 0 0 1px rgba(203, 213, 225, 0.9);
     }
 
     .setup-header {
@@ -215,13 +215,13 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       transform: translateX(-50%);
       width: 60px;
       height: 4px;
-      background: linear-gradient(90deg, #1a1a1a, #4a4a4a);
+      background: linear-gradient(90deg, #3b82f6, #6366f1);
       border-radius: 2px;
       opacity: 0.8;
     }
 
     .setup-header h2 {
-      color: #1a1a1a;
+      color: #1e293b;
       margin-bottom: 12px;
       font-size: 32px;
       font-weight: 700;
@@ -252,7 +252,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       display: block;
       margin-bottom: 10px;
       font-weight: 600;
-      color: #1a1a1a;
+      color: #334155;
       font-size: 14px;
       letter-spacing: -0.01em;
       transition: color 0.3s ease;
@@ -268,7 +268,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       transform: translateY(-50%);
       width: 3px;
       height: 14px;
-      background: linear-gradient(135deg, #1a1a1a, #4a4a4a);
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
       border-radius: 2px;
       transition: all 0.3s ease;
     }
@@ -276,40 +276,40 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     .form-control {
       width: 100%;
       padding: 16px 20px;
-      border: 2px solid #e5e7eb;
+      border: 2px solid #e2e8f0;
       border-radius: 12px;
       font-size: 16px;
       font-weight: 400;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       box-sizing: border-box;
       background: #ffffff;
-      color: #1a1a1a;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+      color: #1e293b;
+      box-shadow: 0 2px 4px rgba(148, 163, 184, 0.08);
     }
 
     .form-control::placeholder {
-      color: #9ca3af;
+      color: #94a3b8;
       font-weight: 400;
       transition: color 0.3s ease;
     }
 
     .form-control:hover {
-      border-color: #4a4a4a;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+      border-color: #3b82f6;
+      box-shadow: 0 4px 8px rgba(59, 130, 246, 0.12);
       transform: translateY(-1px);
     }
 
     .form-control:focus {
       outline: none;
-      border-color: #1a1a1a;
+      border-color: #3b82f6;
       box-shadow: 
-        0 0 0 4px rgba(26, 26, 26, 0.1),
-        0 8px 16px rgba(0, 0, 0, 0.1);
+        0 0 0 4px rgba(59, 130, 246, 0.15),
+        0 8px 16px rgba(59, 130, 246, 0.1);
       transform: translateY(-2px);
     }
 
     .form-control:focus::placeholder {
-      color: #d1d5db;
+      color: #cbd5e1;
     }
 
     .form-control.error {
@@ -354,11 +354,11 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
       color: white;
       box-shadow: 
-        0 4px 12px rgba(26, 26, 26, 0.3),
-        0 2px 4px rgba(0, 0, 0, 0.1);
+        0 4px 12px rgba(59, 130, 246, 0.3),
+        0 2px 4px rgba(59, 130, 246, 0.2);
       position: relative;
       overflow: hidden;
     }
@@ -375,10 +375,10 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .btn-primary:hover:not(:disabled) {
-      background: linear-gradient(135deg, #2d2d2d 0%, #4a4a4a 100%);
+      background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
       box-shadow: 
-        0 8px 20px rgba(26, 26, 26, 0.4),
-        0 4px 8px rgba(0, 0, 0, 0.15);
+        0 8px 20px rgba(59, 130, 246, 0.4),
+        0 4px 8px rgba(59, 130, 246, 0.25);
       transform: translateY(-2px);
     }
 
@@ -387,11 +387,11 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .btn-primary:active:not(:disabled) {
-      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+      background: linear-gradient(135deg, #1d4ed8 0%, #3730a3 100%);
       transform: translateY(0);
       box-shadow: 
-        0 2px 8px rgba(26, 26, 26, 0.3),
-        0 1px 2px rgba(0, 0, 0, 0.1);
+        0 2px 8px rgba(59, 130, 246, 0.3),
+        0 1px 2px rgba(59, 130, 246, 0.2);
     }
 
     .btn:disabled {
@@ -415,22 +415,22 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .setup-help {
-      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-      border: 1px solid #e5e7eb;
+      background: linear-gradient(135deg, #f1f5f9 0%, #ffffff 100%);
+      border: 1px solid #e2e8f0;
       border-radius: 12px;
       padding: 28px;
       position: relative;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 2px 8px rgba(148, 163, 184, 0.08);
       transition: all 0.3s ease;
     }
 
     .setup-help:hover {
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 16px rgba(148, 163, 184, 0.12);
       transform: translateY(-1px);
     }
 
     .setup-help h4 {
-      color: #1a1a1a;
+      color: #1e293b;
       margin-bottom: 20px;
       font-size: 18px;
       font-weight: 700;
@@ -444,12 +444,12 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       content: '💡';
       font-size: 18px;
       padding: 8px;
-      background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 4px rgba(26, 26, 26, 0.2);
+      box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
     }
 
     .setup-help ul {
@@ -459,7 +459,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .setup-help li {
-      color: #4a5568;
+      color: #475569;
       line-height: 1.6;
       padding: 12px 0 12px 28px;
       position: relative;
@@ -471,8 +471,8 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .setup-help li:hover {
-      background: rgba(26, 26, 26, 0.02);
-      color: #2d3748;
+      background: rgba(59, 130, 246, 0.05);
+      color: #334155;
       padding-left: 32px;
     }
 
@@ -484,14 +484,14 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       transform: translateY(-50%);
       width: 6px;
       height: 6px;
-      background: linear-gradient(135deg, #1a1a1a, #4a4a4a);
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
       border-radius: 50%;
       transition: all 0.3s ease;
     }
 
     .setup-help li:hover::before {
       transform: translateY(-50%) scale(1.2);
-      box-shadow: 0 0 8px rgba(26, 26, 26, 0.3);
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
     }
 
     .setup-help code {
@@ -516,35 +516,35 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     .dropdown-trigger {
       width: 100%;
       padding: 16px 20px;
-      border: 2px solid #e5e7eb;
+      border: 2px solid #e2e8f0;
       border-radius: 12px;
       font-size: 16px;
       font-weight: 400;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       box-sizing: border-box;
       background: #ffffff;
-      color: #1a1a1a;
+      color: #1e293b;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: space-between;
       min-height: 56px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+      box-shadow: 0 2px 4px rgba(148, 163, 184, 0.08);
     }
 
     .dropdown-trigger:hover {
-      border-color: #4a4a4a;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+      border-color: #3b82f6;
+      box-shadow: 0 4px 8px rgba(59, 130, 246, 0.12);
       transform: translateY(-1px);
     }
 
     .dropdown-trigger:focus,
     .custom-dropdown.open .dropdown-trigger {
       outline: none;
-      border-color: #1a1a1a;
+      border-color: #3b82f6;
       box-shadow: 
-        0 0 0 4px rgba(26, 26, 26, 0.1),
-        0 8px 16px rgba(0, 0, 0, 0.1);
+        0 0 0 4px rgba(59, 130, 246, 0.15),
+        0 8px 16px rgba(59, 130, 246, 0.1);
       transform: translateY(-2px);
     }
 
@@ -569,14 +569,14 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     .dropdown-arrow {
       width: 24px;
       height: 24px;
-      color: #4a4a4a;
+      color: #64748b;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       flex-shrink: 0;
     }
 
     .custom-dropdown.open .dropdown-arrow {
       transform: rotate(180deg);
-      color: #1a1a1a;
+      color: #3b82f6;
     }
 
     .dropdown-options {
@@ -585,12 +585,12 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       left: 0;
       right: 0;
       background: #ffffff;
-      border: 2px solid #e5e7eb;
+      border: 2px solid #e2e8f0;
       border-top: none;
       border-radius: 0 0 12px 12px;
       box-shadow: 
-        0 8px 24px rgba(0, 0, 0, 0.12),
-        0 4px 8px rgba(0, 0, 0, 0.08);
+        0 8px 24px rgba(148, 163, 184, 0.15),
+        0 4px 8px rgba(148, 163, 184, 0.1);
       z-index: 1000;
       max-height: 240px;
       overflow-y: auto;
@@ -626,7 +626,7 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
       top: 0;
       bottom: 0;
       width: 0;
-      background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
       transition: width 0.3s ease;
     }
 
@@ -635,8 +635,8 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .dropdown-option:hover {
-      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-      color: #1a1a1a;
+      background: linear-gradient(135deg, #f1f5f9 0%, #ffffff 100%);
+      color: #1e293b;
       transform: translateX(4px);
     }
 
@@ -645,8 +645,8 @@ import { RepositoryConfig, RepositoryType } from '../../models/repository-config
     }
 
     .dropdown-option.selected {
-      background: linear-gradient(135deg, #f0f0f0 0%, #ffffff 100%);
-      color: #1a1a1a;
+      background: linear-gradient(135deg, #dbeafe 0%, #ffffff 100%);
+      color: #1e293b;
       font-weight: 600;
     }
 

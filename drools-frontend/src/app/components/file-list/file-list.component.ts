@@ -153,6 +153,18 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+    /* Smooth scroll and hide scrollbars for the file list area */
+    .file-list {
+      scroll-behavior: smooth;
+      -ms-overflow-style: none; /* IE/Edge */
+      scrollbar-width: none; /* Firefox */
+    }
+    .file-list::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      background: transparent;
+    }
+
     
   `]
 })

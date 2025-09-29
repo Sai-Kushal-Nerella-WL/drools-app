@@ -78,6 +78,26 @@ import { RepositoryConfig } from './models/repository-config.model';
       box-shadow: 0 4px 12px rgba(0,0,0,0.12);
       border: 1px solid #e6dfcf;
     }
+    /* Smooth scrolling globally within the app container */
+    :host, .app-container, .left-panel, .right-panel {
+      scroll-behavior: smooth;
+    }
+
+    /* Hide scrollbars cross-browser while preserving scroll */
+    .app-container,
+    .left-panel,
+    .right-panel {
+      -ms-overflow-style: none; /* IE/Edge */
+      scrollbar-width: none; /* Firefox */
+    }
+    .app-container::-webkit-scrollbar,
+    .left-panel::-webkit-scrollbar,
+    .right-panel::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      background: transparent;
+    }
+
   `]
 })
 export class AppComponent implements OnInit {

@@ -517,6 +517,18 @@ interface NotificationItem {
     }
     
     .notification.success {
+    /* Smooth scroll and hide scrollbars for the grid wrapper */
+    .grid-wrapper {
+      -ms-overflow-style: none; /* IE/Edge */
+      scrollbar-width: none; /* Firefox */
+      scroll-behavior: smooth;
+    }
+    .grid-wrapper::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      background: transparent;
+    }
+
       background-color: #d4edda;
       color: #155724;
       border: 1px solid #c3e6cb;

@@ -26,7 +26,7 @@ import { RepoConfig, RepoValidationRequest, ValidationResult, ConnectionResult, 
             formControlName="repoUrl" 
             class="form-control"
             [class.is-invalid]="configForm.get('repoUrl')?.invalid && configForm.get('repoUrl')?.touched"
-            placeholder="https://github.com/username/repository.git">
+            placeholder="https://github.com/Sai-Kushal-Nerella-WL/drools-rules-lite">
           <div class="invalid-feedback" *ngIf="configForm.get('repoUrl')?.invalid && configForm.get('repoUrl')?.touched">
             Please enter a valid repository URL
           </div>
@@ -344,7 +344,7 @@ export class RepoConfigComponent implements OnInit {
     private router: Router
   ) {
     this.configForm = this.fb.group({
-      repoUrl: ['', [Validators.required, Validators.pattern(/^https?:\/\/.+/)]],
+      repoUrl: ['https://github.com/Sai-Kushal-Nerella-WL/drools-rules-lite', [Validators.required, Validators.pattern(/^https?:\/\/.+/)]],
       branch: ['main', Validators.required],
       username: [''],
       password: ['']

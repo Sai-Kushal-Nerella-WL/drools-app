@@ -4,6 +4,9 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.api.TransportConfigCallback;
+import org.eclipse.jgit.transport.Transport;
+import org.eclipse.jgit.transport.HttpTransport;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -17,19 +20,19 @@ public class GitService {
 
     private static final String BASE_REPO_DIR = "/home/ubuntu/repos/";
     
-    private void configureProxyAuthentication() {
-        System.setProperty("https.proxyHost", "git-manager.devin.ai");
-        System.setProperty("https.proxyPort", "443");
-        System.setProperty("http.proxyHost", "git-manager.devin.ai");
-        System.setProperty("http.proxyPort", "443");
-        
-        System.setProperty("jgit.http.proxy", "https://git-manager.devin.ai:443");
-        System.setProperty("jgit.https.proxy", "https://git-manager.devin.ai:443");
-        
-        System.setProperty("https.nonProxyHosts", "");
-        System.setProperty("http.nonProxyHosts", "");
-        
-        System.out.println("Configured proxy authentication for Git operations with JGit-specific properties");
+    private TransportConfigCallback createProxyTransportConfig() {
+        return new TransportConfigCallback() {
+            @Override
+            public void configure(Transport transport) {
+                if (transport instanceof HttpTransport) {
+                    System.setProperty("https.proxyHost", "git-manager.devin.ai");
+                    System.setProperty("https.proxyPort", "443");
+                    System.setProperty("http.proxyHost", "git-manager.devin.ai");
+                    System.setProperty("http.proxyPort", "443");
+                    System.out.println("Configured HTTP transport with proxy: git-manager.devin.ai:443");
+                }
+            }
+        };
     }
     
     private String getRepoDirectory(String repoUrl) {
@@ -103,13 +106,12 @@ public class GitService {
                 credentialsProvider = new UsernamePasswordCredentialsProvider("", "");
             }
 
-            configureProxyAuthentication();
-            
             Git.lsRemoteRepository()
                .setHeads(true)
                .setTags(false)
                .setRemote(repoUrl)
                .setCredentialsProvider(credentialsProvider)
+               .setTransportConfigCallback(createProxyTransportConfig())
                .call();
             
             return true;
@@ -131,13 +133,12 @@ public class GitService {
                 credentialsProvider = new UsernamePasswordCredentialsProvider("", "");
             }
 
-            configureProxyAuthentication();
-            
             Collection<Ref> refs = Git.lsRemoteRepository()
                 .setHeads(true)
                 .setTags(false)
                 .setRemote(repoUrl)
                 .setCredentialsProvider(credentialsProvider)
+                .setTransportConfigCallback(createProxyTransportConfig())
                 .call();
 
             if (branch != null && !branch.isEmpty()) {
@@ -179,19 +180,19 @@ public class GitService {
 
             if (repoDir.exists()) {
                 try (Git git = Git.open(repoDir)) {
-                    configureProxyAuthentication();
                     git.pull()
                        .setRemoteBranchName(branch)
                        .setCredentialsProvider(credentialsProvider)
+                       .setTransportConfigCallback(createProxyTransportConfig())
                        .call();
                 }
             } else {
-                configureProxyAuthentication();
                 Git.cloneRepository()
                    .setURI(repoUrl)
                    .setDirectory(repoDir)
                    .setBranch(branch)
                    .setCredentialsProvider(credentialsProvider)
+                   .setTransportConfigCallback(createProxyTransportConfig())
                    .call()
                    .close();
             }

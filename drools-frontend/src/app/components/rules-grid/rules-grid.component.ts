@@ -496,8 +496,8 @@ interface NotificationItem {
 
     .notification {
       padding: 12px 16px 8px 16px !important;
-      border-radius: 6px !important;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+      border-radius: 10px !important;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
       width: 100% !important;
       max-width: 100% !important;
       min-width: 200px !important;
@@ -507,7 +507,7 @@ interface NotificationItem {
       border-left: 4px solid !important;
       animation: slideIn 0.3s ease-out !important;
       position: relative !important;
-      background: white !important;
+      background: #ffffff !important;
       flex-shrink: 0 !important;
       display: block !important;
       word-wrap: break-word !important;
@@ -553,17 +553,17 @@ interface NotificationItem {
     }
 
     .notification.success {
-      background-color: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-      border-left-color: #28a745;
+      background-color: #fff4cc !important;
+      color: #1b1b1b !important;
+      border: 1px solid #e6dfcf !important;
+      border-left-color: #f3c623 !important;
     }
 
     .notification.error {
-      background-color: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-      border-left-color: #dc3545;
+      background-color: #fde8ea !important;
+      color: #8a1c24 !important;
+      border: 1px solid #f3c2c7 !important;
+      border-left-color: #dc3545 !important;
     }
 
     .close-btn {

@@ -325,7 +325,6 @@ interface NotificationItem {
     ::ng-deep .rules-table {
       border-collapse: collapse;
       background: white;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       table-layout: fixed !important;
       overflow: visible !important;
       width: max-content !important;
@@ -352,8 +351,6 @@ interface NotificationItem {
       max-width: 100px !important;
       min-width: 100px !important;
       text-align: center !important;
-      position: sticky !important;
-      right: 0 !important;
       background-color: white !important;
       z-index: 10 !important;
     }
@@ -728,7 +725,6 @@ interface NotificationItem {
       overflow-x: auto !important;
       overflow-y: auto !important;
       scrollbar-width: thin; /* Firefox */
-      scrollbar-color: #f3c623 #fff7d1; /* thumb track */
     }
     .grid-wrapper::-webkit-scrollbar {
       height: 10px;
@@ -775,7 +771,7 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
     private repositoryConfigService: RepositoryConfigService,
     private router: Router
   ) {}
-  
+
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['fileName'] && this.fileName) {
@@ -850,11 +846,12 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
       const eventsCells = table.querySelectorAll('th:last-child, td:last-child');
       eventsCells.forEach(cell => {
         const htmlCell = cell as HTMLElement;
-        htmlCell.style.setProperty('position', 'sticky', 'important');
-        htmlCell.style.setProperty('right', '0', 'important');
+        htmlCell.style.setProperty('width', '160px', 'important');
+        htmlCell.style.setProperty('min-width', '160px', 'important');
+        htmlCell.style.setProperty('max-width', '160px', 'important');
         htmlCell.style.setProperty('background', 'white', 'important');
         htmlCell.style.setProperty('z-index', '10', 'important');
-        htmlCell.style.setProperty('box-shadow', '-2px 0 4px rgba(0,0,0,0.1)', 'important');
+        htmlCell.style.setProperty('border-left', '1px solid black', 'important');
       });
 
       console.log('Dynamic scrolling styles applied successfully');

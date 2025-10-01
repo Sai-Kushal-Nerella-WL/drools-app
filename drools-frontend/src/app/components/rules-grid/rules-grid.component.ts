@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, AfterViewInit, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -745,7 +745,7 @@ interface NotificationItem {
 
   `]
 })
-export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
+export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy, OnInit {
   @Input() fileName: string | null = null;
   @Input() externalNotification: { message: string; type: 'success' | 'error' } | null = null;
 
@@ -771,6 +771,12 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
     private repositoryConfigService: RepositoryConfigService,
     private router: Router
   ) {}
+
+  ngOnInit(): void {
+    this.apiService.recentFilesLoaded.subscribe({
+      next: () => this.loadTable()
+    });
+  }
 
 
   ngOnChanges(changes: SimpleChanges) {
@@ -867,6 +873,7 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
 
     this.apiService.openSheet(this.fileName).subscribe({
       next: (view) => {
+        console.log('file list from rules grid ', view);
         this.tableView = view;
         this.originalTableView = JSON.parse(JSON.stringify(view));
         this.hasChanges = false;
@@ -907,6 +914,16 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
   save() {
     if (!this.fileName || !this.tableView) return;
 
+    const emptyNameRows = this.tableView.rows.filter(row => !row.name || row.name.trim() === '');
+    if (emptyNameRows.length > 0) {
+      this.showNotification(
+        `Cannot save: ${emptyNameRows.length} row(s) have empty rule names. Rule names are mandatory.`,
+        'error'
+      );
+      return;
+    }
+
+    console.log('testing ', this.tableView)
     this.apiService.saveSheet(this.fileName, this.tableView).subscribe({
       next: (response) => {
         console.log('Save successful:', response);
@@ -1151,19 +1168,15 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
       return;
     }
 
-    this.apiService.addColumn(this.fileName!, this.newColumnType, this.newColumnName, this.newColumnTemplate)
-      .subscribe({
-        next: (response) => {
-          this.showNotification(response.message, 'success');
-          this.hideAddColumnModal();
-          this.loadTable();
-        },
-        error: (error) => {
-          console.error('Error adding column:', error);
-          const errorMessage = error.error?.error || 'Failed to add column';
-          this.showNotification(errorMessage, 'error');
-        }
-      });
+    const index = this.tableView?.columnLabels?.lastIndexOf(this.newColumnType)!;
+    this.tableView?.columnLabels?.splice(index + 1, 0, this.newColumnType);
+    this.tableView?.templateLabels?.splice(index + 1, 0, this.newColumnTemplate);
+    
+    this.tableView?.rows?.forEach(row => {
+      row.values.splice(index, 0, '');
+    });
+    
+    this.hideAddColumnModal();
   }
 
   confirmDeleteColumn(columnIndex: number): void {
@@ -1188,18 +1201,29 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy {
       return;
     }
 
-    this.apiService.deleteColumn(this.fileName!, this.columnToDeleteIndex)
-      .subscribe({
-        next: (response) => {
-          this.showNotification(response.message, 'success');
-          this.hideDeleteColumnModal();
-          this.loadTable();
-        },
-        error: (error) => {
-          console.error('Error deleting column:', error);
-          const errorMessage = error.error?.error || 'Failed to delete column';
-          this.showNotification(errorMessage, 'error');
-        }
-      });
+    this.validateAndDeleteColumn(this.tableView?.columnLabels[this.columnToDeleteIndex]!)
+  }
+
+  validateAndDeleteColumn(columnName: string): void {
+    const conditionCount = this.tableView?.columnLabels?.filter(el => el.startsWith('CONDITION'))?.length;
+    const actionCount = this.tableView?.columnLabels?.filter(el => el.startsWith('ACTION'))?.length;
+
+    if(columnName.startsWith('CONDITION') && conditionCount! <= 1) {
+      this.showNotification('Cannot delete the last CONDITION column. Drools decision tables require at least one CONDITION column.', 'error');
+      return;
+    }
+    if(columnName.startsWith('ACTION') && actionCount! <= 1) {
+      this.showNotification('Cannot delete the last ACTION column. Drools decision tables require at least one ACTION column.', 'error');
+      return;
+    }
+
+    this.tableView?.columnLabels?.splice(this.columnToDeleteIndex, 1);
+    this.tableView?.templateLabels?.splice(this.columnToDeleteIndex, 1);
+    
+    this.tableView?.rows?.forEach(row => {
+      row.values.splice(this.columnToDeleteIndex - 1, 1);
+    });
+    
+    this.hideDeleteColumnModal();
   }
 }

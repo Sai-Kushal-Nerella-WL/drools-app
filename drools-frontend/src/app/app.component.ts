@@ -12,14 +12,14 @@ import { RepositoryConfig } from './models/repository-config.model';
   standalone: true,
   imports: [CommonModule, HttpClientModule, FileListComponent, RulesGridComponent, RepositorySetupComponent],
   template: `
-    <app-repository-setup 
+    <app-repository-setup
       *ngIf="!isConfigured"
       (configurationComplete)="onConfigurationComplete($event)">
     </app-repository-setup>
-    
+
     <div class="app-container" *ngIf="isConfigured">
       <div class="left-panel">
-        <app-file-list 
+        <app-file-list
           (fileSelected)="onFileSelected($event)"
           (notificationRequested)="onNotificationRequested($event)"
           (repositoryChangeRequested)="onRepositoryChangeRequested()"
@@ -27,7 +27,7 @@ import { RepositoryConfig } from './models/repository-config.model';
         </app-file-list>
       </div>
       <div class="right-panel">
-        <app-rules-grid 
+        <app-rules-grid
           [fileName]="selectedFileName"
           [externalNotification]="externalNotification">
         </app-rules-grid>
@@ -54,7 +54,7 @@ import { RepositoryConfig } from './models/repository-config.model';
       gap: 12px;
       padding: 12px;
     }
-    
+
     .left-panel {
       width: min(300px, 25vw);
       min-width: min(250px, 20vw);
@@ -72,7 +72,7 @@ import { RepositoryConfig } from './models/repository-config.model';
       overflow: hidden;
     }
 
-    
+
     .right-panel {
       flex: 1;
       overflow-y: auto;
@@ -118,12 +118,13 @@ export class AppComponent implements OnInit {
   externalNotification: { message: string; type: 'success' | 'error' } | null = null;
   isConfigured = false;
   repositoryConfigurationChanged = new EventEmitter<void>();
-  
+  recentFilesLoaded = new EventEmitter<void>();
+
   constructor(private repositoryConfigService: RepositoryConfigService) {}
 
   ngOnInit() {
     this.isConfigured = this.repositoryConfigService.isConfigured();
-    
+
     this.repositoryConfigService.getConfig().subscribe((config: RepositoryConfig | null) => {
       this.isConfigured = this.repositoryConfigService.isConfigured();
     });
@@ -148,5 +149,9 @@ export class AppComponent implements OnInit {
   onRepositoryChangeRequested() {
     this.isConfigured = false;
     this.selectedFileName = null;
+  }
+
+  onRecentFilesLoaded() {
+    this.recentFilesLoaded.emit();
   }
 }

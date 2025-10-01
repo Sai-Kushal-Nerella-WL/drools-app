@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { DecisionTableView, GitRequest } from '../models/decision-table.model';
 
 @Injectable({
@@ -8,6 +8,7 @@ import { DecisionTableView, GitRequest } from '../models/decision-table.model';
 })
 export class ApiService {
   private baseUrl = 'http://localhost:8080/api';
+  public recentFilesLoaded = new Subject<boolean>();
 
   constructor(private http: HttpClient) {}
 
@@ -47,13 +48,13 @@ export class ApiService {
     return this.http.post<any[]>(`${this.baseUrl}/git/branches`, { repoUrl });
   }
 
-  addColumn(fileName: string, columnType: 'CONDITION' | 'ACTION', columnName: string, templateValue: string): Observable<{message: string}> {
-    return this.http.post<{message: string}>(`${this.baseUrl}/sheets/add-column`, { fileName, columnType, columnName, templateValue });
-  }
+  // addColumn(fileName: string, columnType: 'CONDITION' | 'ACTION', columnName: string, templateValue: string): Observable<{message: string}> {
+  //   return this.http.post<{message: string}>(`${this.baseUrl}/sheets/add-column`, { fileName, columnType, columnName, templateValue });
+  // }
 
-  deleteColumn(fileName: string, columnIndex: number): Observable<{message: string}> {
-    return this.http.post<{message: string}>(`${this.baseUrl}/sheets/delete-column`, { fileName, columnIndex });
-  }
+  // deleteColumn(fileName: string, columnIndex: number): Observable<{message: string}> {
+  //   return this.http.post<{message: string}>(`${this.baseUrl}/sheets/delete-column`, { fileName, columnIndex });
+  // }
 
   executeRules(fileName: string, inputData: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/sheets/execute-rules`, { fileName, inputData });

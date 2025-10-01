@@ -14,8 +14,8 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
         <span class="branch-label">Files from: <strong>{{ getCurrentBranch() }} branch</strong></span>
       </div>
       <div class="file-list">
-        <div 
-          *ngFor="let file of files" 
+        <div
+          *ngFor="let file of files"
           class="file-item"
           [class.selected]="file === selectedFile"
           (click)="selectFile(file)">
@@ -33,7 +33,7 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
           <button (click)="changeRepository()" class="btn btn-warning">Change Repository</button>
         </div>
       </div>
-      
+
     </div>
   `,
   styles: [`
@@ -46,12 +46,12 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       display: flex;
       flex-direction: column;
     }
-    
+
     h3 {
       margin-bottom: 15px;
       color: #333;
     }
-    
+
     .branch-indicator {
       margin-bottom: 20px;
       padding: 8px 12px;
@@ -60,17 +60,17 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       border-radius: 4px;
       font-size: 14px;
     }
-    
+
     .branch-label {
       color: #6b5a00;
     }
-    
+
     .file-list {
       overflow-y: auto;
       flex: 1;
       min-height: 0;
     }
-    
+
     .file-item {
       padding: 10px;
       margin-bottom: 5px;
@@ -80,23 +80,23 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       cursor: pointer;
       transition: background-color 0.2s;
     }
-    
+
     .file-item:hover {
       background-color: #e9ecef;
     }
-    
+
     .file-item.selected {
       background-color: #ffe166;
       color: #1b1b1b;
     }
-    
+
     .no-files {
       padding: 20px;
       text-align: center;
       color: #666;
       font-style: italic;
     }
-    
+
     .actions {
       display: flex;
       flex-direction: column;
@@ -106,7 +106,7 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       margin-top: 10px;
       background-color: #ffffff;
     }
-    
+
     .btn {
       padding: 10px 15px;
       border: none;
@@ -114,31 +114,31 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       cursor: pointer;
       font-size: 14px;
     }
-    
+
     .btn-primary {
       background-color: #f3c623;
       color: #1b1b1b;
     }
-    
+
     .btn-secondary {
       background-color: #6c757d;
       color: white;
     }
-    
+
     .btn-warning {
       background-color: #ffc107;
       color: #212529;
     }
-    
+
     .btn:hover {
       opacity: 0.9;
     }
-    
+
     .btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
-    
+
     .spinner {
       display: inline-block;
       width: 12px;
@@ -149,7 +149,7 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       animation: spin 1s ease-in-out infinite;
       margin-right: 5px;
     }
-    
+
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
@@ -165,14 +165,14 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       background: transparent;
     }
 
-    
+
   `]
 })
 export class FileListComponent implements OnInit {
   files: string[] = [];
   selectedFile: string | null = null;
   isPulling = false;
-  
+
   @Input() repositoryConfigurationChanged!: EventEmitter<void>;
   @Output() fileSelected = new EventEmitter<string>();
   @Output() notificationRequested = new EventEmitter<{ message: string; type: 'success' | 'error' }>();
@@ -185,7 +185,7 @@ export class FileListComponent implements OnInit {
 
   ngOnInit() {
     this.loadFiles();
-    
+
     if (this.repositoryConfigurationChanged) {
       this.repositoryConfigurationChanged.subscribe(() => {
         this.loadFiles();
@@ -197,6 +197,8 @@ export class FileListComponent implements OnInit {
   loadFiles() {
     this.apiService.listSheets().subscribe({
       next: (files) => {
+        console.log('file list ', files);
+        this.apiService.recentFilesLoaded.next(true);
         this.files = files;
       },
       error: (error) => {
@@ -217,14 +219,14 @@ export class FileListComponent implements OnInit {
 
   pullFromGit() {
     this.isPulling = true;
-    
+
     const config = this.repositoryConfigService.getCurrentConfig();
     if (!config) {
       this.showNotification('Repository not configured', 'error');
       this.isPulling = false;
       return;
     }
-    
+
     this.apiService.pullFromRepo({ repoUrl: config.repoUrl, branch: config.branch }).subscribe({
       next: (response) => {
         console.log('Pull successful:', response);

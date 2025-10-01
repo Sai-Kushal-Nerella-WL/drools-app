@@ -1,9 +1,11 @@
 package com.example.droolsbackend.service;
 
 import com.example.droolsbackend.model.RepositoryConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -11,7 +13,32 @@ import java.net.URISyntaxException;
 public class RepositoryConfigService {
     
     private RepositoryConfig currentConfig;
-    private static final String BASE_REPO_DIR = "/home/ubuntu/repos/";
+    private static final String BASE_REPO_DIR = System.getenv("DROOLS_REPO_DIR") != null ? System.getenv("DROOLS_REPO_DIR") : "./repos/";
+    private static final String CONFIG_FILE = "drools-config.json";
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public RepositoryConfigService() {
+        loadConfigFromFile();
+    }
+
+    private void loadConfigFromFile() {
+        File configFile = new File(CONFIG_FILE);
+        if (configFile.exists()) {
+            try {
+                this.currentConfig = objectMapper.readValue(configFile, RepositoryConfig.class);
+            } catch (IOException e) {
+                System.err.println("Failed to load config from file: " + e.getMessage());
+            }
+        }
+    }
+
+    private void saveConfigToFile() {
+        try {
+            objectMapper.writeValue(new File(CONFIG_FILE), currentConfig);
+        } catch (IOException e) {
+            System.err.println("Failed to save config to file: " + e.getMessage());
+        }
+    }
 
     public void saveConfig(RepositoryConfig config) {
         this.currentConfig = new RepositoryConfig(
@@ -20,6 +47,7 @@ public class RepositoryConfigService {
             config.getDisplayName(),
             true
         );
+        saveConfigToFile();
     }
 
     public RepositoryConfig getConfig() {
@@ -37,6 +65,10 @@ public class RepositoryConfigService {
 
     public void clearConfig() {
         this.currentConfig = null;
+        File configFile = new File(CONFIG_FILE);
+        if (configFile.exists()) {
+            configFile.delete();
+        }
     }
 
     public String getRepositoryPath() {
@@ -60,6 +92,11 @@ public class RepositoryConfigService {
             
             String[] pathParts = path.split("/");
             String repoName = pathParts[pathParts.length - 1];
+            
+            File reposDir = new File(BASE_REPO_DIR);
+            if (!reposDir.exists()) {
+                reposDir.mkdirs();
+            }
             
             return BASE_REPO_DIR + repoName;
         } catch (URISyntaxException e) {

@@ -349,8 +349,10 @@ class RuleRow {
 ### **Important Context:**
 - User requested NO testing of changes (will test themselves)
 - Working directory: `/home/ubuntu/repos/drools-app`
-- Git authentication: Uses git-manager.devin.ai proxy
+- Git authentication: Now supports direct GitHub/GitLab URLs (proxy removed)
 - Current user: Sai-Kushal-Nerella-WL
+- Configuration persistence: Saved to `drools-config.json` in root directory
+- Repository directory: Configurable via `DROOLS_REPO_DIR` environment variable (defaults to `./repos/`)
 
 ---
 

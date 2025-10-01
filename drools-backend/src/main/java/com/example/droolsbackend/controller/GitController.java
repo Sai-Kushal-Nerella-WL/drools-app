@@ -86,30 +86,6 @@ public class GitController {
         }
     }
 
-    @PostMapping("/pr")
-    public ResponseEntity<Map<String, String>> createPullRequest(@RequestBody Map<String, String> request) {
-        try {
-            String repoUrl = request.get("repoUrl");
-            String baseBranch = request.get("baseBranch");
-            String newBranch = request.get("newBranch");
-            String title = request.get("title");
-            String body = request.get("body");
-            
-            if (repoUrl == null || baseBranch == null || newBranch == null || title == null) {
-                return ResponseEntity.badRequest().build();
-            }
-            
-            gitService.createPullRequest(repoUrl, baseBranch, newBranch, title, body);
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Pull request created successfully");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Pull request creation failed: " + e.getMessage());
-            return ResponseEntity.status(500).body(errorResponse);
-        }
-    }
 
     @PostMapping("/branches")
     public ResponseEntity<List<Map<String, Object>>> listRemoteBranches(@RequestBody Map<String, String> request) {

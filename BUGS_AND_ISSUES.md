@@ -169,12 +169,47 @@
 3. **Git Branch Switching Unexpectedly** - During operations
 4. **Static UI Instead of Responsive** - Should use Angular components
 
-## ✅ **RECENTLY FIXED ISSUES** (Fixed in this session)
+## ✅ **RECENTLY FIXED ISSUES**
 
+### Fixed in Previous Session
 1. ✅ Frontend `addColumn()` not updating row values arrays
 2. ✅ Frontend `validateAndDeleteColumn()` not updating row values arrays  
 3. ✅ Backend `NullPointerException` in `removeColumnAtPosition()`
 4. ✅ Missing rule name validation (added to both frontend and backend)
+
+### Fixed in Current Session (local_to_git_bug_fixes branch)
+1. ✅ **Bug #1:** Silent data loss in readDecisionTable - Added warning logs for skipped rows (PARTIAL FIX)
+2. ✅ **Bug #2:** Git stash never popped - Removed stash, added uncommitted changes check
+3. ✅ **Bug #3:** Dangerous git reset --hard - Replaced with safer git pull
+4. ✅ **Bug #4:** No thread safety on git operations - Added synchronized blocks with gitLock
+5. ✅ **Bug #5:** No file locking on Excel operations - Added synchronized blocks with excelLock
+6. ✅ **Bug #6:** Config lost on server restart - Added JSON file persistence (drools-config.json)
+7. ✅ **Bug #7:** Incomplete PR creation - Removed non-functional createPullRequest feature
+8. ✅ **Bug #8:** Ignored newBranch parameter - Now uses provided branch name or generates if empty
+9. ✅ **Bug #10:** Memory leaks from unsubscribed observables - Added subscription management in components
+10. ✅ **Bug #14:** No file path validation - Added validateFileName method with directory traversal protection
+11. ✅ **Bug #15:** Inconsistent error handling - Added user notifications for errors
+12. ✅ **Bug #17:** Hard-coded localhost URLs - Using environment.apiUrl configuration
+13. ✅ **Bug #18:** No duplicate column validation - Added validation check in isAddColumnFormValid
+14. ✅ **Bug #25:** Branch name timezone - Changed from America/Chicago to UTC
+15. ✅ **Bug #29:** Weak repository URL validation - Added GitHub/GitLab URL pattern validation
+16. ✅ **Proxy Dependencies:** Removed all git proxy references from UI, app now accepts direct GitHub/GitLab URLs
+
+### Still Pending (Deferred - Require Major Changes)
+- **Bug #9:** Poor error handling with printStackTrace - Requires logging framework integration
+- **Bug #11:** Security: CORS Allows All Origins - Needs production deployment strategy
+- **Bug #12:** No Authentication or Authorization - Major architectural change required
+- **Bug #13:** Unsafe Type Casting - Needs comprehensive input validation
+- **Bug #16:** No Loading States - UI improvement, not critical
+- **Bug #19:** Unused Backend Endpoints - Dead code cleanup
+- **Bug #20:** No Retry Logic - Enhancement, not critical
+- **Bug #21:** No Logging Framework - Requires SLF4J/Log4j integration
+- **Bug #22:** Inconsistent Error Message Formats - Large refactoring effort
+- **Bug #23:** No Input Sanitization - Comprehensive security review needed
+- **Bug #24:** No Rate Limiting - Requires middleware/interceptor setup
+- **Bug #26:** executeRules Endpoint Has No UI - New feature development
+- **Bug #27:** No Transaction Support - Careful implementation required
+- **Bug #28:** No Backup/Versioning - New feature development
 
 ## 📊 **SUMMARY**
 

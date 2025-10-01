@@ -2,6 +2,7 @@ import { Component, Input, OnChanges, SimpleChanges, AfterViewInit, OnDestroy, O
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { DecisionTableView, RuleRow } from '../../models/decision-table.model';
 import { ApiService } from '../../services/api.service';
 import { RepositoryConfigService } from '../../services/repository-config.service';
@@ -765,6 +766,7 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy, 
 
   showDeleteColumnModalFlag = false;
   columnToDeleteIndex = -1;
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private apiService: ApiService,
@@ -773,9 +775,14 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy, 
   ) {}
 
   ngOnInit(): void {
-    this.apiService.recentFilesLoaded.subscribe({
+    const sub = this.apiService.recentFilesLoaded.subscribe({
       next: () => this.loadTable()
     });
+    this.subscriptions.push(sub);
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
 
@@ -924,7 +931,7 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy, 
     }
 
     console.log('testing ', this.tableView)
-    this.apiService.saveSheet(this.fileName, this.tableView).subscribe({
+    const sub = this.apiService.saveSheet(this.fileName, this.tableView).subscribe({
       next: (response) => {
         console.log('Save successful:', response);
         this.hasChanges = false;
@@ -973,7 +980,6 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy, 
     this.pendingBranch = '';
   }
 
-  ngOnDestroy() {}
 
 
 
@@ -1007,42 +1013,10 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy, 
         this.hasSavedChanges = false;
         const branchName = response.branchName || this.pendingBranch;
         this.showNotification(response.message || `Successfully pushed to Git! Branch: ${branchName}`, 'success');
-
-        this.apiService.createPullRequest({
-          repoUrl: config.repoUrl,
-          baseBranch: config.branch,
-          newBranch: branchName,
-          title: `Update Drools rules in ${this.fileName}`,
-          body: `Automated update to decision table rules via Drools Rules Manager`
-        }).subscribe({
-          next: (prResponse) => {
-            console.log('PR created:', prResponse);
-            this.showNotification(prResponse.message || 'Pull request created successfully!', 'success');
-
-            this.apiService.pullFromRepo({
-              repoUrl: config.repoUrl,
-              branch: 'main'
-            }).subscribe({
-              next: (pullResponse) => {
-                console.log('Auto-sync to main completed:', pullResponse);
-                this.showNotification('Local files synced to main branch', 'success');
-                this.loadTable();
-
-                setTimeout(() => {
-                  this.router.navigate(['/']);
-                }, 1500);
-              },
-              error: (pullError) => {
-                console.error('Error syncing to main:', pullError);
-                this.showNotification('Push successful but failed to sync to main branch', 'error');
-              }
-            });
-          },
-          error: (error) => {
-            console.error('Error creating PR:', error);
-            this.showNotification('Push successful but failed to create PR: ' + (error.error?.error || error.error?.message || error.message), 'error');
-          }
-        });
+        
+        setTimeout(() => {
+          this.router.navigate(['/']);
+        }, 2000);
       },
       error: (error) => {
         console.error('Error pushing to Git:', error);
@@ -1152,7 +1126,19 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy, 
   }
 
   isAddColumnFormValid(): boolean {
-    return this.newColumnName.trim() !== '' && this.newColumnTemplate.trim() !== '';
+    const templateValid = !!(this.newColumnTemplate && this.newColumnTemplate.trim() !== '');
+    const typeValid = this.newColumnType === 'CONDITION' || this.newColumnType === 'ACTION';
+    
+    const isDuplicate = this.tableView?.templateLabels?.some(
+      template => template.toLowerCase() === this.newColumnTemplate.toLowerCase().trim()
+    );
+    
+    if (isDuplicate) {
+      this.showNotification('A column with this name already exists', 'error');
+      return false;
+    }
+    
+    return templateValid && typeValid;
   }
 
   getTemplatePlaceholder(): string {

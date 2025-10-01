@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { RepositoryConfig } from '../models/repository-config.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,7 @@ import { RepositoryConfig } from '../models/repository-config.model';
 export class RepositoryConfigService {
   private readonly STORAGE_KEY = 'drools-repository-config';
   private configSubject = new BehaviorSubject<RepositoryConfig | null>(null);
-  private baseUrl = 'http://localhost:8080/api';
+  private baseUrl = environment.apiUrl;
   
   constructor(private http: HttpClient) {
     this.loadConfig();

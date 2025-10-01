@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import { DecisionTableView, GitRequest } from '../models/decision-table.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:8080/api';
+  private baseUrl = environment.apiUrl;
   public recentFilesLoaded = new Subject<boolean>();
 
   constructor(private http: HttpClient) {}
@@ -32,9 +33,6 @@ export class ApiService {
     return this.http.post<{message: string; branchName?: string}>(`${this.baseUrl}/git/push`, request);
   }
 
-  createPullRequest(request: GitRequest): Observable<{message: string}> {
-    return this.http.post<{message: string}>(`${this.baseUrl}/git/pr`, request);
-  }
 
   getRepositoryConfig(): Observable<any> {
     return this.http.get(`${this.baseUrl}/repository/config`);

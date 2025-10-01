@@ -29,7 +29,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
               (blur)="onRepoUrlChange()"
               required
               class="form-control"
-              placeholder="https://git-manager.devin.ai/proxy/github.com/username/repo-name"
+              placeholder="https://github.com/username/repo-name"
               [class.error]="repoUrlInput.invalid && repoUrlInput.touched">
             <div *ngIf="repoUrlInput.invalid && repoUrlInput.touched" class="error-message">
               Please enter a valid repository URL
@@ -92,7 +92,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
           <h4>Need Help?</h4>
           <ul>
             <li>Repository URL should be the full HTTPS URL to your Git repository</li>
-            <li>For GitHub repositories, use the proxy format: <code>https://git-manager.devin.ai/proxy/github.com/username/repo</code></li>
+            <li>For GitHub repositories, use the format: <code>https://github.com/username/repo</code></li>
             <li>Branch should be the main branch containing your Excel decision tables</li>
             <li>Display name is optional and used for identification purposes</li>
           </ul>
@@ -671,6 +671,17 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
   onRepoUrlChange() {
     const repoUrl = this.config.repoUrl;
     console.log('onRepoUrlChange called with:', repoUrl);
+    
+    if (repoUrl && repoUrl.trim()) {
+      const githubPattern = /^https:\/\/github\.com\/[\w-]+\/[\w-]+$/;
+      const gitlabPattern = /^https:\/\/gitlab\.com\/[\w-]+\/[\w-]+$/;
+      
+      if (!githubPattern.test(repoUrl) && !gitlabPattern.test(repoUrl)) {
+        this.validationError = 'Please enter a valid GitHub or GitLab repository URL (e.g., https://github.com/username/repo)';
+      } else {
+        this.validationError = '';
+      }
+    }
   }
 
   clearForm() {

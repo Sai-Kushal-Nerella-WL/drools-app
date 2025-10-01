@@ -24,6 +24,8 @@ public class ExcelService {
     @Autowired
     private DroolsService droolsService;
 
+    private final Object excelLock = new Object();
+
     public List<String> listExcelFiles() {
         String repositoryPath = repositoryConfigService.getRepositoryPath();
         if (repositoryPath == null) {
@@ -45,7 +47,26 @@ public class ExcelService {
         return excelFiles;
     }
 
+    private void validateFileName(String fileName) {
+        if (fileName == null || fileName.trim().isEmpty()) {
+            throw new IllegalArgumentException("File name cannot be empty");
+        }
+        if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")) {
+            throw new IllegalArgumentException("Invalid file name: directory traversal not allowed");
+        }
+        if (!fileName.endsWith(".xlsx") && !fileName.endsWith(".xls")) {
+            throw new IllegalArgumentException("File must be an Excel file (.xlsx or .xls)");
+        }
+    }
+
     public DecisionTableView readDecisionTable(String fileName) throws IOException {
+        synchronized (excelLock) {
+            validateFileName(fileName);
+            return readDecisionTableInternal(fileName);
+        }
+    }
+
+    private DecisionTableView readDecisionTableInternal(String fileName) throws IOException {
         String repositoryPath = repositoryConfigService.getRepositoryPath();
         if (repositoryPath == null) {
             throw new RuntimeException("Repository not configured");
@@ -117,6 +138,8 @@ public class ExcelService {
                         }
 
                         rows.add(new RuleRow(name, values));
+                    } else {
+                        System.err.println("Warning: Skipping row " + (i + 1) + " due to empty rule name");
                     }
                 }
             }
@@ -171,6 +194,13 @@ public class ExcelService {
 }
 
     public void saveDecisionTable(String fileName, DecisionTableView view) throws IOException {
+        synchronized (excelLock) {
+            validateFileName(fileName);
+            saveDecisionTableInternal(fileName, view);
+        }
+    }
+
+    private void saveDecisionTableInternal(String fileName, DecisionTableView view) throws IOException {
         String repositoryPath = repositoryConfigService.getRepositoryPath();
         if (repositoryPath == null) {
             throw new RuntimeException("Repository not configured");

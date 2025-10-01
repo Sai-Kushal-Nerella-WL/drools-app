@@ -1,5 +1,6 @@
-import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { RepositoryConfigService } from '../../services/repository-config.service';
 
@@ -168,10 +169,11 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
 
   `]
 })
-export class FileListComponent implements OnInit {
+export class FileListComponent implements OnInit, OnDestroy {
   files: string[] = [];
   selectedFile: string | null = null;
   isPulling = false;
+  private subscriptions: Subscription[] = [];
 
   @Input() repositoryConfigurationChanged!: EventEmitter<void>;
   @Output() fileSelected = new EventEmitter<string>();
@@ -195,7 +197,7 @@ export class FileListComponent implements OnInit {
   }
 
   loadFiles() {
-    this.apiService.listSheets().subscribe({
+    const sub = this.apiService.listSheets().subscribe({
       next: (files) => {
         console.log('file list ', files);
         this.apiService.recentFilesLoaded.next(true);
@@ -203,8 +205,14 @@ export class FileListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading files:', error);
+        this.showNotification('Failed to load files: ' + (error.error?.message || error.message), 'error');
       }
     });
+    this.subscriptions.push(sub);
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   selectFile(file: string) {

@@ -90,8 +90,10 @@ npm start
 - **Location:** `RepositoryConfigService.java`, `repository-setup.component.ts`
 - **Features:**
   - Configure Git repository URL and branch
-  - Store configuration in localStorage (frontend) and memory (backend)
+  - **NEW:** Folder selection within repository - users can select specific folders containing Excel files
+  - Store configuration in localStorage (frontend) and JSON file (backend)
   - Validate repository connectivity
+  - Fetch and display available folders in repository
 
 ### **4. Rule Execution (Drools)**
 - **Location:** `DroolsService.java`
@@ -138,9 +140,10 @@ npm start
 - **Purpose:** Manage repository configuration
 - **Key Methods:**
   - `saveConfig()` / `getConfig()` - Configuration CRUD
-  - `getRepositoryPath()` - Calculate local repo path
+  - `getRepositoryPath()` - Calculate local repo path including folder path (for Excel operations)
+  - **NEW:** `getRepositoryRootPath()` - Get repository root path (for git operations)
   - `isConfigured()` - Validate configuration
-- **⚠ Critical Issue:** Configuration lost on server restart (in-memory only)
+- **✅ Fixed:** Configuration now persisted to `drools-config.json` file (survives restarts)
 
 ### **Frontend Components**
 
@@ -170,10 +173,12 @@ npm start
 #### **RepositorySetupComponent** (`components/repository-setup/repository-setup.component.ts`)
 - **Purpose:** Git repository configuration
 - **Key Features:**
-  - Configure repository URL and branch
-  - Validate repository connection
-  - Store configuration persistently
-- **⚠ Issue:** Weak URL validation
+  - Configure repository URL and branch (now accepts direct GitHub/GitLab URLs)
+  - **NEW:** Folder selection dropdown with "Fetch Folders" button
+  - **NEW:** Fetches available folders from repository without requiring pull
+  - Validate repository connection with improved URL pattern validation
+  - Store configuration persistently (frontend: localStorage, backend: JSON file)
+- **✅ Fixed:** URL validation now checks for valid GitHub/GitLab patterns
 
 ### **Models & Data Flow**
 
@@ -329,22 +334,36 @@ class RuleRow {
 
 ## 📝 **Session Handoff Notes**
 
-### **Current State (as of October 1, 2025):**
-- Fixed column add/delete data misalignment bugs
-- Added rule name validation (frontend + backend)
-- Fixed NullPointerException in removeColumnAtPosition
-- Comprehensive bug report documented
+### **Current State (as of October 1, 2025 - 08:10 UTC):**
+- ✅ Fixed column add/delete data misalignment bugs
+- ✅ Added rule name validation (frontend + backend)
+- ✅ Fixed NullPointerException in removeColumnAtPosition
+- ✅ Fixed repeated notifications bug (duplicate column validation)
+- ✅ Implemented folder selection feature in repository configuration
+- ✅ Fixed critical git push path bug (separated repository root from folder paths)
+- ✅ Added duplicate column error display in Add Column modal
+- ✅ Fixed folder fetching to work with uncommitted changes
+- ✅ All 6 critical bugs fixed (100% critical bug completion)
+- ✅ 21 out of 29 total bugs fixed (72% overall completion rate)
+- Comprehensive bug report documented in BUGS_AND_ISSUES.md
 - Servers running: backend (port 8080), frontend (port 4200)
 
 ### **Recent Changes Made:**
-1. `rules-grid.component.ts` - Fixed addColumn() and validateAndDeleteColumn()
+1. `rules-grid.component.ts` - Fixed addColumn() and validateAndDeleteColumn(), fixed repeated notifications
 2. `ExcelService.java` - Fixed removeColumnAtPosition() NPE and added rule name validation
-3. All changes are uncommitted and ready to push
+3. `GitService.java` - Fixed git push path bug, now uses getRepositoryRootPath() for git operations
+4. `RepositoryConfigService.java` - Added getRepositoryRootPath() method, separated path handling for git vs Excel operations
+5. `repository-setup.component.ts` - Implemented folder selection with fetch folders functionality
+6. `RepositoryConfigController.java` - Added /api/repository/folders endpoint for listing folders
+7. All changes committed to local_to_git_bug_fixes branch and ready to push
 
-### **Next Immediate Tasks:**
-1. Push current fixes to `Enhance_Intermediate_V1` branch
-2. Create new branch `local_to_git_bug_fixes`
-3. Work on critical bugs from BUGS_AND_ISSUES.md
+### **Completed Tasks:**
+1. ✅ Created branch `local_to_git_bug_fixes` from `Enhance_Intermediate_V1`
+2. ✅ Fixed all 6 critical bugs from BUGS_AND_ISSUES.md
+3. ✅ Removed git proxy dependencies - app now works with direct GitHub/GitLab URLs
+4. ✅ Implemented folder selection feature
+5. ✅ Fixed repeated notifications and git push path bugs
+6. ✅ Ready to push to remote and create after_local_ui_update branch
 
 ### **Important Context:**
 - User requested NO testing of changes (will test themselves)

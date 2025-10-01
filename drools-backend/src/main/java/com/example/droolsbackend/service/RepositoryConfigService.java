@@ -113,6 +113,39 @@ public class RepositoryConfigService {
         }
     }
 
+    public String getRepositoryRootPath() {
+        if (!isConfigured()) {
+            throw new IllegalStateException("Repository not configured");
+        }
+        
+        try {
+            String repoUrl = currentConfig.getRepoUrl();
+            
+            if (repoUrl.startsWith("https://git-manager.devin.ai/proxy/")) {
+                repoUrl = repoUrl.replace("https://git-manager.devin.ai/proxy/", "https://");
+            }
+            
+            URI uri = new URI(repoUrl);
+            String path = uri.getPath();
+            
+            if (path.endsWith(".git")) {
+                path = path.substring(0, path.length() - 4);
+            }
+            
+            String[] pathParts = path.split("/");
+            String repoName = pathParts[pathParts.length - 1];
+            
+            File reposDir = new File(BASE_REPO_DIR);
+            if (!reposDir.exists()) {
+                reposDir.mkdirs();
+            }
+            
+            return BASE_REPO_DIR + repoName;
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid repository URL: " + currentConfig.getRepoUrl(), e);
+        }
+    }
+
     public String getDisplayName() {
         if (!isConfigured()) {
             return "Repository";

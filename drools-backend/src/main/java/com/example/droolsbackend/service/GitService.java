@@ -108,7 +108,7 @@ public class GitService {
                 throw new IllegalStateException("Repository not configured. Please configure repository first.");
             }
             
-            String repoPath = repositoryConfigService.getRepositoryPath();
+            String repoPath = repositoryConfigService.getRepositoryRootPath();
             File repoDir = new File(repoPath);
             
             String branchToUse = (newBranch != null && !newBranch.trim().isEmpty()) 
@@ -121,8 +121,15 @@ public class GitService {
                    .setName(branchToUse)
                    .call();
             
+            String folderPath = repositoryConfigService.getConfig().getFolderPath();
+            String filePattern = "rules/" + fileName;
+            if (folderPath != null && !folderPath.trim().isEmpty() && !folderPath.equals("/")) {
+                folderPath = folderPath.trim().replaceAll("^/+|/+$", "");
+                filePattern = folderPath + "/" + fileName;
+            }
+            
             git.add()
-               .addFilepattern("rules/" + fileName)
+               .addFilepattern(filePattern)
                .call();
             
                 git.commit()

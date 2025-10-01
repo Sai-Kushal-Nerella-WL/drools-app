@@ -748,7 +748,7 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
           return;
         }
         
-        this.fetchAndCloneRepository();
+        this.fetchAvailableFolders();
       },
       error: (error) => {
         this.validationError = `Unable to access repository: ${error.error?.error || error.message || 'Please check the URL and try again'}`;
@@ -803,9 +803,15 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Failed to fetch folders:', error);
-        this.availableFolders = ['/'];
-        this.config.folderPath = '/';
-        this.isFetchingFolders = false;
+        
+        if (error.error?.error?.includes('Repository not cloned yet')) {
+          this.fetchAndCloneRepository();
+        } else {
+          this.availableFolders = ['/'];
+          this.config.folderPath = '/';
+          this.validationError = `Failed to fetch folders: ${error.error?.error || error.message}`;
+          this.isFetchingFolders = false;
+        }
       }
     });
   }

@@ -1167,16 +1167,10 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy, 
   }
 
   addColumn(): void {
-    const isDuplicate = this.tableView?.templateLabels?.some(
-      template => template.toLowerCase() === this.newColumnTemplate.toLowerCase().trim()
-    );
-    
-    if (isDuplicate) {
-      this.showNotification('A column with this name already exists', 'error');
-      return;
-    }
-    
     if (!this.isAddColumnFormValid()) {
+      if (this.duplicateColumnError) {
+        this.showNotification(this.duplicateColumnError, 'error');
+      }
       return;
     }
 

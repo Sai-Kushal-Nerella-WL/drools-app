@@ -127,6 +127,7 @@ interface NotificationItem {
             <label for="templateValue">Template Value:</label>
             <input type="text" id="templateValue" [(ngModel)]="newColumnTemplate"
                    [placeholder]="getTemplatePlaceholder()" class="form-control">
+            <div *ngIf="duplicateColumnError" class="error-message">{{ duplicateColumnError }}</div>
           </div>
         </div>
         <div class="modal-footer">
@@ -716,6 +717,13 @@ interface NotificationItem {
       margin-top: 10px;
     }
 
+    .error-message {
+      color: #dc3545;
+      font-size: 12px;
+      margin-top: 4px;
+      font-style: italic;
+    }
+
     .btn-info {
       background-color: #17a2b8;
       color: white;
@@ -763,6 +771,7 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy, 
   newColumnType: 'CONDITION' | 'ACTION' = 'CONDITION';
   newColumnName = '';
   newColumnTemplate = '';
+  duplicateColumnError = '';
 
   showDeleteColumnModalFlag = false;
   columnToDeleteIndex = -1;
@@ -1119,25 +1128,33 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy, 
     this.newColumnType = 'CONDITION';
     this.newColumnName = '';
     this.newColumnTemplate = '';
+    this.duplicateColumnError = '';
   }
 
   hideAddColumnModal(): void {
     this.showAddColumnModalFlag = false;
+    this.duplicateColumnError = '';
   }
 
   isAddColumnFormValid(): boolean {
     const templateValid = !!(this.newColumnTemplate && this.newColumnTemplate.trim() !== '');
     const typeValid = this.newColumnType === 'CONDITION' || this.newColumnType === 'ACTION';
     
+    if (!templateValid) {
+      this.duplicateColumnError = '';
+      return false;
+    }
+    
     const isDuplicate = this.tableView?.templateLabels?.some(
       template => template.toLowerCase() === this.newColumnTemplate.toLowerCase().trim()
     );
     
     if (isDuplicate) {
-      this.showNotification('A column with this name already exists', 'error');
+      this.duplicateColumnError = `Column template "${this.newColumnTemplate}" already exists. Please choose a different template.`;
       return false;
     }
     
+    this.duplicateColumnError = '';
     return templateValid && typeValid;
   }
 
@@ -1150,6 +1167,15 @@ export class RulesGridComponent implements OnChanges, AfterViewInit, OnDestroy, 
   }
 
   addColumn(): void {
+    const isDuplicate = this.tableView?.templateLabels?.some(
+      template => template.toLowerCase() === this.newColumnTemplate.toLowerCase().trim()
+    );
+    
+    if (isDuplicate) {
+      this.showNotification('A column with this name already exists', 'error');
+      return;
+    }
+    
     if (!this.isAddColumnFormValid()) {
       return;
     }

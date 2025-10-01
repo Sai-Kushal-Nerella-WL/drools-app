@@ -22,11 +22,7 @@ public class GitService {
 
     public void pullFromRepo(String repoUrl, String branch) throws GitAPIException, IOException, InterruptedException {
         synchronized (gitLock) {
-            if (!repositoryConfigService.isConfigured()) {
-                throw new IllegalStateException("Repository not configured. Please configure repository first.");
-            }
-            
-            String repoPath = repositoryConfigService.getRepositoryPath();
+            String repoPath = deriveRepositoryPath(repoUrl);
             File repoDir = new File(repoPath);
             
             if (repoDir.exists()) {
@@ -270,5 +266,35 @@ public class GitService {
             repoName = repoName.substring(0, repoName.length() - 4);
         }
         return repoName;
+    }
+    
+    private String deriveRepositoryPath(String repoUrl) {
+        try {
+            if (repoUrl.startsWith("https://git-manager.devin.ai/proxy/")) {
+                repoUrl = repoUrl.replace("https://git-manager.devin.ai/proxy/", "https://");
+            }
+            
+            java.net.URI uri = new java.net.URI(repoUrl);
+            String path = uri.getPath();
+            
+            if (path.endsWith(".git")) {
+                path = path.substring(0, path.length() - 4);
+            }
+            
+            String[] pathParts = path.split("/");
+            String repoName = pathParts[pathParts.length - 1];
+            
+            String baseRepoDir = System.getenv("DROOLS_REPO_DIR") != null ? 
+                System.getenv("DROOLS_REPO_DIR") : "./repos/";
+            
+            File reposDir = new File(baseRepoDir);
+            if (!reposDir.exists()) {
+                reposDir.mkdirs();
+            }
+            
+            return baseRepoDir + repoName;
+        } catch (java.net.URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid repository URL: " + repoUrl, e);
+        }
     }
 }

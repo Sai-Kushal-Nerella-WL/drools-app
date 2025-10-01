@@ -38,6 +38,14 @@ export class ApiService {
     return this.http.get(`${this.baseUrl}/repository/config`);
   }
 
+  listRepositoryFolders(repoUrl?: string): Observable<{folders: string[]}> {
+    let url = `${this.baseUrl}/repository/folders`;
+    if (repoUrl) {
+      url += `?repoUrl=${encodeURIComponent(repoUrl)}`;
+    }
+    return this.http.get<{folders: string[]}>(url);
+  }
+
   getRepositoryStatus(): Observable<any> {
     return this.http.get(`${this.baseUrl}/repository/status`);
   }

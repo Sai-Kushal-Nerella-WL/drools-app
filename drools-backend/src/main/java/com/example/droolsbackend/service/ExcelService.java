@@ -32,7 +32,7 @@ public class ExcelService {
             return new ArrayList<>();
         }
 
-        File rulesDir = new File(repositoryPath + "/rules/");
+        File rulesDir = new File(repositoryPath);
         List<String> excelFiles = new ArrayList<>();
 
         if (rulesDir.exists() && rulesDir.isDirectory()) {
@@ -72,7 +72,7 @@ public class ExcelService {
             throw new RuntimeException("Repository not configured");
         }
 
-        File excelFile = new File(repositoryPath + "/rules/" + fileName);
+        File excelFile = new File(repositoryPath + "/" + fileName);
 
         try (FileInputStream fis = new FileInputStream(excelFile);
              Workbook workbook = new XSSFWorkbook(fis)) {
@@ -206,7 +206,7 @@ public class ExcelService {
             throw new RuntimeException("Repository not configured");
         }
 
-        File excelFile = new File(repositoryPath + "/rules/" + fileName);
+        File excelFile = new File(repositoryPath + "/" + fileName);
 
         try (FileInputStream fis = new FileInputStream(excelFile);
              Workbook workbook = new XSSFWorkbook(fis)) {
@@ -343,7 +343,7 @@ public class ExcelService {
             throw new RuntimeException("Repository not configured");
         }
 
-        File excelFile = new File(repositoryPath + "/rules/" + fileName);
+        File excelFile = new File(repositoryPath + "/" + fileName);
 
         try (FileInputStream fis = new FileInputStream(excelFile);
              Workbook workbook = new XSSFWorkbook(fis)) {
@@ -398,7 +398,7 @@ public class ExcelService {
             throw new RuntimeException("Repository not configured");
         }
 
-        File excelFile = new File(repositoryPath + "/rules/" + fileName);
+        File excelFile = new File(repositoryPath + "/" + fileName);
 
         try (FileInputStream fis = new FileInputStream(excelFile);
              Workbook workbook = new XSSFWorkbook(fis)) {

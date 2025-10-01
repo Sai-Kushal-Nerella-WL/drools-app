@@ -6,7 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -92,6 +96,68 @@ public class RepositoryConfigController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to get repository status: " + e.getMessage());
             return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/folders")
+    public ResponseEntity<?> listFolders(@RequestParam(required = false) String repoUrl) {
+        try {
+            if (repoUrl == null || repoUrl.trim().isEmpty()) {
+                if (!repositoryConfigService.isConfigured()) {
+                    Map<String, String> errorResponse = new HashMap<>();
+                    errorResponse.put("error", "Repository not configured and no repoUrl provided");
+                    return ResponseEntity.badRequest().body(errorResponse);
+                }
+                repoUrl = repositoryConfigService.getConfig().getRepoUrl();
+            }
+            
+            if (repoUrl.startsWith("https://git-manager.devin.ai/proxy/")) {
+                repoUrl = repoUrl.replace("https://git-manager.devin.ai/proxy/", "https://");
+            }
+            
+            URI uri = new URI(repoUrl);
+            String path = uri.getPath();
+            if (path.endsWith(".git")) {
+                path = path.substring(0, path.length() - 4);
+            }
+            String[] pathParts = path.split("/");
+            String repoName = pathParts[pathParts.length - 1];
+            
+            String baseRepoDir = System.getenv("DROOLS_REPO_DIR") != null ? 
+                System.getenv("DROOLS_REPO_DIR") : "./repos/";
+            File repoDir = new File(baseRepoDir + repoName);
+            
+            if (!repoDir.exists() || !repoDir.isDirectory()) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Repository not cloned yet. Please clone the repository first.");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+            
+            List<String> folders = new ArrayList<>();
+            folders.add("/");
+            listDirectoriesRecursive(repoDir, repoDir, folders);
+            
+            Map<String, List<String>> response = new HashMap<>();
+            response.put("folders", folders);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to list folders: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+    
+    private void listDirectoriesRecursive(File baseDir, File currentDir, List<String> folders) {
+        File[] files = currentDir.listFiles();
+        if (files == null) return;
+        
+        for (File file : files) {
+            if (file.isDirectory() && !file.getName().startsWith(".")) {
+                String relativePath = baseDir.toPath().relativize(file.toPath()).toString();
+                folders.add("/" + relativePath.replace("\\", "/"));
+                
+                listDirectoriesRecursive(baseDir, file, folders);
+            }
         }
     }
 }

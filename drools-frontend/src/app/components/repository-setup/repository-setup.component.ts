@@ -55,6 +55,33 @@ import { RepositoryConfig } from '../../models/repository-config.model';
           </div>
 
           <div class="form-group">
+            <label for="folderPath">Folder Path *</label>
+            <div style="display: flex; gap: 10px; align-items: flex-start;">
+              <select 
+                id="folderPath"
+                name="folderPath"
+                [(ngModel)]="config.folderPath"
+                required
+                class="form-control"
+                style="flex: 1;"
+                [disabled]="availableFolders.length === 0">
+                <option *ngFor="let folder of availableFolders" [value]="folder">{{ folder }}</option>
+              </select>
+              <button 
+                type="button"
+                class="btn btn-secondary"
+                (click)="fetchFolders()"
+                [disabled]="!config.repoUrl || !config.branch || isFetchingFolders"
+                style="white-space: nowrap;">
+                {{ isFetchingFolders ? 'Fetching...' : 'Fetch Folders' }}
+              </button>
+            </div>
+            <div class="help-text" *ngIf="availableFolders.length === 0 && !isFetchingFolders" style="margin-top: 8px;">Click "Fetch Folders" to load available folders from the repository</div>
+            <div class="help-text" *ngIf="isFetchingFolders" style="margin-top: 8px;">Loading folders from repository...</div>
+            <div class="help-text" *ngIf="availableFolders.length > 0" style="margin-top: 8px;">Select the folder containing your Excel decision tables</div>
+          </div>
+
+          <div class="form-group">
             <label for="displayName">Display Name (Optional)</label>
             <input 
               type="text" 
@@ -644,12 +671,15 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
     repoUrl: '',
     branch: 'main',
     displayName: '',
+    folderPath: '/',
     isConfigured: false
   };
 
   isSubmitting = false;
   validationError = '';
   isValidating = false;
+  isFetchingFolders = false;
+  availableFolders: string[] = [];
 
   constructor(
     private repositoryConfigService: RepositoryConfigService,
@@ -660,6 +690,9 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       if (!this.config.branch) {
         this.config.branch = 'main';
+      }
+      if (!this.config.folderPath) {
+        this.config.folderPath = '/';
       }
     }, 0);
   }
@@ -682,6 +715,9 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
         this.validationError = '';
       }
     }
+    
+    this.availableFolders = [];
+    this.config.folderPath = '/';
   }
 
   clearForm() {
@@ -689,15 +725,17 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
       repoUrl: '',
       branch: 'main',
       displayName: '',
+      folderPath: '/',
       isConfigured: false
     };
     this.validationError = '';
+    this.availableFolders = [];
   }
 
-  onSubmit() {
-    if (this.isSubmitting || this.isValidating) return;
+  fetchFolders() {
+    if (this.isFetchingFolders) return;
     
-    this.isValidating = true;
+    this.isFetchingFolders = true;
     this.validationError = '';
     
     this.apiService.listRemoteBranches(this.config.repoUrl).subscribe({
@@ -706,23 +744,81 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
         
         if (!branchExists) {
           this.validationError = `Branch "${this.config.branch}" not found in repository. Please select a valid branch.`;
-          this.isValidating = false;
+          this.isFetchingFolders = false;
           return;
         }
         
-        const configToSave: RepositoryConfig = {
-          ...this.config,
-          isConfigured: true
-        };
-        
-        this.repositoryConfigService.saveConfig(configToSave);
-        this.configurationComplete.emit(configToSave);
-        this.isValidating = false;
+        this.fetchAndCloneRepository();
       },
       error: (error) => {
         this.validationError = `Unable to access repository: ${error.error?.error || error.message || 'Please check the URL and try again'}`;
-        this.isValidating = false;
+        this.isFetchingFolders = false;
       }
     });
+  }
+
+  onSubmit() {
+    if (this.isSubmitting || this.isValidating) return;
+    
+    if (this.availableFolders.length === 0) {
+      this.validationError = 'Please fetch folders first by clicking the "Fetch Folders" button';
+      return;
+    }
+    
+    if (!this.config.folderPath) {
+      this.validationError = 'Please select a folder';
+      return;
+    }
+    
+    this.completeConfiguration();
+  }
+  
+  private fetchAndCloneRepository() {
+    this.apiService.pullFromRepo({
+      repoUrl: this.config.repoUrl,
+      branch: this.config.branch
+    }).subscribe({
+      next: () => {
+        this.fetchAvailableFolders();
+      },
+      error: (error) => {
+        this.validationError = `Failed to clone repository: ${error.error?.error || error.message}`;
+        this.isFetchingFolders = false;
+      }
+    });
+  }
+  
+  private fetchAvailableFolders() {
+    this.apiService.listRepositoryFolders(this.config.repoUrl).subscribe({
+      next: (response) => {
+        this.availableFolders = response.folders || ['/'];
+        
+        if (this.availableFolders.includes('/rules')) {
+          this.config.folderPath = '/rules';
+        } else if (this.availableFolders.length > 0) {
+          this.config.folderPath = this.availableFolders[0];
+        }
+        
+        this.isFetchingFolders = false;
+      },
+      error: (error) => {
+        console.error('Failed to fetch folders:', error);
+        this.availableFolders = ['/'];
+        this.config.folderPath = '/';
+        this.isFetchingFolders = false;
+      }
+    });
+  }
+  
+  private completeConfiguration() {
+    this.isValidating = true;
+    const configToSave: RepositoryConfig = {
+      ...this.config,
+      isConfigured: true
+    };
+    
+    this.repositoryConfigService.saveConfig(configToSave);
+    this.configurationComplete.emit(configToSave);
+    this.isValidating = false;
   }
 }

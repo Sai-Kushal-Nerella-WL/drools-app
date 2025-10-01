@@ -45,6 +45,7 @@ public class RepositoryConfigService {
             config.getRepoUrl(),
             config.getBranch(),
             config.getDisplayName(),
+            config.getFolderPath(),
             true
         );
         saveConfigToFile();
@@ -98,7 +99,15 @@ public class RepositoryConfigService {
                 reposDir.mkdirs();
             }
             
-            return BASE_REPO_DIR + repoName;
+            String basePath = BASE_REPO_DIR + repoName;
+            
+            String folderPath = currentConfig.getFolderPath();
+            if (folderPath != null && !folderPath.trim().isEmpty() && !folderPath.equals("/")) {
+                folderPath = folderPath.trim().replaceAll("^/+|/+$", "");
+                basePath = basePath + "/" + folderPath;
+            }
+            
+            return basePath;
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Invalid repository URL: " + currentConfig.getRepoUrl(), e);
         }

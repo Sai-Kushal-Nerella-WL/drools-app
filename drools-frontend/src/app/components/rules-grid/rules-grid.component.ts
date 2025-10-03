@@ -202,9 +202,12 @@ interface NotificationItem {
     .btn {
       padding: 8px 16px;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
       font-size: 14px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      font-weight: 500;
     }
 
     .btn-success {
@@ -213,13 +216,13 @@ interface NotificationItem {
     }
 
     .btn-primary {
-      background-color: #f3c623;
-      color: #1b1b1b;
+      background-color: #2c3e50;
+      color: white;
     }
 
     .btn-warning {
-      background-color: #ffc107;
-      color: #212529;
+      background-color: #2c3e50;
+      color: white;
     }
 
     .btn-secondary {
@@ -243,7 +246,14 @@ interface NotificationItem {
     }
 
     .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
       opacity: 0.9;
+    }
+    
+    .btn:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .grid-wrapper {
@@ -253,13 +263,15 @@ interface NotificationItem {
       flex: 1;
       min-height: 0;
       position: relative;
-      border: 1px solid #ddd;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
       width: 100% !important;
       max-width: 100% !important;
       height: auto !important;
       max-height: calc(100vh - 220px) !important;
       display: block !important;
       scroll-behavior: smooth;
+      background: white;
     }
 
     @media (max-height: 800px) {
@@ -325,7 +337,8 @@ interface NotificationItem {
     }
 
     ::ng-deep .rules-table {
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
       background: white;
       table-layout: fixed !important;
       overflow: visible !important;
@@ -335,9 +348,10 @@ interface NotificationItem {
 
     ::ng-deep .rules-table th,
     ::ng-deep .rules-table td {
-      padding: 12px;
+      padding: 16px;
       text-align: left;
-      border: 1px solid #ddd;
+      border: none;
+      border-bottom: 1px solid #f0f0f0;
       width: 200px !important;
       min-width: 200px !important;
       max-width: 200px !important;
@@ -345,6 +359,11 @@ interface NotificationItem {
       word-wrap: break-word !important;
       overflow-wrap: break-word !important;
       vertical-align: top !important;
+      transition: background-color 0.2s ease;
+    }
+    
+    ::ng-deep .rules-table tbody tr:hover td {
+      background-color: #fafbfc;
     }
 
     .rules-table th:last-child,
@@ -365,14 +384,19 @@ interface NotificationItem {
     }
 
     .rules-table th {
-      background-color: #f8f9fa;
+      background-color: #fafbfc;
       font-weight: 600;
       position: sticky;
       top: 0;
+      border-bottom: 2px solid #e9ecef;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6c757d;
     }
 
     .template-row {
-      background-color: #e9ecef;
+      background-color: #f8f9fa;
     }
 
     .template-header {
@@ -405,6 +429,7 @@ interface NotificationItem {
       white-space: nowrap;
       overflow: hidden;
       box-sizing: border-box;
+      transition: all 0.2s ease;
     }
 
     .form-control:focus {
@@ -447,15 +472,37 @@ interface NotificationItem {
       justify-content: center;
       align-items: center;
       z-index: 1000;
+      animation: fadeIn 0.2s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
     }
 
     .modal-content {
       background: white;
       padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
       max-width: 400px;
       width: 90%;
+      animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
 
     .modal-content h4 {
@@ -621,14 +668,14 @@ interface NotificationItem {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.2s ease;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .btn-delete-column:hover {
       background-color: #c82333;
-      transform: scale(1.1);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transform: scale(1.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
     .btn-delete-column:active {
@@ -646,6 +693,7 @@ interface NotificationItem {
       align-items: center;
       padding: 20px;
       border-bottom: 1px solid #dee2e6;
+      transition: all 0.2s ease;
     }
 
     .modal-header h4 {
@@ -665,10 +713,13 @@ interface NotificationItem {
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: all 0.2s ease;
+      border-radius: 50%;
     }
 
     .modal-close:hover {
       color: #333;
+      background-color: #f0f0f0;
     }
 
     .modal-body {

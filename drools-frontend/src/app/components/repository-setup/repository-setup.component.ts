@@ -133,7 +133,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #f3c623;
+      background: #f5f5f5;
       padding: 24px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       overflow-x: hidden;
@@ -144,7 +144,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       background: #ffffff;
       border-radius: 12px;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-      border: 1px solid #e6dfcf;
+      border: 1px solid #e0e0e0;
       padding: 48px;
       max-width: min(640px, calc(100vw - 48px));
       width: 100%;
@@ -159,7 +159,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       left: 0;
       right: 0;
       height: 3px;
-      background: #f3c623;
+      background: #2c3e50;
     }
 
     .setup-header {
@@ -230,8 +230,8 @@ import { RepositoryConfig } from '../../models/repository-config.model';
 
     .form-control:focus {
       outline: none;
-      border-color: #f3c623;
-      box-shadow: 0 0 0 3px rgba(243, 198, 35, 0.25);
+      border-color: #2c3e50;
+      box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.15);
       transform: translateY(-1px);
     }
 
@@ -278,6 +278,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       min-width: 200px;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
     .btn::before {
@@ -299,26 +300,26 @@ import { RepositoryConfig } from '../../models/repository-config.model';
     }
 
     .btn-primary {
-      background: #f3c623;
-      color: #1b1b1b;
+      background: #2c3e50;
+      color: white;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
     }
 
     .btn-primary:hover:not(:disabled) {
-      background: #e0b71f;
-      box-shadow: 0 4px 12px rgba(224, 183, 31, 0.3);
+      background: #34495e;
+      box-shadow: 0 6px 16px rgba(44, 62, 80, 0.3);
       transform: translateY(-2px);
     }
 
     .btn-primary:active:not(:disabled) {
-      background: #cda419;
+      background: #1a252f;
       transform: translateY(0);
     }
 
     .btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
-      background: #e9d27a;
+      background: #95a5a6;
     }
 
     .btn-secondary {
@@ -330,7 +331,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
 
     .btn-secondary:hover:not(:disabled) {
       background: #e8e8e8;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
       transform: translateY(-2px);
       border-color: #a0a0a0;
     }
@@ -438,7 +439,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       content: '•';
       position: absolute;
       left: 0;
-      color: #f3c623;
+      color: #2c3e50;
       font-weight: 600;
       font-size: 16px;
     }
@@ -487,8 +488,8 @@ import { RepositoryConfig } from '../../models/repository-config.model';
     .dropdown-trigger:focus,
     .custom-dropdown.open .dropdown-trigger {
       outline: none;
-      border-color: #f3c623;
-      box-shadow: 0 0 0 3px rgba(243, 198, 35, 0.25);
+      border-color: #2c3e50;
+      box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.15);
     }
 
     .dropdown-trigger.error {
@@ -557,8 +558,8 @@ import { RepositoryConfig } from '../../models/repository-config.model';
     }
 
     .dropdown-option.selected {
-      background: #fff4cc;
-      color: #6b5a00;
+      background: #e3e6ea;
+      color: #2c3e50;
       font-weight: 500;
     }
 
@@ -607,7 +608,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       width: 16px;
       height: 16px;
       border: 2px solid #e0e0e0;
-      border-top: 2px solid #f3c623;
+      border-top: 2px solid #2c3e50;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }

@@ -50,7 +50,7 @@ import { RepositoryConfig } from './models/repository-config.model';
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       overflow: hidden;
       box-sizing: border-box;
-      background: #f3c623;
+      background: #f5f5f5;
       gap: 12px;
       padding: 12px;
     }
@@ -65,7 +65,8 @@ import { RepositoryConfig } from './models/repository-config.model';
       background: #ffffff;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-      border: 1px solid #e6dfcf;
+      border: 1px solid #e0e0e0;
+      transition: box-shadow 0.3s ease;
     }
     .left-panel {
       max-height: calc(100vh - 24px);
@@ -81,7 +82,8 @@ import { RepositoryConfig } from './models/repository-config.model';
       background: #ffffff;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-      border: 1px solid #e6dfcf;
+      border: 1px solid #e0e0e0;
+      transition: box-shadow 0.3s ease;
     }
     /* Smooth scrolling globally within the app container */
     :host, .app-container, .left-panel, .right-panel {

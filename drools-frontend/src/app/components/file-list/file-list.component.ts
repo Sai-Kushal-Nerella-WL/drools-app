@@ -56,14 +56,15 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
     .branch-indicator {
       margin-bottom: 20px;
       padding: 8px 12px;
-      background-color: #fff7d1;
-      border: 1px solid #f3c623;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
       border-radius: 4px;
       font-size: 14px;
+      transition: all 0.3s ease;
     }
 
     .branch-label {
-      color: #6b5a00;
+      color: #495057;
     }
 
     .file-list {
@@ -79,16 +80,23 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       border: 1px solid #ddd;
       border-radius: 4px;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .file-item:hover {
       background-color: #e9ecef;
+      transform: translateX(2px);
     }
 
     .file-item.selected {
-      background-color: #ffe166;
+      background-color: #e3e6ea;
       color: #1b1b1b;
+      transform: translateX(0);
+      font-weight: 500;
+    }
+    
+    .file-item:active {
+      transform: scale(0.99);
     }
 
     .no-files {
@@ -114,11 +122,14 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       border-radius: 4px;
       cursor: pointer;
       font-size: 14px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      font-weight: 500;
     }
 
     .btn-primary {
-      background-color: #f3c623;
-      color: #1b1b1b;
+      background-color: #2c3e50;
+      color: white;
     }
 
     .btn-secondary {
@@ -127,12 +138,19 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
     }
 
     .btn-warning {
-      background-color: #ffc107;
-      color: #212529;
+      background-color: #2c3e50;
+      color: white;
     }
 
-    .btn:hover {
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
       opacity: 0.9;
+    }
+    
+    .btn:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .btn:disabled {

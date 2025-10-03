@@ -12,9 +12,13 @@ The application will handle the entire lifecycle from fetching rules, enabling m
 
 **Requirements**
 •	UI for Rule Management: Provide a user-friendly interface to view, add, update, and delete rules (rows) and rule elements (columns).
+
 •	Git Integration (Pull): Fetch the rules Excel sheet from a specified Git repository.
+
 •	Git Integration (Push/PR): Save updated rules back to the Git repository, creating a new branch and submitting a Pull Request for review.
+
 •	Excel Handling: Read and write Excel files (.xlsx or .xls).
+
 •	Rules Engine Compatibility: The output Excel format should remain compatible with Drools Decision Table.
 
 

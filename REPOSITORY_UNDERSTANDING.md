@@ -23,7 +23,7 @@ drools-app/
 
 ## 🏗 **Architecture Overview**
 
-### **Frontend (Angular 15+)**
+### **Frontend (Angular 17+)**
 - **Port:** 4200 (development server)
 - **Framework:** Angular with Bootstrap styling
 - **Key Features:**

@@ -9,6 +9,7 @@
 **Used Case Received :**
 The goal is to create an intuitive application that streamlines the management of rules defined in Excel sheets, particularly for integration with Drools open-source rules engine. 
 The application will handle the entire lifecycle from fetching rules, enabling modifications, to proposing changes via Git.
+
 **Requirements**
 •	UI for Rule Management: Provide a user-friendly interface to view, add, update, and delete rules (rows) and rule elements (columns).
 •	Git Integration (Pull): Fetch the rules Excel sheet from a specified Git repository.

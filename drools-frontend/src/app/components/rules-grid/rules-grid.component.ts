@@ -172,9 +172,10 @@ interface NotificationItem {
   styles: [`
     .rules-grid-container {
       padding: 20px;
-      overflow: visible;
       display: flex;
       flex-direction: column;
+      min-height: 0;
+      max-height: 100vh;
       background: #ffffff;
       border-radius: 12px;
       box-sizing: border-box;
@@ -315,8 +316,7 @@ interface NotificationItem {
 
     /* Target parent containers that might be setting overflow: hidden */
     ::ng-deep .right-panel {
-      overflow: visible !important;
-      overflow-x: visible !important;
+      overflow: hidden !important;
     }
 
     ::ng-deep app-rules-grid {

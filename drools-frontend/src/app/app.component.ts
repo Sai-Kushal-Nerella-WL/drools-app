@@ -39,7 +39,7 @@ import { RepositoryConfig } from './models/repository-config.model';
       display: block;
       width: 100%;
       height: 100vh;
-      overflow: hidden;
+      
     }
 
     .app-container {
@@ -48,7 +48,7 @@ import { RepositoryConfig } from './models/repository-config.model';
       width: 100vw;
       max-width: 100vw;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      overflow: hidden;
+      
       box-sizing: border-box;
       background: #f3c623;
       gap: 12px;

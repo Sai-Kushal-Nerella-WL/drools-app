@@ -137,6 +137,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       padding: 24px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       overflow-x: hidden;
+      overflow-y: auto;
     }
 
     .setup-card {

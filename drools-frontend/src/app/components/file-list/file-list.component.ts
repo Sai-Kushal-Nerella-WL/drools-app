@@ -34,7 +34,6 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
           <button (click)="changeRepository()" class="btn btn-warning">Change Repository</button>
         </div>
       </div>
-
     </div>
   `,
   styles: [`
@@ -47,12 +46,10 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       display: flex;
       flex-direction: column;
     }
-
     h3 {
       margin-bottom: 15px;
       color: #333;
     }
-
     .branch-indicator {
       margin-bottom: 20px;
       padding: 8px 12px;
@@ -71,7 +68,6 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       flex: 1;
       min-height: 0;
     }
-
     .file-item {
       padding: 10px;
       margin-bottom: 5px;
@@ -90,14 +86,12 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       background-color: #ffe166;
       color: #1b1b1b;
     }
-
     .no-files {
       padding: 20px;
       text-align: center;
       color: #666;
       font-style: italic;
     }
-
     .actions {
       display: flex;
       flex-direction: column;
@@ -107,7 +101,6 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       margin-top: 10px;
       background-color: #ffffff;
     }
-
     .btn {
       padding: 10px 15px;
       border: none;
@@ -115,17 +108,14 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       cursor: pointer;
       font-size: 14px;
     }
-
     .btn-primary {
       background-color: #f3c623;
       color: #1b1b1b;
     }
-
     .btn-secondary {
       background-color: #6c757d;
       color: white;
     }
-
     .btn-warning {
       background-color: #ffc107;
       color: #212529;
@@ -139,7 +129,6 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       opacity: 0.6;
       cursor: not-allowed;
     }
-
     .spinner {
       display: inline-block;
       width: 12px;
@@ -150,7 +139,6 @@ import { RepositoryConfigService } from '../../services/repository-config.servic
       animation: spin 1s ease-in-out infinite;
       margin-right: 5px;
     }
-
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
@@ -187,7 +175,6 @@ export class FileListComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadFiles();
-
     if (this.repositoryConfigurationChanged) {
       this.repositoryConfigurationChanged.subscribe(() => {
         this.loadFiles();
@@ -227,14 +214,12 @@ export class FileListComponent implements OnInit, OnDestroy {
 
   pullFromGit() {
     this.isPulling = true;
-
     const config = this.repositoryConfigService.getCurrentConfig();
     if (!config) {
       this.showNotification('Repository not configured', 'error');
       this.isPulling = false;
       return;
     }
-
     this.apiService.pullFromRepo({ repoUrl: config.repoUrl, branch: config.branch }).subscribe({
       next: (response) => {
         console.log('Pull successful:', response);

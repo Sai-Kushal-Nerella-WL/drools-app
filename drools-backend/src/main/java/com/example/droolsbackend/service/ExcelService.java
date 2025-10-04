@@ -106,7 +106,6 @@ public class ExcelService {
                     columnLabels.add(value);
                 }
             }
-
             List<String> templateLabels = new ArrayList<>();
             Row templateRow = sheet.getRow(headerRowIndex + 1);
             if (templateRow != null) {
@@ -130,7 +129,6 @@ public class ExcelService {
                     String name = getCellValueAsString(row.getCell(0));
                     if (name != null && !name.trim().isEmpty()) {
                         List<Object> values = new ArrayList<>();
-
                         for (int j = 1; j < columnLabels.size(); j++) {
                             Cell cell = row.getCell(j);
                             Object value = getCellValue(cell);
@@ -297,7 +295,6 @@ public class ExcelService {
 
     private String getCellValueAsString(Cell cell) {
         if (cell == null) return null;
-
         switch (cell.getCellType()) {
             case STRING:
                 return cell.getStringCellValue();
@@ -318,7 +315,6 @@ public class ExcelService {
 
     private Object getCellValue(Cell cell) {
         if (cell == null) return null;
-
         switch (cell.getCellType()) {
             case STRING:
                 return cell.getStringCellValue();
@@ -436,7 +432,6 @@ public class ExcelService {
     private int findInsertPosition(Row headerRow, String columnType) {
         int lastConditionIndex = 0;
         int lastActionIndex = 0;
-
         for (int i = 0; i < headerRow.getLastCellNum(); i++) {
             Cell cell = headerRow.getCell(i);
             String value = getCellValueAsString(cell);
@@ -448,7 +443,6 @@ public class ExcelService {
                 }
             }
         }
-
         if ("CONDITION".equals(columnType)) {
             return lastConditionIndex > 0 ? lastConditionIndex + 1 : 1;
         } else {
@@ -461,7 +455,6 @@ public class ExcelService {
             Row row = sheet.getRow(rowIndex);
             if (row != null) {
                 int lastCellNum = row.getLastCellNum();
-
                 for (int cellIndex = lastCellNum; cellIndex > insertPosition; cellIndex--) {
                     Cell oldCell = row.getCell(cellIndex - 1);
                     Cell newCell = row.createCell(cellIndex);
@@ -470,7 +463,6 @@ public class ExcelService {
                         row.removeCell(oldCell);
                     }
                 }
-
                 Cell newCell = row.createCell(insertPosition);
                 if (rowIndex == headerRowIndex) {
                     newCell.setCellValue(columnName);
@@ -508,7 +500,6 @@ public class ExcelService {
 
     private void copyCellValue(Cell source, Cell target) {
         if (source == null) return;
-
         switch (source.getCellType()) {
             case STRING:
                 target.setCellValue(source.getStringCellValue());

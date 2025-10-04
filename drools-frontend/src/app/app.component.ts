@@ -54,7 +54,6 @@ import { RepositoryConfig } from './models/repository-config.model';
       gap: 12px;
       padding: 12px;
     }
-
     .left-panel {
       width: min(300px, 25vw);
       min-width: min(250px, 20vw);
@@ -71,7 +70,6 @@ import { RepositoryConfig } from './models/repository-config.model';
       max-height: calc(100vh - 24px);
       overflow: hidden;
     }
-
 
     .right-panel {
       flex: 1;
@@ -124,7 +122,6 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     this.isConfigured = this.repositoryConfigService.isConfigured();
-
     this.repositoryConfigService.getConfig().subscribe((config: RepositoryConfig | null) => {
       this.isConfigured = this.repositoryConfigService.isConfigured();
     });

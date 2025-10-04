@@ -19,7 +19,6 @@ public class SheetsController {
 
     @Autowired
     private ExcelService excelService;
-
     @Autowired
     private DroolsService droolsService;
 
@@ -40,7 +39,6 @@ public class SheetsController {
             if (fileName == null || fileName.trim().isEmpty()) {
                 return ResponseEntity.badRequest().build();
             }
-
             DecisionTableView view = excelService.readDecisionTable(fileName);
             return ResponseEntity.ok(view);
         } catch (Exception e) {
@@ -81,13 +79,11 @@ public class SheetsController {
             String columnType = request.get("columnType");
             String columnName = request.get("columnName");
             String templateValue = request.get("templateValue");
-
             if (fileName == null || columnType == null || columnName == null) {
                 Map<String, String> errorResponse = new HashMap<>();
                 errorResponse.put("error", "Missing required parameters");
                 return ResponseEntity.badRequest().body(errorResponse);
             }
-
             if (!columnType.equals("CONDITION") && !columnType.equals("ACTION")) {
                 Map<String, String> errorResponse = new HashMap<>();
                 errorResponse.put("error", "Column type must be CONDITION or ACTION");
@@ -112,7 +108,6 @@ public class SheetsController {
         try {
             String fileName = (String) request.get("fileName");
             Integer columnIndex = (Integer) request.get("columnIndex");
-
             if (fileName == null || columnIndex == null) {
                 Map<String, String> errorResponse = new HashMap<>();
                 errorResponse.put("error", "Missing required parameters");
@@ -131,14 +126,12 @@ public class SheetsController {
             return ResponseEntity.status(500).body(errorResponse);
         }
     }
-
     @PostMapping("/execute-rules")
     public ResponseEntity<Map<String, Object>> executeRules(@RequestBody Map<String, Object> request) {
         try {
             String fileName = (String) request.get("fileName");
             @SuppressWarnings("unchecked")
             Map<String, Object> inputData = (Map<String, Object>) request.get("inputData");
-
             if (fileName == null) {
                 Map<String, Object> errorResponse = new HashMap<>();
                 errorResponse.put("error", "fileName is required");
@@ -152,7 +145,6 @@ public class SheetsController {
                 errorResponse.put("error", "Invalid Drools decision table structure");
                 return ResponseEntity.badRequest().body(errorResponse);
             }
-
             Map<String, Object> results = droolsService.executeRules(tableView, inputData);
             return ResponseEntity.ok(results);
         } catch (Exception e) {
@@ -180,7 +172,6 @@ public class SheetsController {
             rows.add(new com.example.droolsbackend.model.RuleRow(name, values));
         }
         view.setRows(rows);
-
         return view;
     }
 }

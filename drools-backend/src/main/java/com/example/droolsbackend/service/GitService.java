@@ -17,35 +17,127 @@ public class GitService {
 
     @Autowired
     private RepositoryConfigService repositoryConfigService;
+    
+    private final Object gitLock = new Object();
 
     public void pullFromRepo(String repoUrl, String branch) throws GitAPIException, IOException, InterruptedException {
-        if (!repositoryConfigService.isConfigured()) {
-            throw new IllegalStateException("Repository not configured. Please configure repository first.");
+        synchronized (gitLock) {
+            String repoPath = deriveRepositoryPath(repoUrl);
+            File repoDir = new File(repoPath);
+            
+            if (repoDir.exists()) {
+                ProcessBuilder statusPb = new ProcessBuilder("git", "status", "--porcelain");
+                statusPb.directory(repoDir);
+                statusPb.redirectErrorStream(true);
+                Process statusProcess = statusPb.start();
+                
+                StringBuilder statusOutput = new StringBuilder();
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(statusProcess.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        statusOutput.append(line).append("\n");
+                    }
+                }
+                statusProcess.waitFor();
+                
+                if (statusOutput.length() > 0) {
+                    throw new RuntimeException("Cannot pull: You have uncommitted changes. Please commit or discard your changes first.");
+                }
+                
+                ProcessBuilder checkoutPb = new ProcessBuilder("git", "checkout", branch);
+                checkoutPb.directory(repoDir);
+                checkoutPb.redirectErrorStream(true);
+                Process checkoutProcess = checkoutPb.start();
+                checkoutProcess.waitFor();
+                
+                ProcessBuilder fetchPb = new ProcessBuilder("git", "fetch", "origin", branch);
+                fetchPb.directory(repoDir);
+                fetchPb.redirectErrorStream(true);
+                Process fetchProcess = fetchPb.start();
+                fetchProcess.waitFor();
+                
+                ProcessBuilder pb = new ProcessBuilder("git", "pull", "origin", branch);
+                pb.directory(repoDir);
+                pb.redirectErrorStream(true);
+                Process process = pb.start();
+                
+                StringBuilder output = new StringBuilder();
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                    }
+                }
+                
+                int exitCode = process.waitFor();
+                
+                if (exitCode != 0) {
+                    throw new RuntimeException("Git pull failed: " + output.toString().trim());
+                }
+            } else {
+                repoDir.mkdirs();
+                ProcessBuilder pb = new ProcessBuilder("git", "clone", repoUrl, repoDir.getName());
+                pb.directory(repoDir.getParentFile());
+                pb.redirectErrorStream(true);
+                Process process = pb.start();
+                
+                StringBuilder output = new StringBuilder();
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        output.append(line).append("\n");
+                    }
+                }
+                
+                int exitCode = process.waitFor();
+                
+                if (exitCode != 0) {
+                    throw new RuntimeException("Git clone failed: " + output.toString().trim());
+                }
+            }
         }
+    }
+
+    public String pushToRepo(String fileName, String repoUrl, String newBranch, String commitMessage) 
+            throws GitAPIException, IOException, InterruptedException {
+        synchronized (gitLock) {
+            if (!repositoryConfigService.isConfigured()) {
+                throw new IllegalStateException("Repository not configured. Please configure repository first.");
+            }
+            
+            String repoPath = repositoryConfigService.getRepositoryRootPath();
+            File repoDir = new File(repoPath);
+            
+            String branchToUse = (newBranch != null && !newBranch.trim().isEmpty()) 
+                ? newBranch 
+                : generateBranchName(fileName, repoUrl);
         
-        String repoPath = repositoryConfigService.getRepositoryPath();
-        File repoDir = new File(repoPath);
-        
-        if (repoDir.exists()) {
-            ProcessBuilder stashPb = new ProcessBuilder("git", "stash", "push", "-m", "Auto-stash before pull");
-            stashPb.directory(repoDir);
-            stashPb.redirectErrorStream(true);
-            Process stashProcess = stashPb.start();
-            stashProcess.waitFor();
+            try (Git git = Git.open(repoDir)) {
+                git.checkout()
+                   .setCreateBranch(true)
+                   .setName(branchToUse)
+                   .call();
             
-            ProcessBuilder checkoutPb = new ProcessBuilder("git", "checkout", branch);
-            checkoutPb.directory(repoDir);
-            checkoutPb.redirectErrorStream(true);
-            Process checkoutProcess = checkoutPb.start();
-            checkoutProcess.waitFor();
+            String folderPath = repositoryConfigService.getConfig().getFolderPath();
+            String filePattern = "rules/" + fileName;
+            if (folderPath != null && !folderPath.trim().isEmpty() && !folderPath.equals("/")) {
+                folderPath = folderPath.trim().replaceAll("^/+|/+$", "");
+                filePattern = folderPath + "/" + fileName;
+            }
             
-            ProcessBuilder fetchPb = new ProcessBuilder("git", "fetch", "origin", branch);
-            fetchPb.directory(repoDir);
-            fetchPb.redirectErrorStream(true);
-            Process fetchProcess = fetchPb.start();
-            fetchProcess.waitFor();
+            git.add()
+               .addFilepattern(filePattern)
+               .call();
             
-            ProcessBuilder pb = new ProcessBuilder("git", "reset", "--hard", "origin/" + branch);
+                git.commit()
+                   .setMessage(commitMessage)
+                   .call();
+            }
+            
+            ProcessBuilder pb = new ProcessBuilder("git", "push", "origin", branchToUse);
             pb.directory(repoDir);
             pb.redirectErrorStream(true);
             Process process = pb.start();
@@ -62,89 +154,13 @@ public class GitService {
             int exitCode = process.waitFor();
             
             if (exitCode != 0) {
-                throw new RuntimeException("Git pull failed: " + output.toString().trim());
-            }
-        } else {
-            repoDir.mkdirs();
-            ProcessBuilder pb = new ProcessBuilder("git", "clone", repoUrl, repoDir.getName());
-            pb.directory(repoDir.getParentFile());
-            pb.redirectErrorStream(true);
-            Process process = pb.start();
-            
-            StringBuilder output = new StringBuilder();
-            try (java.io.BufferedReader reader = new java.io.BufferedReader(
-                    new java.io.InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    output.append(line).append("\n");
-                }
+                throw new RuntimeException("Git push failed: " + output.toString().trim());
             }
             
-            int exitCode = process.waitFor();
-            
-            if (exitCode != 0) {
-                throw new RuntimeException("Git clone failed: " + output.toString().trim());
-            }
+            return branchToUse;
         }
     }
 
-    public String pushToRepo(String fileName, String repoUrl, String newBranch, String commitMessage) 
-            throws GitAPIException, IOException, InterruptedException {
-        if (!repositoryConfigService.isConfigured()) {
-            throw new IllegalStateException("Repository not configured. Please configure repository first.");
-        }
-        
-        String repoPath = repositoryConfigService.getRepositoryPath();
-        File repoDir = new File(repoPath);
-        
-        String generatedBranch = generateBranchName(fileName, repoUrl);
-        
-        try (Git git = Git.open(repoDir)) {
-            git.checkout()
-               .setCreateBranch(true)
-               .setName(generatedBranch)
-               .call();
-            
-            git.add()
-               .addFilepattern("rules/" + fileName)
-               .call();
-            
-            git.commit()
-               .setMessage(commitMessage)
-               .call();
-        }
-        
-        ProcessBuilder pb = new ProcessBuilder("git", "push", "origin", generatedBranch);
-        pb.directory(repoDir);
-        pb.redirectErrorStream(true);
-        Process process = pb.start();
-        
-        StringBuilder output = new StringBuilder();
-        try (java.io.BufferedReader reader = new java.io.BufferedReader(
-                new java.io.InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
-            }
-        }
-        
-        int exitCode = process.waitFor();
-        
-        if (exitCode != 0) {
-            throw new RuntimeException("Git push failed: " + output.toString().trim());
-        }
-        
-        return generatedBranch;
-    }
-
-    public void createPullRequest(String repoUrl, String baseBranch, String newBranch, 
-                                 String title, String body) throws IOException, InterruptedException {
-        String repoPath = repoUrl.replace("https://github.com/", "").replace(".git", "");
-        
-        System.out.println("Pull request created for: " + title);
-        System.out.println("Base: " + baseBranch + " <- Head: " + newBranch);
-        System.out.println("Create PR at: https://github.com/" + repoPath + "/compare/" + baseBranch + "..." + newBranch);
-    }
 
     public java.util.List<java.util.Map<String, Object>> listRemoteBranches(String repoUrl) throws IOException, InterruptedException {
         java.util.List<java.util.Map<String, Object>> branches = new java.util.ArrayList<>();
@@ -242,8 +258,8 @@ public class GitService {
         String fileNameWithoutExt = fileName.replaceAll("\\.(xlsx|xls)$", "");
         String filePrefix = fileNameWithoutExt.length() >= 3 ? fileNameWithoutExt.substring(0, 3).toUpperCase() : fileNameWithoutExt.toUpperCase();
         
-        ZonedDateTime cstTime = ZonedDateTime.now(ZoneId.of("America/Chicago"));
-        String dateTime = cstTime.format(DateTimeFormatter.ofPattern("MMddyyyyHHmm"));
+        ZonedDateTime utcTime = ZonedDateTime.now(ZoneId.of("UTC"));
+        String dateTime = utcTime.format(DateTimeFormatter.ofPattern("MMddyyyyHHmm"));
         
         return repoPrefix + "_" + filePrefix + "_" + dateTime;
     }
@@ -257,5 +273,35 @@ public class GitService {
             repoName = repoName.substring(0, repoName.length() - 4);
         }
         return repoName;
+    }
+    
+    private String deriveRepositoryPath(String repoUrl) {
+        try {
+            if (repoUrl.startsWith("https://git-manager.devin.ai/proxy/")) {
+                repoUrl = repoUrl.replace("https://git-manager.devin.ai/proxy/", "https://");
+            }
+            
+            java.net.URI uri = new java.net.URI(repoUrl);
+            String path = uri.getPath();
+            
+            if (path.endsWith(".git")) {
+                path = path.substring(0, path.length() - 4);
+            }
+            
+            String[] pathParts = path.split("/");
+            String repoName = pathParts[pathParts.length - 1];
+            
+            String baseRepoDir = System.getenv("DROOLS_REPO_DIR") != null ? 
+                System.getenv("DROOLS_REPO_DIR") : "./repos/";
+            
+            File reposDir = new File(baseRepoDir);
+            if (!reposDir.exists()) {
+                reposDir.mkdirs();
+            }
+            
+            return baseRepoDir + repoName;
+        } catch (java.net.URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid repository URL: " + repoUrl, e);
+        }
     }
 }

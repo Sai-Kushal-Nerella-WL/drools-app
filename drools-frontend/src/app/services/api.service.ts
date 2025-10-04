@@ -1,13 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { DecisionTableView, GitRequest } from '../models/decision-table.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:8080/api';
+  private baseUrl = environment.apiUrl;
+  public recentFilesLoaded = new Subject<boolean>();
 
   constructor(private http: HttpClient) {}
 
@@ -31,12 +33,17 @@ export class ApiService {
     return this.http.post<{message: string; branchName?: string}>(`${this.baseUrl}/git/push`, request);
   }
 
-  createPullRequest(request: GitRequest): Observable<{message: string}> {
-    return this.http.post<{message: string}>(`${this.baseUrl}/git/pr`, request);
-  }
 
   getRepositoryConfig(): Observable<any> {
     return this.http.get(`${this.baseUrl}/repository/config`);
+  }
+
+  listRepositoryFolders(repoUrl?: string): Observable<{folders: string[]}> {
+    let url = `${this.baseUrl}/repository/folders`;
+    if (repoUrl) {
+      url += `?repoUrl=${encodeURIComponent(repoUrl)}`;
+    }
+    return this.http.get<{folders: string[]}>(url);
   }
 
   getRepositoryStatus(): Observable<any> {
@@ -47,13 +54,13 @@ export class ApiService {
     return this.http.post<any[]>(`${this.baseUrl}/git/branches`, { repoUrl });
   }
 
-  addColumn(fileName: string, columnType: 'CONDITION' | 'ACTION', columnName: string, templateValue: string): Observable<{message: string}> {
-    return this.http.post<{message: string}>(`${this.baseUrl}/sheets/add-column`, { fileName, columnType, columnName, templateValue });
-  }
+  // addColumn(fileName: string, columnType: 'CONDITION' | 'ACTION', columnName: string, templateValue: string): Observable<{message: string}> {
+  //   return this.http.post<{message: string}>(`${this.baseUrl}/sheets/add-column`, { fileName, columnType, columnName, templateValue });
+  // }
 
-  deleteColumn(fileName: string, columnIndex: number): Observable<{message: string}> {
-    return this.http.post<{message: string}>(`${this.baseUrl}/sheets/delete-column`, { fileName, columnIndex });
-  }
+  // deleteColumn(fileName: string, columnIndex: number): Observable<{message: string}> {
+  //   return this.http.post<{message: string}>(`${this.baseUrl}/sheets/delete-column`, { fileName, columnIndex });
+  // }
 
   executeRules(fileName: string, inputData: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/sheets/execute-rules`, { fileName, inputData });

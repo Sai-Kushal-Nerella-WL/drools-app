@@ -4,14 +4,16 @@ public class RepositoryConfig {
     private String repoUrl;
     private String branch;
     private String displayName;
+    private String folderPath;
     private boolean isConfigured;
 
     public RepositoryConfig() {}
 
-    public RepositoryConfig(String repoUrl, String branch, String displayName, boolean isConfigured) {
+    public RepositoryConfig(String repoUrl, String branch, String displayName, String folderPath, boolean isConfigured) {
         this.repoUrl = repoUrl;
         this.branch = branch;
         this.displayName = displayName;
+        this.folderPath = folderPath;
         this.isConfigured = isConfigured;
     }
 
@@ -37,6 +39,14 @@ public class RepositoryConfig {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public String getFolderPath() {
+        return folderPath;
+    }
+
+    public void setFolderPath(String folderPath) {
+        this.folderPath = folderPath;
     }
 
     public boolean isConfigured() {

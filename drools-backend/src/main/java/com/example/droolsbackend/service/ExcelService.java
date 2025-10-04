@@ -20,19 +20,21 @@ public class ExcelService {
 
     @Autowired
     private RepositoryConfigService repositoryConfigService;
-    
+
     @Autowired
     private DroolsService droolsService;
+
+    private final Object excelLock = new Object();
 
     public List<String> listExcelFiles() {
         String repositoryPath = repositoryConfigService.getRepositoryPath();
         if (repositoryPath == null) {
             return new ArrayList<>();
         }
-        
-        File rulesDir = new File(repositoryPath + "/rules/");
+
+        File rulesDir = new File(repositoryPath);
         List<String> excelFiles = new ArrayList<>();
-        
+
         if (rulesDir.exists() && rulesDir.isDirectory()) {
             File[] files = rulesDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".xlsx"));
             if (files != null) {
@@ -41,26 +43,45 @@ public class ExcelService {
                 }
             }
         }
-        
+
         return excelFiles;
     }
 
+    private void validateFileName(String fileName) {
+        if (fileName == null || fileName.trim().isEmpty()) {
+            throw new IllegalArgumentException("File name cannot be empty");
+        }
+        if (fileName.contains("..") || fileName.contains("/") || fileName.contains("\\")) {
+            throw new IllegalArgumentException("Invalid file name: directory traversal not allowed");
+        }
+        if (!fileName.endsWith(".xlsx") && !fileName.endsWith(".xls")) {
+            throw new IllegalArgumentException("File must be an Excel file (.xlsx or .xls)");
+        }
+    }
+
     public DecisionTableView readDecisionTable(String fileName) throws IOException {
+        synchronized (excelLock) {
+            validateFileName(fileName);
+            return readDecisionTableInternal(fileName);
+        }
+    }
+
+    private DecisionTableView readDecisionTableInternal(String fileName) throws IOException {
         String repositoryPath = repositoryConfigService.getRepositoryPath();
         if (repositoryPath == null) {
             throw new RuntimeException("Repository not configured");
         }
-        
-        File excelFile = new File(repositoryPath + "/rules/" + fileName);
-        
+
+        File excelFile = new File(repositoryPath + "/" + fileName);
+
         try (FileInputStream fis = new FileInputStream(excelFile);
              Workbook workbook = new XSSFWorkbook(fis)) {
-            
+
             Sheet sheet = workbook.getSheetAt(0);
-            
+
             Row headerRow = null;
             int headerRowIndex = -1;
-            
+
             for (int i = 0; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
                 if (row != null) {
@@ -72,11 +93,11 @@ public class ExcelService {
                     }
                 }
             }
-            
+
             if (headerRow == null) {
                 throw new RuntimeException("Could not find header row with NAME column");
             }
-            
+
             List<String> columnLabels = new ArrayList<>();
             for (int i = 0; i < headerRow.getLastCellNum(); i++) {
                 Cell cell = headerRow.getCell(i);
@@ -85,7 +106,6 @@ public class ExcelService {
                     columnLabels.add(value);
                 }
             }
-            
             List<String> templateLabels = new ArrayList<>();
             Row templateRow = sheet.getRow(headerRowIndex + 1);
             if (templateRow != null) {
@@ -99,9 +119,9 @@ public class ExcelService {
                     templateLabels.add("");
                 }
             }
-            
+
             int dataStartRow = headerRowIndex + 2;
-            
+
             List<RuleRow> rows = new ArrayList<>();
             for (int i = dataStartRow; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
@@ -109,35 +129,88 @@ public class ExcelService {
                     String name = getCellValueAsString(row.getCell(0));
                     if (name != null && !name.trim().isEmpty()) {
                         List<Object> values = new ArrayList<>();
-                        
                         for (int j = 1; j < columnLabels.size(); j++) {
                             Cell cell = row.getCell(j);
                             Object value = getCellValue(cell);
                             values.add(value);
                         }
-                        
+
                         rows.add(new RuleRow(name, values));
+                    } else {
+                        System.err.println("Warning: Skipping row " + (i + 1) + " due to empty rule name");
                     }
                 }
             }
-            
+
             return new DecisionTableView(columnLabels, templateLabels, rows);
         }
     }
 
+    private void writeHeaderAndTemplate(Sheet sheet, int headerRowIndex,
+                                    List<String> columnLabels, List<String> templateLabels) {
+    // ensure rows exist
+    Row header = sheet.getRow(headerRowIndex);
+    if (header == null) header = sheet.createRow(headerRowIndex);
+    Row template = sheet.getRow(headerRowIndex + 1);
+    if (template == null) template = sheet.createRow(headerRowIndex + 1);
+
+    // if columns provided: rewrite header
+    if (columnLabels != null && !columnLabels.isEmpty()) {
+        // clear old header cells
+        short last = header.getLastCellNum();
+        if (last >= 0) {
+            for (int c = 0; c <= last; c++) {
+                Cell old = header.getCell(c);
+                if (old != null) header.removeCell(old);
+            }
+        }
+        // write new header cells
+        for (int c = 0; c < columnLabels.size(); c++) {
+            header.createCell(c).setCellValue(columnLabels.get(c));
+        }
+    }
+
+    // if template provided: rewrite template row to same width as header (or template length)
+    if (templateLabels != null && !templateLabels.isEmpty()) {
+        // clear old template cells
+        short lastT = template.getLastCellNum();
+        if (lastT >= 0) {
+            for (int c = 0; c <= lastT; c++) {
+                Cell old = template.getCell(c);
+                if (old != null) template.removeCell(old);
+            }
+        }
+        int width = Math.max(
+            columnLabels != null ? columnLabels.size() : 0,
+            templateLabels.size()
+        );
+        for (int c = 0; c < width; c++) {
+            String v = c < templateLabels.size() ? templateLabels.get(c) : "";
+            template.createCell(c).setCellValue(v);
+        }
+    }
+}
+
     public void saveDecisionTable(String fileName, DecisionTableView view) throws IOException {
+        synchronized (excelLock) {
+            validateFileName(fileName);
+            saveDecisionTableInternal(fileName, view);
+        }
+    }
+
+    private void saveDecisionTableInternal(String fileName, DecisionTableView view) throws IOException {
         String repositoryPath = repositoryConfigService.getRepositoryPath();
         if (repositoryPath == null) {
             throw new RuntimeException("Repository not configured");
         }
-        
-        File excelFile = new File(repositoryPath + "/rules/" + fileName);
-        
+
+        File excelFile = new File(repositoryPath + "/" + fileName);
+
         try (FileInputStream fis = new FileInputStream(excelFile);
              Workbook workbook = new XSSFWorkbook(fis)) {
-            
+
             Sheet sheet = workbook.getSheetAt(0);
-            
+
             int headerRowIndex = -1;
             for (int i = 0; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
@@ -149,33 +222,71 @@ public class ExcelService {
                     }
                 }
             }
-            
+
             if (headerRowIndex == -1) {
                 throw new RuntimeException("Could not find header row");
             }
-            
-            int dataStartRow = headerRowIndex + 2;
-            for (int i = dataStartRow; i <= sheet.getLastRowNum(); i++) {
-                Row row = sheet.getRow(i);
-                if (row != null) {
-                    sheet.removeRow(row);
+
+            for (RuleRow ruleRow : view.getRows()) {
+                if (ruleRow.getName() == null || ruleRow.getName().trim().isEmpty()) {
+                    throw new RuntimeException("Cannot save: All rows must have non-empty rule names. Rule names are mandatory.");
                 }
             }
-            
+
+            writeHeaderAndTemplate(sheet, headerRowIndex, view.getColumnLabels(), view.getTemplateLabels());
+
+            int dataStartRow = headerRowIndex + 2;
+            // for (int i = dataStartRow; i <= sheet.getLastRowNum(); i++) {
+            //     Row row = sheet.getRow(i);
+            //     if (row != null) {
+            //         sheet.removeRow(row);
+            //     }
+            // }
+
+            // for (int i = 0; i < view.getRows().size(); i++) {
+            //     RuleRow ruleRow = view.getRows().get(i);
+            //     Row row = sheet.createRow(dataStartRow + i);
+
+            //     Cell nameCell = row.createCell(0);
+            //     nameCell.setCellValue(ruleRow.getName());
+
+            //     for (int j = 0; j < ruleRow.getValues().size(); j++) {
+            //         Cell cell = row.createCell(j + 1);
+            //         Object value = ruleRow.getValues().get(j);
+            //         setCellValue(cell, value);
+            //     }
+            // }
+
+
+            // figure out how many data columns are allowed (excluding NAME)
+            int headerWidth = (view.getColumnLabels() != null && !view.getColumnLabels().isEmpty())
+                    ? view.getColumnLabels().size()
+                    : sheet.getRow(headerRowIndex).getLastCellNum(); // fallback
+            int maxDataCols = Math.max(0, headerWidth - 1); // minus NAME
+
+            // clear old data rows
+            for (int i = dataStartRow; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row != null) sheet.removeRow(row);
+            }
+
+            // write new rows, but only up to maxDataCols
             for (int i = 0; i < view.getRows().size(); i++) {
                 RuleRow ruleRow = view.getRows().get(i);
                 Row row = sheet.createRow(dataStartRow + i);
-                
-                Cell nameCell = row.createCell(0);
-                nameCell.setCellValue(ruleRow.getName());
-                
-                for (int j = 0; j < ruleRow.getValues().size(); j++) {
-                    Cell cell = row.createCell(j + 1);
-                    Object value = ruleRow.getValues().get(j);
-                    setCellValue(cell, value);
+
+                // col 0: NAME
+                row.createCell(0).setCellValue(ruleRow.getName());
+
+                // col 1..: values trimmed to header width
+                List<Object> vals = ruleRow.getValues();
+                int writeCount = Math.min(maxDataCols, vals != null ? vals.size() : 0);
+                for (int j = 0; j < writeCount; j++) {
+                    setCellValue(row.createCell(j + 1), vals.get(j));
                 }
+                // (no cells created beyond writeCount => no leftover “ghost” data)
             }
-            
+
             try (FileOutputStream fos = new FileOutputStream(excelFile)) {
                 workbook.write(fos);
             }
@@ -184,7 +295,6 @@ public class ExcelService {
 
     private String getCellValueAsString(Cell cell) {
         if (cell == null) return null;
-        
         switch (cell.getCellType()) {
             case STRING:
                 return cell.getStringCellValue();
@@ -205,7 +315,6 @@ public class ExcelService {
 
     private Object getCellValue(Cell cell) {
         if (cell == null) return null;
-        
         switch (cell.getCellType()) {
             case STRING:
                 return cell.getStringCellValue();
@@ -229,14 +338,14 @@ public class ExcelService {
         if (repositoryPath == null) {
             throw new RuntimeException("Repository not configured");
         }
-        
-        File excelFile = new File(repositoryPath + "/rules/" + fileName);
-        
+
+        File excelFile = new File(repositoryPath + "/" + fileName);
+
         try (FileInputStream fis = new FileInputStream(excelFile);
              Workbook workbook = new XSSFWorkbook(fis)) {
-            
+
             Sheet sheet = workbook.getSheetAt(0);
-            
+
             int headerRowIndex = -1;
             Row headerRow = null;
             for (int i = 0; i <= sheet.getLastRowNum(); i++) {
@@ -250,11 +359,11 @@ public class ExcelService {
                     }
                 }
             }
-            
+
             if (headerRow == null) {
                 throw new RuntimeException("Could not find header row with NAME column");
             }
-            
+
             List<String> existingColumns = new ArrayList<>();
             for (int i = 0; i < headerRow.getLastCellNum(); i++) {
                 Cell cell = headerRow.getCell(i);
@@ -263,16 +372,16 @@ public class ExcelService {
                     existingColumns.add(value);
                 }
             }
-            
+
             String droolsColumnName = droolsService.generateDroolsColumnName(columnType, existingColumns);
-            String droolsTemplateValue = templateValue != null && !templateValue.trim().isEmpty() 
-                ? templateValue 
+            String droolsTemplateValue = templateValue != null && !templateValue.trim().isEmpty()
+                ? templateValue
                 : droolsService.getDefaultTemplateValue(columnType);
-            
+
             int insertPosition = findInsertPosition(headerRow, columnType);
-            
+
             insertColumnAtPosition(sheet, headerRowIndex, insertPosition, droolsColumnName, droolsTemplateValue);
-            
+
             try (FileOutputStream fos = new FileOutputStream(excelFile)) {
                 workbook.write(fos);
             }
@@ -284,14 +393,14 @@ public class ExcelService {
         if (repositoryPath == null) {
             throw new RuntimeException("Repository not configured");
         }
-        
-        File excelFile = new File(repositoryPath + "/rules/" + fileName);
-        
+
+        File excelFile = new File(repositoryPath + "/" + fileName);
+
         try (FileInputStream fis = new FileInputStream(excelFile);
              Workbook workbook = new XSSFWorkbook(fis)) {
-            
+
             Sheet sheet = workbook.getSheetAt(0);
-            
+
             int headerRowIndex = -1;
             Row headerRow = null;
             for (int i = 0; i <= sheet.getLastRowNum(); i++) {
@@ -305,15 +414,15 @@ public class ExcelService {
                     }
                 }
             }
-            
+
             if (headerRow == null) {
                 throw new RuntimeException("Could not find header row with NAME column");
             }
-            
+
             validateColumnDeletion(headerRow, columnIndex);
-            
+
             removeColumnAtPosition(sheet, headerRowIndex, columnIndex);
-            
+
             try (FileOutputStream fos = new FileOutputStream(excelFile)) {
                 workbook.write(fos);
             }
@@ -323,7 +432,6 @@ public class ExcelService {
     private int findInsertPosition(Row headerRow, String columnType) {
         int lastConditionIndex = 0;
         int lastActionIndex = 0;
-        
         for (int i = 0; i < headerRow.getLastCellNum(); i++) {
             Cell cell = headerRow.getCell(i);
             String value = getCellValueAsString(cell);
@@ -335,7 +443,6 @@ public class ExcelService {
                 }
             }
         }
-        
         if ("CONDITION".equals(columnType)) {
             return lastConditionIndex > 0 ? lastConditionIndex + 1 : 1;
         } else {
@@ -348,7 +455,6 @@ public class ExcelService {
             Row row = sheet.getRow(rowIndex);
             if (row != null) {
                 int lastCellNum = row.getLastCellNum();
-                
                 for (int cellIndex = lastCellNum; cellIndex > insertPosition; cellIndex--) {
                     Cell oldCell = row.getCell(cellIndex - 1);
                     Cell newCell = row.createCell(cellIndex);
@@ -357,7 +463,6 @@ public class ExcelService {
                         row.removeCell(oldCell);
                     }
                 }
-                
                 Cell newCell = row.createCell(insertPosition);
                 if (rowIndex == headerRowIndex) {
                     newCell.setCellValue(columnName);
@@ -375,9 +480,12 @@ public class ExcelService {
             Row row = sheet.getRow(rowIndex);
             if (row != null) {
                 int lastCellNum = row.getLastCellNum();
-                
-                row.removeCell(row.getCell(columnIndex));
-                
+
+                Cell cellToRemove = row.getCell(columnIndex);
+                if (cellToRemove != null) {
+                    row.removeCell(cellToRemove);
+                }
+
                 for (int cellIndex = columnIndex + 1; cellIndex < lastCellNum; cellIndex++) {
                     Cell oldCell = row.getCell(cellIndex);
                     if (oldCell != null) {
@@ -392,7 +500,6 @@ public class ExcelService {
 
     private void copyCellValue(Cell source, Cell target) {
         if (source == null) return;
-        
         switch (source.getCellType()) {
             case STRING:
                 target.setCellValue(source.getStringCellValue());
@@ -416,13 +523,13 @@ public class ExcelService {
         if (columnIndex == 0) {
             throw new RuntimeException("Cannot delete NAME column - it is mandatory for Drools decision tables");
         }
-        
+
         Cell cellToDelete = headerRow.getCell(columnIndex);
         String columnLabel = getCellValueAsString(cellToDelete);
-        
+
         int conditionCount = 0;
         int actionCount = 0;
-        
+
         for (int i = 0; i < headerRow.getLastCellNum(); i++) {
             Cell cell = headerRow.getCell(i);
             String value = getCellValueAsString(cell);
@@ -434,11 +541,11 @@ public class ExcelService {
                 }
             }
         }
-        
+
         if (columnLabel != null && columnLabel.startsWith("CONDITION") && conditionCount <= 1) {
             throw new RuntimeException("Cannot delete the last CONDITION column. Drools decision tables require at least one CONDITION column.");
         }
-        
+
         if (columnLabel != null && columnLabel.startsWith("ACTION") && actionCount <= 1) {
             throw new RuntimeException("Cannot delete the last ACTION column. Drools decision tables require at least one ACTION column.");
         }

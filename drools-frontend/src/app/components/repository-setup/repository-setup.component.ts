@@ -29,7 +29,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
               (blur)="onRepoUrlChange()"
               required
               class="form-control"
-              placeholder="https://git-manager.devin.ai/proxy/github.com/username/repo-name"
+              placeholder="https://github.com/username/repo-name"
               [class.error]="repoUrlInput.invalid && repoUrlInput.touched">
             <div *ngIf="repoUrlInput.invalid && repoUrlInput.touched" class="error-message">
               Please enter a valid repository URL
@@ -52,6 +52,33 @@ import { RepositoryConfig } from '../../models/repository-config.model';
             <div *ngIf="branchSelect.invalid && branchSelect.touched" class="error-message">
               Please select a branch
             </div>
+          </div>
+
+          <div class="form-group">
+            <label for="folderPath">Folder Path *</label>
+            <div style="display: flex; gap: 10px; align-items: flex-start;">
+              <select 
+                id="folderPath"
+                name="folderPath"
+                [(ngModel)]="config.folderPath"
+                required
+                class="form-control"
+                style="flex: 1;"
+                [disabled]="availableFolders.length === 0">
+                <option *ngFor="let folder of availableFolders" [value]="folder">{{ folder }}</option>
+              </select>
+              <button 
+                type="button"
+                class="btn btn-secondary"
+                (click)="fetchFolders()"
+                [disabled]="!config.repoUrl || !config.branch || isFetchingFolders"
+                style="white-space: nowrap;">
+                {{ isFetchingFolders ? 'Fetching...' : 'Fetch Folders' }}
+              </button>
+            </div>
+            <div class="help-text" *ngIf="availableFolders.length === 0 && !isFetchingFolders" style="margin-top: 8px;">Click "Fetch Folders" to load available folders from the repository</div>
+            <div class="help-text" *ngIf="isFetchingFolders" style="margin-top: 8px;">Loading folders from repository...</div>
+            <div class="help-text" *ngIf="availableFolders.length > 0" style="margin-top: 8px;">Select the folder containing your Excel decision tables</div>
           </div>
 
           <div class="form-group">
@@ -92,7 +119,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
           <h4>Need Help?</h4>
           <ul>
             <li>Repository URL should be the full HTTPS URL to your Git repository</li>
-            <li>For GitHub repositories, use the proxy format: <code>https://git-manager.devin.ai/proxy/github.com/username/repo</code></li>
+            <li>For GitHub repositories, use the format: <code>https://github.com/username/repo</code></li>
             <li>Branch should be the main branch containing your Excel decision tables</li>
             <li>Display name is optional and used for identification purposes</li>
           </ul>
@@ -110,6 +137,7 @@ import { RepositoryConfig } from '../../models/repository-config.model';
       padding: 24px;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       overflow-x: hidden;
+      overflow-y: auto;
     }
 
     .setup-card {
@@ -644,12 +672,15 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
     repoUrl: '',
     branch: 'main',
     displayName: '',
+    folderPath: '/',
     isConfigured: false
   };
 
   isSubmitting = false;
   validationError = '';
   isValidating = false;
+  isFetchingFolders = false;
+  availableFolders: string[] = [];
 
   constructor(
     private repositoryConfigService: RepositoryConfigService,
@@ -661,6 +692,9 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
       if (!this.config.branch) {
         this.config.branch = 'main';
       }
+      if (!this.config.folderPath) {
+        this.config.folderPath = '/';
+      }
     }, 0);
   }
 
@@ -671,6 +705,20 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
   onRepoUrlChange() {
     const repoUrl = this.config.repoUrl;
     console.log('onRepoUrlChange called with:', repoUrl);
+    
+    if (repoUrl && repoUrl.trim()) {
+      const githubPattern = /^https:\/\/github\.com\/[\w-]+\/[\w-]+$/;
+      const gitlabPattern = /^https:\/\/gitlab\.com\/[\w-]+\/[\w-]+$/;
+      
+      if (!githubPattern.test(repoUrl) && !gitlabPattern.test(repoUrl)) {
+        this.validationError = 'Please enter a valid GitHub or GitLab repository URL (e.g., https://github.com/username/repo)';
+      } else {
+        this.validationError = '';
+      }
+    }
+    
+    this.availableFolders = [];
+    this.config.folderPath = '/';
   }
 
   clearForm() {
@@ -678,15 +726,17 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
       repoUrl: '',
       branch: 'main',
       displayName: '',
+      folderPath: '/',
       isConfigured: false
     };
     this.validationError = '';
+    this.availableFolders = [];
   }
 
-  onSubmit() {
-    if (this.isSubmitting || this.isValidating) return;
+  fetchFolders() {
+    if (this.isFetchingFolders) return;
     
-    this.isValidating = true;
+    this.isFetchingFolders = true;
     this.validationError = '';
     
     this.apiService.listRemoteBranches(this.config.repoUrl).subscribe({
@@ -695,23 +745,87 @@ export class RepositorySetupComponent implements OnInit, OnDestroy {
         
         if (!branchExists) {
           this.validationError = `Branch "${this.config.branch}" not found in repository. Please select a valid branch.`;
-          this.isValidating = false;
+          this.isFetchingFolders = false;
           return;
         }
         
-        const configToSave: RepositoryConfig = {
-          ...this.config,
-          isConfigured: true
-        };
-        
-        this.repositoryConfigService.saveConfig(configToSave);
-        this.configurationComplete.emit(configToSave);
-        this.isValidating = false;
+        this.fetchAvailableFolders();
       },
       error: (error) => {
         this.validationError = `Unable to access repository: ${error.error?.error || error.message || 'Please check the URL and try again'}`;
-        this.isValidating = false;
+        this.isFetchingFolders = false;
       }
     });
+  }
+
+  onSubmit() {
+    if (this.isSubmitting || this.isValidating) return;
+    
+    if (this.availableFolders.length === 0) {
+      this.validationError = 'Please fetch folders first by clicking the "Fetch Folders" button';
+      return;
+    }
+    
+    if (!this.config.folderPath) {
+      this.validationError = 'Please select a folder';
+      return;
+    }
+    
+    this.completeConfiguration();
+  }
+  
+  private fetchAndCloneRepository() {
+    this.apiService.pullFromRepo({
+      repoUrl: this.config.repoUrl,
+      branch: this.config.branch
+    }).subscribe({
+      next: () => {
+        this.fetchAvailableFolders();
+      },
+      error: (error) => {
+        this.validationError = `Failed to clone repository: ${error.error?.error || error.message}`;
+        this.isFetchingFolders = false;
+      }
+    });
+  }
+  
+  private fetchAvailableFolders() {
+    this.apiService.listRepositoryFolders(this.config.repoUrl).subscribe({
+      next: (response) => {
+        this.availableFolders = response.folders || ['/'];
+        
+        if (this.availableFolders.includes('/rules')) {
+          this.config.folderPath = '/rules';
+        } else if (this.availableFolders.length > 0) {
+          this.config.folderPath = this.availableFolders[0];
+        }
+        
+        this.isFetchingFolders = false;
+      },
+      error: (error) => {
+        console.error('Failed to fetch folders:', error);
+        
+        if (error.error?.error?.includes('Repository not cloned yet')) {
+          this.fetchAndCloneRepository();
+        } else {
+          this.availableFolders = ['/'];
+          this.config.folderPath = '/';
+          this.validationError = `Failed to fetch folders: ${error.error?.error || error.message}`;
+          this.isFetchingFolders = false;
+        }
+      }
+    });
+  }
+  
+  private completeConfiguration() {
+    this.isValidating = true;
+    const configToSave: RepositoryConfig = {
+      ...this.config,
+      isConfigured: true
+    };
+    
+    this.repositoryConfigService.saveConfig(configToSave);
+    this.configurationComplete.emit(configToSave);
+    this.isValidating = false;
   }
 }
